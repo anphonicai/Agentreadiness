@@ -14,14 +14,14 @@
 // ============================================================== SCORING CONFIG
 // Everything tunable lives here. Change a number, rerun, done.
 
-export const VERSION = '2.1-agentnew';   // Layer 2 reported check by check, with per-store fixes
+export const VERSION = '2.2-agentnew';   // Comparable scan metadata for Layer 5
 
 export const WEIGHTS = {
   layer1: 0.20,   // Crawler & technical access
   layer2: 0.25,   // Structured data
   layer3: 0.25,   // Checkout & UCP compatibility
   layer4: 0.15,   // Content clarity
-  layer5: 0.15,   // Competitive position — paid tier, not computed here
+  layer5: 0.15,   // Competitive position — computed separately in competitive.js
 };
 
 export const SKIPPED_LAYERS = ['layer5'];
@@ -118,7 +118,7 @@ export const layer4Weight = (key) => {
   return c ? c.specSub / L4_SPEC_TOTAL : 0;
 };
 
-const SUB = {
+export const SUB = {
   // v2 spec: robots, JS render and sitemap demoted to measured-but-not-scored —
   // all three returned 100 on every Shopify store tested. Weights below are the
   // spec's proposed split; change them here if Akshita locks different ones.
@@ -497,7 +497,7 @@ function parseRobots(txt) {
 
 // ==================================================================== COLLECT
 
-export async function collect(domainInput, onProgress = () => {}) {
+export async function collect(domainInput, onProgress = () => {}, options = {}) {
   const origin = normalizeDomain(domainInput);
   const raw = { domain: origin, scannedAt: new Date().toISOString(), errors: [] };
 
@@ -726,7 +726,9 @@ export async function collect(domainInput, onProgress = () => {}) {
 
   // Optional: grade the sampled descriptions with Gemini. Falls back silently
   // to keyword detection when no key is set or the call fails.
-  raw.llm = await gradeDescriptions(raw.products, onProgress);
+  raw.llm = options.contentMethod === 'heuristic'
+    ? { used: false, model: null, graded: 0, cached: 0, error: null }
+    : await gradeDescriptions(raw.products, onProgress);
 
   return raw;
 }
@@ -1933,6 +1935,8 @@ export function score(raw) {
     scannedAt: raw.scannedAt,
     catalogCount: raw.catalogCount,
     sampled: live.length,
+    sampleAttempted: (raw.products || []).length,
+    homeStatus: raw.homeStatus,
     checkoutStack: raw.checkoutStack || [],
     botVerdicts,
     behindCloudflare: !!raw.behindCloudflare,
@@ -1955,8 +1959,8 @@ export function score(raw) {
   };
 }
 
-export async function scanStore(domain, onProgress) {
-  const raw = await collect(domain, onProgress);
+export async function scanStore(domain, onProgress, options = {}) {
+  const raw = await collect(domain, onProgress, options);
   if (raw.errors.length && !raw.products) {
     return { domain: raw.domain, errors: raw.errors, finalScore: null, grade: null };
   }

@@ -241,44 +241,112 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
 }
 </style>
 <link rel="stylesheet" href="/design.css">
+<link rel="stylesheet" href="/flow.css">
+<link rel="stylesheet" href="/refinement.css">
 </head>
-<body>
-<div class="wrap">
+<body data-screen="home">
+<nav class="flow-nav" aria-label="Main navigation">
+  <a href="/" aria-label="Anphonic home"><img src="/assets/flow/logo.png" alt="Anphonic" width="136" height="32"></a>
+  <button type="button" id="methodology-open">Methodology</button>
+</nav>
+<main class="wrap">
 
   <header class="masthead"><a href="/" aria-label="Anphonic Agent Readiness home"><img src="/assets/anphonic-logo.png" alt="Anphonic" width="213" height="50"></a><span class="edition">AI COMMERCE INTELLIGENCE</span></header>
 
   <div id="intro" class="lede">
-    <div class="eyebrow">THE AI AGENT READINESS AUDIT</div><h1>Can AI agents discover<br>your next bestseller?</h1>
-    <p>See how accessible your Shopify store’s product data is to AI shopping agents. Get your readiness score, uncover the gaps, and know what to fix first.</p>
+    <div class="eyebrow">AI COMMERCE INTELLIGENCE</div><h1>See your store through the eyes of AI.</h1>
+    <p>Measure how discoverable and understandable your storefront is to the next generation of shopping agents.</p>
 
     <form id="form">
-      <input type="text" id="url" placeholder="yourstore.com" autocomplete="off" spellcheck="false" aria-label="Shopify store URL">
-      <button id="go" type="submit">Scan store <span aria-hidden="true">↗</span></button>
+      <input type="text" id="url" placeholder="Enter store name or URL" autocomplete="url" spellcheck="false" aria-label="Store name or website URL" aria-describedby="err" maxlength="2048" required>
+      <button id="go" type="submit">Analyse store →</button>
     </form>
-    <p class="form-note">Free scan · No account required · Public storefront data only</p><div id="err" class="err hidden" role="alert"></div>
+    <p class="form-note">Free scan · Public storefront data only</p><div id="err" class="err hidden" role="alert"></div>
     <div class="recent" id="recent"></div>
+    <div class="flow-signals"><span>● &nbsp; AI readiness score</span><span>● &nbsp; Page-level intelligence</span><span>● &nbsp; Actionable findings</span></div>
   </div>
 
+  <div id="analysis-heading" class="hidden"><div class="flow-track" aria-hidden="true"><i></i></div><h1>Analysing <em id="analysis-store"></em></h1><p>Inspecting your public storefront.</p></div>
   <div id="progress" class="steps hidden" role="status" aria-live="polite"></div>
+  <p id="analysis-note" class="hidden">This may take a few minutes. Keep this page open to see your report.</p>
+
+  <section id="consent-screen" class="journey-card hidden" aria-labelledby="consent-title">
+    <button type="button" class="journey-back" data-back="home">← Back</button>
+    <span class="journey-kicker">01 / SECURE ANALYSIS</span>
+    <h1 id="consent-title" tabindex="-1">Get your store intelligence score</h1>
+    <p class="journey-store"></p>
+    <p>Analyse your public storefront and get your readiness report. We save your name, email and store URL with your audit request.</p>
+    <form id="consent-form" class="journey-form">
+      <label for="contact-name">Full name</label><input id="contact-name" name="name" autocomplete="name" required maxlength="120">
+      <label for="contact-email">Work email</label><input id="contact-email" name="email" type="email" autocomplete="email" required maxlength="254">
+      <label class="journey-checkbox"><input id="contact-consent" type="checkbox" required><span>I agree to storing my name, email and store URL and scanning this store’s publicly available pages to generate this report.</span></label>
+      <p id="consent-error" class="err hidden" role="alert"></p>
+      <button type="submit">Continue to verification →</button>
+    </form>
+  </section>
+
+  <section id="verification-screen" class="journey-card hidden" aria-labelledby="verification-title">
+    <button type="button" class="journey-back" data-back="consent">← Change details</button>
+    <span class="journey-kicker">02 / EMAIL VERIFICATION · DEMO</span>
+    <h1 id="verification-title" tabindex="-1">Enter the verification code<br>to verify your email</h1>
+    <p>Continue with <span id="verification-email"></span></p>
+    <p class="journey-notice">Email delivery is not connected. No email has been sent. Use demo code <strong>123456</strong> to try the flow.</p>
+    <form id="verification-form" class="journey-form">
+      <label for="verification-code">Six-digit verification code</label>
+      <div class="code-entry"><input id="verification-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required aria-describedby="verification-error" aria-label="Six-digit verification code"><div class="code-boxes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+      <p id="verification-error" class="err hidden" role="alert"></p>
+      <button type="submit">Verify demo code &amp; analyse →</button>
+      <button type="button" id="resend-code" class="journey-secondary">Reset demo code</button>
+      <p id="resend-status" role="status"></p>
+    </form>
+  </section>
+
+  <section id="upgrade-screen" class="upgrade-screen hidden" aria-labelledby="upgrade-title">
+    <div class="upgrade-copy"><button type="button" class="journey-back" data-back="report">← Back to free report</button><span class="journey-kicker">PREMIUM REPORT</span><h1 id="upgrade-title" tabindex="-1">Turn insight into a<br>sharper growth plan.</h1><p>Unlock the evidence, benchmarks and exact changes that make <span class="journey-store"></span> easier for AI agents to understand.</p></div>
+    <div class="price-card"><span class="journey-kicker">ONE-TIME STORE AUDIT</span><div class="price">$249</div><p>USD · once · design preview</p><ul><li>Full per-check diagnostics</li><li>Named competitor benchmark, when available</li><li>Store-specific evidence and fixes</li><li>Downloadable report</li></ul><button id="checkout-open" type="button">Unlock full report →</button><small>Preview checkout · No charge</small></div>
+  </section>
+  <section id="payment-screen" class="checkout-screen hidden" aria-labelledby="payment-title">
+    <div class="checkout-copy"><button type="button" class="journey-back" data-back="upgrade">← Back</button><span class="journey-kicker">CHECKOUT PREVIEW</span><h1 id="payment-title" tabindex="-1">Unlock your full report</h1><p><span class="journey-store"></span> · Complete AI commerce intelligence audit</p><div class="order-total"><span>Report price</span><strong>$249.00</strong></div><p class="journey-notice">Demo checkout. No payment is collected. Continue to explore the full report from your scan.</p></div>
+    <div class="payment-card"><h2>Payment details</h2><span class="journey-kicker">DEMO · NO CHARGE</span><div class="journey-form"><label for="card-preview">Card number</label><input id="card-preview" value="4242 4242 4242 4242" disabled><label for="expiry-preview">Expiry</label><input id="expiry-preview" value="12 / 29" disabled><label for="cvc-preview">CVC</label><input id="cvc-preview" value="123" disabled><label for="name-preview">Name on card</label><input id="name-preview" value="Demo customer" disabled><button type="button" id="demo-payment">Preview full report →</button><small>Payment integration coming later</small><p id="payment-status" role="status"></p></div></div>
+  </section>
 
   <div id="report" class="hidden"></div>
 
   <div class="foot">
-    Built by Anphonic. Reads publicly served pages and samples up to 20 products per store rather than the full catalogue. Layer 5 (competitive benchmark) is part of the paid audit and is not scored here.
+    Built by Anphonic. Reads publicly served pages and samples up to 20 products per store rather than the full catalogue.
     <span id="ver"></span>
   </div>
-</div>
+</main>
+<dialog id="flow-methodology" aria-labelledby="methodology-title">
+  <h2 id="methodology-title">How the audit works</h2>
+  <p>We inspect publicly served storefront pages and sample up to 20 products. The report checks crawler access, structured data, checkout declarations, and content clarity.</p>
+  <p>These are checklist measurements, not a measurement of AI recommendations. No purchase is attempted. Configured competitor comparisons appear in the Full audit preview.</p>
+  <button type="button" id="methodology-close">Close</button>
+</dialog>
 
 <script>
-const STEPS = ['Reaching the store','Checking crawler access','Reading robots.txt','Reading store policies','Loading the product catalogue','Inspecting products','Scoring'];
+const STEPS = ['Reaching the store','Checking crawler access','Reading robots.txt','Reading store policies','Loading the product catalogue','Inspecting products','Scoring','Comparing competitors'];
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-function showError(msg){ $('err').textContent = msg; $('err').classList.remove('hidden'); }
+function setScreen(screen){
+  document.body.dataset.screen = screen;
+  $('intro').classList.toggle('hidden', screen !== 'home');
+  $('analysis-heading').classList.toggle('hidden', screen !== 'analysis');
+  $('analysis-note').classList.toggle('hidden', screen !== 'analysis');
+  $('progress').classList.toggle('hidden', screen !== 'analysis');
+  $('report').classList.toggle('hidden', screen !== 'report');
+  ['consent', 'verification', 'upgrade', 'payment'].forEach(name => $(name + '-screen').classList.toggle('hidden', screen !== name));
+  document.querySelector('.flow-nav img').src = screen === 'upgrade' ? '/assets/flow/logo-dark.png' : '/assets/flow/logo.png';
+  const title = $(screen + '-title');
+  if (title) title.focus({preventScroll:true});
+  window.scrollTo(0, 0);
+}
+function showError(msg){ setScreen('home'); $('err').textContent = msg; $('err').classList.remove('hidden'); }
 function clearError(){ $('err').classList.add('hidden'); }
 
 function renderSteps(current){
-  const idx = STEPS.findIndex(s => current && current.startsWith(s.slice(0,14)));
+  const idx = current?.startsWith('Comparing ') ? STEPS.length - 1 : STEPS.findIndex(s => current && current.startsWith(s.slice(0,14)));
   $('progress').innerHTML = STEPS.map((s,i)=>{
     const cls = i < idx ? 'past' : i === idx ? 'on' : '';
     return `<div class="step ${cls}"><i></i>${esc(i===idx&&current?current:s)}</div>`;
@@ -422,7 +490,28 @@ ${esc(c.fix.snippet)}
     ${cards}`;
 }
 
-function renderReport(r){
+function renderLayer5(L){
+  if (!L) return `<section class="benchmark-note"><div class="sechead"><h3>Layer 5 — Competitive Position</h3><span class="pill">15% · NOT CONFIGURED</span></div><p>No named competitors are configured for this store.</p></section>`;
+  const number = n => Number.isFinite(n) ? Math.round(n * 10) / 10 : '—';
+  const complete = L.status === 'complete';
+  const note = complete ? 'Three or more competitors have comparable scans. The combined audit score includes Layer 5 at 15%.'
+    : L.status === 'provisional' ? `Only ${L.comparedCount} comparable competitor${L.comparedCount === 1 ? '' : 's'}. Add or rescan competitors to reach at least three. This provisional score does not contribute to the overall score.`
+    : `Comparison unavailable. ${L.clientIssue || 'No comparable competitor scans.'} Missing data is not scored as zero.`;
+  return `<section class="benchmark-note layer5" id="layer5">
+    <div class="sechead"><h3>Layer 5 — Competitive Position</h3><span class="pill">15% · ${esc(L.status.toUpperCase())}</span></div>
+    <p>How your storefront compares with your named competitors on the same checklist.</p>
+    <div class="benchmark-stats"><div><b>${number(L.score)}<small>/100</small></b><span>Relative position${complete ? '' : ' · provisional/unavailable'}</span></div><div><b>${L.comparedCount}/${L.namedCount}</b><span>Comparable competitors</span></div><div><b>${number(L.contribution)}<small>/15</small></b><span>Contribution to combined score</span></div><div><b>${number(L.combinedScore)}<small>/100</small></b><span>Combined audit score</span></div></div>
+    <p class="benchmark-status">${esc(note)}</p>
+    <p class="muted">Readiness score (Layers 1–4): ${number(L.readinessScore)}/100. Scanned ${esc(L.scannedAt ? new Date(L.scannedAt).toLocaleString() : 'date unavailable')}. All tied checks produce a relative score of 50.</p>
+    <div class="benchmark-scroll"><table><caption>Named competitor scan coverage</caption><thead><tr><th>Competitor</th><th>Status</th><th>Sampled products</th><th>Scanned</th></tr></thead><tbody>${L.competitors.map(c => `<tr><td>${esc(c.domain)}</td><td>${esc(c.reason || c.status)}</td><td>${c.sampled}</td><td>${esc(c.scannedAt ? new Date(c.scannedAt).toLocaleString() : '—')}</td></tr>`).join('')}</tbody></table></div>
+    ${L.rows.length ? `<h4>Same checks, side by side</h4><p class="muted">Values are checklist scores out of 100, not all percentages of products. Median excludes unavailable scans.</p><div class="benchmark-scroll"><table><thead><tr><th>Check</th><th>Your store</th>${L.competitors.map(c => `<th>${esc(c.domain)}</th>`).join('')}<th>Competitor median</th><th>Gap</th></tr></thead><tbody>${L.rows.map(row => `<tr><th>${esc(row.label)}<small>${esc(row.layer.replace('layer','Layer '))} · ${esc(row.basis)}</small></th><td>${number(row.client)}</td>${L.competitors.map(c => `<td>${number(row.competitors.find(v => v.domain === c.domain)?.value)}</td>`).join('')}<td>${number(row.median)}</td><td class="${row.delta < 0 ? 'behind' : 'ahead'}">${row.delta > 0 ? '+' : ''}${number(row.delta)} · ${row.delta < 0 ? 'Behind' : row.delta > 0 ? 'Ahead' : 'At parity'}</td></tr>`).join('')}</tbody></table></div>
+    <h4>What to fix first</h4>${L.gaps.length ? L.gaps.map(g => `<details class="benchmark-gap"><summary>${esc(g.label)} — ${Math.abs(g.delta)} points behind median</summary><p>${esc(g.evidence?.headline || 'Review the corresponding layer evidence below.')}</p>${g.evidence?.items?.length ? `<ul>${g.evidence.items.slice(0,3).map(e => `<li>${/^https?:\/\//i.test(e.url || '') ? `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title || e.url)}</a>` : esc(e.title || '')} — ${esc(e.note || '')}</li>`).join('')}</ul>` : ''}<p>${esc(g.fix?.headline || 'Inspect the corresponding layer recommendations.')}</p>${g.fix?.where ? `<p>${esc(g.fix.where)}</p>` : ''}${g.fix?.steps?.length ? `<ol>${g.fix.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}</details>`).join('') : '<p>No measured checks below the competitor median. Review absolute readiness gaps as well.</p>'}` : ''}
+    <details><summary>Checkout detection — informational</summary><p>No purchase was attempted. These are public declarations and detected app signals.</p><ul>${L.checkout.map(c => `<li><b>${esc(c.domain)}</b>: ${esc(c.evidence)}. Apps: ${esc(c.detectedApps.join(', ') || 'none detected; checkout type unconfirmed')}.</li>`).join('')}</ul></details>
+    <details><summary>How this is scored</summary><p>${esc(L.methodology)}</p><p>Single check: Score vs. 3–5 named competitors · 100% of Layer 5.</p><ul>${L.limitations.map(t => `<li>${esc(t)}</li>`).join('')}</ul><p class="muted">${esc(L.methodVersion)} · engine ${esc(L.engineVersion)}</p></details>
+  </section>`;
+}
+
+function renderDetailedReport(r){
   if (r.errors && r.errors.length && r.finalScore === null){
     const first = r.errors[0] || '';
     const reasons = {
@@ -487,16 +576,15 @@ function renderReport(r){
     `<tr class="${v!=='ok'?'warn':''}"><td>${esc(b)}</td><td>${esc(v)}</td><td class="num"></td></tr>`).join('');
 
   return `
-  <div class="report-heading"><div><div class="eyebrow">YOUR STOREFRONT, THROUGH AN AGENT’S EYES</div><h2>Agent Readiness Report</h2><p>${esc(r.domain)} · ${esc(r.scannedAt ? new Date(r.scannedAt).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '')}</p></div><span class="pill">SCAN COMPLETE</span></div>
-  <div class="report-tabs" role="group" aria-label="Report view"><button type="button" data-view="free" aria-pressed="true">Free report</button><button type="button" data-view="full" aria-pressed="false">Full audit preview <span aria-hidden="true">↗</span></button></div>
+  <div class="document-brand"><img src="/assets/flow/logo.png" width="120" height="32" alt="Anphonic"><span>AI COMMERCE INTELLIGENCE</span></div><div class="report-heading"><div><h2>Agent Readiness Report</h2><p>AI AGENT INDEXING DIRECTIVE // ${esc(r.domain)} · ${esc(r.scannedAt ? new Date(r.scannedAt).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '')}</p></div><span class="pill">SCAN COMPLETE</span></div>
   <div class="verdict">
     <div class="scoreblock ${gradeClass(r.finalScore)}">
-      <div class="n">${r.finalScore}<span class="d">/100</span></div>
-      <div class="g">${esc(r.grade)}</div>
+      <div class="n">${r.finalScore}</div>
+      <div class="g">SCORE / 100</div>
     </div>
     <div>
       <span class="eyebrow">${esc(r.brandName || r.domain)}</span><h2>${esc(r.grade)}</h2>
-      <p class="meta">${esc(r.gradeNote)}</p>
+      <p class="meta">Readiness score · Layers 1–4. ${esc(r.gradeNote)}</p>
       <p class="meta"><code>${esc(r.domain)}</code> · ${r.catalogCount} products, ${r.sampled} sampled · checkout: ${r.checkoutStack.length ? esc(r.checkoutStack.join(' + ')) : 'native Shopify'}</p>
     </div>
   </div>
@@ -504,7 +592,8 @@ function renderReport(r){
   <section>
     <div class="sechead"><h3>Category Readiness Scores</h3><span class="section-caption">SCORED FROM YOUR STOREFRONT</span></div>
     ${layers}
-    <p class="skipped">Competitive benchmark (15%) is scored in the paid audit and excluded here. Remaining weights are rescaled to total 100.</p>
+    ${r.layer5Report ? `<div class="layer ${gradeClass(r.layer5Report.score)}"><div class="lname">Competitive Position<small>${esc(r.layer5Report.status)} · named competitor analysis</small><span class="bar"><i style="width:${Number.isFinite(r.layer5Report.score) ? r.layer5Report.score : 0}%"></i></span></div><div class="lnum">${Number.isFinite(r.layer5Report.score) ? r.layer5Report.score : '—'}</div></div>` : ''}
+    <p class="skipped">Readiness uses Layers 1–4 with their weights rescaled to 100%.</p>
   </section>
 
   <section>
@@ -513,16 +602,6 @@ function renderReport(r){
     <ol class="gaps">${gaps}</ol>
   </section>
 
-  <section id="paid-preview" class="paid-preview">
-    <div class="sechead"><h3>Go deeper with the full audit</h3><span class="pill">PAID AUDIT</span></div>
-    <div class="preview-grid">
-      <div class="preview-card"><span class="preview-number">01 / PRODUCT VISIBILITY</span><h4>What an agent sees</h4><p>See the product fields your storefront exposes, and the information it leaves out.</p><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i></div></div>
-      <div class="preview-card"><span class="preview-number">02 / ACTIONABLE FINDINGS</span><h4>Per-check detail &amp; fixes</h4><p>Inspect the evidence and store-specific recommendations behind each score.</p><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i></div></div>
-    </div>
-    <div class="upgrade"><span class="eyebrow">FROM FINDINGS TO ACTION</span><h3>The full picture. A clear path forward.</h3><p>The paid audit adds a reviewed India checkout assessment, competitor benchmark, and a prioritized implementation roadmap.</p><button type="button" data-view="full">Preview the Full Agent Readiness Report <span aria-hidden="true">↗</span></button><small>Preview available scan findings below. Paid audit purchase is not connected yet.</small></div>
-  </section>
-  <div id="full-detail" class="hidden">
-    <div class="preview-notice"><b>Full audit preview</b><span>These are your actual automated scan findings. The paid audit’s manual review and competitor benchmark are not included in this scan.</span></div>
   ${av ? `<section>
     <div class="sechead"><h3>What an agent sees</h3>
       <p>${esc(av.catalogNote)}.</p></div>
@@ -556,6 +635,8 @@ function renderReport(r){
     ${renderLayer2(r.layer4Report)}
   </section>` : ''}
 
+  ${r.layer5Report ? renderLayer5(r.layer5Report) : ''}
+
   <section>
     <div class="sechead"><h3>Every check in the spec, all four layers</h3>
       <p>Greyed rows are measured but not scored: they returned the same result on every Shopify store tested, so they can't rank one store against another.</p></div>
@@ -575,8 +656,7 @@ function renderReport(r){
       </table>
     </details>
   </section>
-  <section class="benchmark-note"><div class="sechead"><h3>Competitive Benchmark &amp; Fix Roadmap</h3><span class="pill">PAID AUDIT</span></div><p>The full paid audit compares your store with 3–5 named competitors and turns the findings into a reviewed roadmap with effort, timing, and implementation priorities.</p><p class="muted">Competitor scores and a reviewed roadmap are not generated by the current scanner. The store-specific fixes above are available now.</p></section>
-  </div>`;
+  `;
 }
 
 async function poll(id){
@@ -589,15 +669,26 @@ async function poll(id){
   if (j.status === 'error'){ resetForm(); return showError(j.error || 'The scan failed. Try again.'); }
   $('report').innerHTML = renderReport(j.result);
   $('report').classList.remove('hidden');
+  setScreen('report');
+  $('report').setAttribute('tabindex', '-1');
+  $('report').focus({preventScroll:true});
+  window.scrollTo(0, 0);
   resetForm();
   loadRecent();
   } catch (error) { $('progress').classList.add('hidden'); resetForm(); showError(error.message || 'Unable to load the scan. Please try again.'); }
 }
 
-function resetForm(){ $('go').disabled = false; $('go').textContent = 'Scan store'; }
+function resetForm(){ $('go').disabled = false; $('go').textContent = 'Analyse store →'; }
 
 async function run(url){
   clearError();
+  demoUnlocked = false;
+  setScreen('analysis');
+  try {
+    $('analysis-store').textContent = new URL(/^https?:\/\//i.test(url) ? url : 'https://' + url).hostname.replace(/^www\./i, '').split('.')[0];
+  } catch {
+    $('analysis-store').textContent = url;
+  }
   $('report').classList.add('hidden');
   $('go').disabled = true; $('go').textContent = 'Scanning…';
   $('progress').classList.remove('hidden');
@@ -616,14 +707,13 @@ $('report').addEventListener('click', (e) => {
   const button = e.target.closest('[data-view]');
   if (!button) return;
   const full = button.dataset.view === 'full';
+  if (full && !demoUnlocked) return openPayment();
   $('full-detail').classList.toggle('hidden', !full);
   $('paid-preview').classList.toggle('hidden', full);
-  document.querySelectorAll('.report-tabs [data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === button.dataset.view)));
-  if (button.closest('.upgrade')) {
-    const tab = document.querySelector('.report-tabs [data-view="full"]');
-    tab.focus({preventScroll:true});
-    $('full-detail').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block:'start'});
-  }
+  const target = full ? $('full-detail') : $('paid-preview');
+  target.setAttribute('tabindex', '-1');
+  target.focus({preventScroll:true});
+  window.scrollTo(0, 0);
 });
 
 // delegated — the report is replaced wholesale on every scan
@@ -649,7 +739,7 @@ $('form').addEventListener('submit', (e) => {
   e.preventDefault();
   const v = $('url').value.trim();
   if (!v) return showError('Enter a store URL to scan.');
-  run(v);
+  beginJourney(v);
 });
 
 async function loadRecent(){
@@ -660,11 +750,17 @@ async function loadRecent(){
       `<button type="button" data-u="${esc(h.domain)}">${esc(h.domain.replace(/^https?:\/\/(www\.)?/,''))}</button> ${h.score}`
     ).join(' · ');
     $('recent').querySelectorAll('button').forEach(b =>
-      b.addEventListener('click', () => { $('url').value = b.dataset.u; run(b.dataset.u); }));
+      b.addEventListener('click', () => { $('url').value = b.dataset.u; beginJourney(b.dataset.u); }));
   }catch{}
 }
 loadRecent();
+$('methodology-open').addEventListener('click', () => $('flow-methodology').showModal());
+$('methodology-close').addEventListener('click', () => $('flow-methodology').close());
 fetch('/api/version').then(r=>r.json()).then(j=>{$('ver').textContent=' · engine v'+j.version;}).catch(()=>{});
 </script>
+<script src="/report.js"></script>
+<script src="/journey.js"></script>
+<script src="/vendor/gsap/gsap.min.js"></script>
+<script src="/home-motion.js"></script>
 </body>
 </html>

@@ -24,9 +24,58 @@ node engine.js https://superyou.in --json > result.json
 
 | File | What it does |
 |---|---|
-| `engine.js` | All scanning and scoring. The only file with the formula in it. |
+| `engine.js` | Storefront scanning and Layers 1–4 scoring. |
+| `competitive.js` | Layer 5 comparisons, eligibility and combined score. |
+| `competitors.json` | The five client-to-competitor mappings. |
+| `scripts/benchmark.js` | Batch scans and saved JSON/Markdown reports. |
+| `FIGMA-LAYER5-PROMPT.md` | Copyable Figma Make design prompt with the initial scan snapshot. |
 | `server.js` | API and static host. Runs scans as background jobs so slow stores don't time out. |
-| `public/index.html` | The dashboard — one self-contained file. |
+| `public/index.html` | The dashboard, styled by `public/design.css`. |
+
+## Layer 5 — Competitive Position
+
+```sh
+npm run benchmark                       # Refresh all five comparisons (17 storefronts)
+npm run benchmark -- superyou.in         # Refresh one configured comparison
+npm start                               # Open http://localhost:3100
+npm test                                # Scoring and rendering checks
+```
+
+The batch command scans at most two stores concurrently and uses the same deterministic
+content grading method for every store. It saves scored scan evidence under
+`reports/layer5/scans/`, full client reports under `reports/layer5/<domain>.json`,
+and summaries in `reports/layer5/summary.md` and `summary.json`. A single-client run
+updates that client's files and writes a summary of that run; other saved client
+reports remain unchanged. Scan a configured client normally, then open **Full audit
+preview** to see Layer 5 after Layer 4 in the paid report. There is no client or
+saved-competitor selector on the landing page. Brands without configured competitors
+do not show a Layer 5 panel. A normal scan of a configured client also scans its
+named competitors; its job result includes `layer5Report`.
+
+The one Layer 5 check is **Score vs. 3–5 named competitors**, worth 100% of the layer.
+Its score compares the scored checks in Layers 1, 2 and 4. Each competitor beaten
+earns 1 point, a tie 0.5, and a loss 0, averaged and converted to 100 per check.
+These relative scores use the existing check weights and normalized layer weights
+20:25:15. All ties produce 50, even if every store is fully ready. Layer 3 public
+checkout detection is informational; no purchase is attempted.
+
+At least three comparable competitors are required before Layer 5 contributes
+15% to a **separate combined audit score**. One or two produce a provisional
+comparison; no usable peers or an invalid client produce unavailable. Unknown
+results do not become zeros. Scans with reported errors, incomplete product samples,
+missing crawler responses, mismatched engine/content methods or timestamps more
+than 24 hours apart are excluded. Existing checklist heuristics still apply;
+the scans do not establish AI recommendation frequency or market equivalence.
+
+`finalScore`, grades, gap impacts and detail panels retain their Layers 1–4 readiness
+meaning. `layer5Report.combinedScore` uses the original layer scores and weights:
+`0.20*L1 + 0.25*L2 + 0.25*L3 + 0.15*L4 + 0.15*L5`. It is null for provisional or
+unavailable comparisons. The dashboard labels both totals separately.
+
+Saved-report API: `GET /api/benchmarks` lists configured mappings;
+`GET /api/benchmark/<client-domain>` returns a saved client report. Existing scan
+and polling endpoints retain their shape. Batch snapshots are overwritten on
+refresh; archive them separately if historical comparisons are needed.
 
 ## Changing the scoring
 
@@ -390,8 +439,8 @@ HTML, `robots.txt`, `sitemap.xml`. No login, no admin access, no cooperation
 from the store. Requests are rate-limited and identify themselves as an
 Anphonic scanner.
 
-Samples 20 products spread across the catalogue, not the whole thing. Layer 5
-(competitive benchmark) is paid-tier and not computed.
+Samples up to 20 products spread across the catalogue, not the whole thing.
+Layer 5 is available for the configured competitor sets; see the commands above.
 
 ## Moving this to production
 
@@ -404,3 +453,25 @@ Three changes, in order of importance:
    public tool that fetches arbitrary domains needs this before launch, not after.
 3. **Stamp a formula version on every result.** When weights change, a returning
    brand's score moves for reasons they can't see. Version it.
+
+### Lead database
+
+Requires Node.js 22.13+ (Node 24 recommended). Start with `npm start`.
+The consent form posts to `POST /api/leads` and saves name, normalized email,
+store origin, consent timestamp/version, and creation/update timestamps in
+`data/leads.sqlite`. The database is created automatically, outside the public
+folder. Repeated email/store pairs update the existing lead. Database files
+are excluded from Git. Email remains **unverified**; the demo code does not
+prove ownership of an email address.
+
+Set `LEADS_DB_PATH` to change the database location. Use a persistent disk when
+deploying; ephemeral hosting will not retain SQLite data across deployments.
+There is no public lead-list endpoint. Inspect locally with a SQLite client:
+
+```bash
+sqlite3 -header -column data/leads.sqlite 'SELECT name, email, store_url, consent_at, email_verified FROM leads ORDER BY updated_at DESC;'
+```
+
+This stores contacts only; scan jobs/history still live in memory. Payment,
+real email delivery, CRM integration, and lead-to-scan result linking are not
+part of this change.

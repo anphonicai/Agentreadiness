@@ -1,0 +1,1881 @@
+{
+  "version": "2.2-agentnew",
+  "domain": "https://andamen.com",
+  "brandName": "Andamen",
+  "scannedAt": "2026-09-18T07:03:17.092Z",
+  "catalogCount": 250,
+  "sampled": 20,
+  "sampleAttempted": 20,
+  "homeStatus": 200,
+  "checkoutStack": [
+    "GoKwik"
+  ],
+  "botVerdicts": {
+    "GPTBot": "ok",
+    "ClaudeBot": "ok",
+    "PerplexityBot": "ok"
+  },
+  "behindCloudflare": true,
+  "errors": [],
+  "layers": {
+    "layer1": {
+      "name": "Crawler & technical access",
+      "score": 87,
+      "checks": {
+        "botWall": 100,
+        "robots": 100,
+        "productFeed": 100,
+        "endpoints": 100,
+        "indexability": 100,
+        "pageWeight": 67
+      },
+      "weight": 0.2
+    },
+    "layer2": {
+      "name": "Structured data",
+      "score": 62,
+      "checks": {
+        "productSchema": 100,
+        "orgSchema": 100,
+        "reviewSchema": 25,
+        "variantSchema": 0,
+        "faqSchema": 30
+      },
+      "weight": 0.25
+    },
+    "layer3": {
+      "name": "Checkout & UCP readiness",
+      "score": 50,
+      "checks": {
+        "ucpProfile": 100,
+        "codPayment": 0,
+        "serviceability": 0,
+        "returnPolicy": 0,
+        "shippingPolicy": 100
+      },
+      "weight": 0.25
+    },
+    "layer4": {
+      "name": "Content clarity",
+      "score": 46,
+      "checks": {
+        "answerFirst": 41,
+        "factualDensity": 27,
+        "entityConsistency": 70,
+        "descriptionDepth": 47,
+        "uniqueness": 95,
+        "imageCoverage": 100
+      },
+      "weight": 0.15
+    }
+  },
+  "skipped": [
+    "layer5"
+  ],
+  "finalScore": 62,
+  "grade": "Partially Ready",
+  "gradeNote": "Readable, but losing ground on details agents rank on.",
+  "gaps": [
+    {
+      "layer": "layer3",
+      "check": "codPayment",
+      "score": 0,
+      "impact": 8.403361344537814,
+      "message": "No product declares acceptedPaymentMethod in its Offer, though 20 of 20 name payment options in page text a shopper can read and an agent cannot. COD versus prepaid is the biggest purchase-path question in Indian ecommerce and it is invisible to agents."
+    },
+    {
+      "layer": "layer2",
+      "check": "variantSchema",
+      "score": 0,
+      "impact": 6.535947712418301,
+      "message": "20 of 20 products have multiple variants but expose only one price, so an agent asked for a specific size can't confirm it exists."
+    },
+    {
+      "layer": "layer3",
+      "check": "serviceability",
+      "score": 0,
+      "impact": 6.302521008403361,
+      "message": "No product publishes OfferShippingDetails, and the pincode checker on 20 of 20 pages calls a private API from JavaScript. An agent asked whether you deliver to a given pincode has nothing to read."
+    }
+  ],
+  "specDetail": {
+    "layer1": {
+      "name": "Crawler & Technical Access",
+      "specWeight": 20,
+      "checks": [
+        {
+          "spec": "robots.txt allows AI crawlers",
+          "specSub": 30,
+          "scored": false,
+          "result": "All 6 AI crawlers allowed",
+          "value": 100,
+          "why": "Shopify never disallows AI crawlers by default. Returned 100 on all 15 stores tested."
+        },
+        {
+          "spec": "JS-independent content render",
+          "specSub": 35,
+          "scored": false,
+          "result": "100% of title/price/stock visible without JavaScript",
+          "value": 100,
+          "why": "Shopify renders server-side in Liquid, so this returned 100 on all 15 stores tested."
+        },
+        {
+          "spec": "Page load speed",
+          "specSub": 15,
+          "scored": true,
+          "result": "1437KB, 886ms to first byte",
+          "value": 67,
+          "why": "Measured as response time and payload size rather than PageSpeed Insights — no API key, no 30s wait per scan."
+        },
+        {
+          "spec": "Sitemap present & current",
+          "specSub": 20,
+          "scored": false,
+          "result": "Present, 1999 product URLs",
+          "value": 100,
+          "why": "Shopify auto-generates sitemap.xml for every store. Returned 100 on all 15 stores tested."
+        },
+        {
+          "spec": "AI crawler access by user-agent",
+          "specSub": null,
+          "scored": true,
+          "added": true,
+          "result": "GPTBot: ok · ClaudeBot: ok · PerplexityBot: ok",
+          "value": 100,
+          "why": "Not in the spec. Fetches the store as each crawler and compares — catches edge blocking that robots.txt cannot show."
+        },
+        {
+          "spec": "Product feed & indexability",
+          "specSub": null,
+          "scored": true,
+          "added": true,
+          "result": "products.json open · 0% noindex · 0% no canonical",
+          "value": 100,
+          "why": "Not in the spec. Whether agents can enumerate and index the catalogue at all."
+        }
+      ]
+    },
+    "layer2": {
+      "name": "Structured Data / Schema",
+      "specWeight": 25,
+      "checks": [
+        {
+          "key": "productSchema",
+          "spec": "Product schema (JSON-LD) coverage",
+          "label": "Product schema (JSON-LD) coverage",
+          "specSub": 35,
+          "effectiveSub": 38.9,
+          "scored": true,
+          "value": 100,
+          "basis": "measured",
+          "basisNote": "20 of 20 sampled products passed all four fields",
+          "result": "20 of 20 products have price + availability + SKU",
+          "why": "Built as specified. Real variance across stores — 0% to 100%.",
+          "added": false,
+          "pointsEarned": 38.9,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "All 20 sampled products publish price, availability and SKU",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "variantSchema",
+          "spec": "Variant data structured",
+          "label": "Variant data structured",
+          "specSub": 20,
+          "effectiveSub": 22.2,
+          "scored": true,
+          "value": 0,
+          "basis": "measured",
+          "basisNote": "20 of 20 sampled products have more than one variant",
+          "result": "20 of 20 multi-variant products expose only one price",
+          "why": "Redefined. Checking whether option names appear in HTML returned 100 everywhere, so it now checks variant-level offers.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 22.2,
+          "costOfTotal": 6.5,
+          "evidence": {
+            "headline": "20 products publish one offer for several buyable variants",
+            "items": [
+              {
+                "title": "Military Olive Cotton Triblend Pullover",
+                "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+                "note": "5 variants (Color × Size × Fit) · one offer published"
+              },
+              {
+                "title": "Walnut Brown Twill Cotton Shirt",
+                "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+                "note": "10 variants (Color × Size × Fit) · one offer published"
+              },
+              {
+                "title": "Forest Green Cotton Cables Polo",
+                "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+                "note": "5 variants (Color × Size × Fit) · one offer published"
+              },
+              {
+                "title": "Field Olive Cotton Trouser",
+                "url": "https://andamen.com/products/field-olive-cotton-trouser",
+                "note": "7 variants (Color × Size × Fit) · one offer published"
+              },
+              {
+                "title": "Abyss Indigo Cotton Dobby Overshirt",
+                "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+                "note": "5 variants (Color × Size × Fit) · one offer published"
+              },
+              {
+                "title": "Cinder Burgundy Explorer Cotton Shirt",
+                "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+                "note": "10 variants (Color × Size × Fit) · one offer published"
+              },
+              {
+                "title": "Tempo Teal Cotton Sweatshirt",
+                "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+                "note": "5 variants (Color × Size × Fit) · one offer published"
+              },
+              {
+                "title": "Gambit Olive Textured Cotton Polo",
+                "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+                "note": "5 variants (Color × Size × Fit) · one offer published"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "ProductGroup markup for Military Olive Cotton Triblend Pullover",
+            "where": "Theme editor → product template, replacing the single Product block",
+            "steps": [
+              "Military Olive Cotton Triblend Pullover sells 5 variants across Color and Size and Fit but publishes one offer.",
+              "An agent asked for a specific size cannot confirm that size exists, so it recommends a competitor that can.",
+              "ProductGroup + hasVariant is the pattern Google and the agent crawlers both read."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"ProductGroup\",\n  \"name\": \"Military Olive Cotton Triblend Pullover\",\n  \"url\": \"https://andamen.com/products/military-olive-cotton-triblend-pullover\",\n  \"productGroupID\": \"military-olive-cotton-triblend-pullover\",\n  \"brand\": {\n    \"@type\": \"Brand\",\n    \"name\": \"Andamen\"\n  },\n  \"variesBy\": [\n    \"color\",\n    \"size\",\n    \"fit\"\n  ],\n  \"hasVariant\": [\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Military Olive Cotton Triblend Pullover — Olive / S / Regular\",\n      \"sku\": \"A26CFPE137J-Olive-S-Regular\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"5999.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Military Olive Cotton Triblend Pullover — Olive / M / Regular\",\n      \"sku\": \"A26CFPE137J-Olive-M-Regular\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"5999.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Military Olive Cotton Triblend Pullover — Olive / L / Regular\",\n      \"sku\": \"A26CFPE137J-Olive-L-Regular\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"5999.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    }\n  ]\n}"
+          }
+        },
+        {
+          "key": "orgSchema",
+          "spec": "Organization/entity schema",
+          "label": "Organization/entity schema",
+          "specSub": 15,
+          "effectiveSub": 16.7,
+          "scored": true,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Three graded outcomes: 2+ linked profiles = 100, present but thin = 40, absent = 0",
+          "result": "Present, 3 linked profiles (plus 6 empty slots that count for nothing)",
+          "why": "Built as specified. Roughly half of tested stores fail on the sameAs requirement.",
+          "added": false,
+          "pointsEarned": 16.7,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "Organization block found on the homepage with 3 usable sameAs links, and 6 empty slots the theme published blank",
+            "items": [
+              {
+                "title": "https://www.facebook.com/andamenindia/",
+                "url": "https://www.facebook.com/andamenindia/",
+                "note": "linked profile",
+                "pass": true
+              },
+              {
+                "title": "https://www.instagram.com/andamenlife/",
+                "url": "https://www.instagram.com/andamenlife/",
+                "note": "linked profile",
+                "pass": true
+              },
+              {
+                "title": "https://www.linkedin.com/company/andamen/",
+                "url": "https://www.linkedin.com/company/andamen/",
+                "note": "linked profile",
+                "pass": true
+              }
+            ],
+            "total": 3,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "faqSchema",
+          "spec": "FAQ/HowTo schema",
+          "label": "FAQ/HowTo schema",
+          "specSub": 10,
+          "effectiveSub": 11.1,
+          "scored": true,
+          "value": 30,
+          "basis": "state",
+          "basisNote": "Graded outcomes: FAQ page 100, homepage 80, product pages 70, content but no markup 30",
+          "result": "FAQ page exists (/pages/frequently-asked-questions) but carries no schema",
+          "why": "Widened. The spec looked at product and category pages; FAQ markup almost always lives on a dedicated FAQ page.",
+          "added": false,
+          "pointsEarned": 3.3,
+          "pointsLost": 7.8,
+          "costOfTotal": 2.3,
+          "evidence": {
+            "headline": "FAQ page found at /pages/frequently-asked-questions with no FAQPage schema",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": {
+            "headline": "FAQPage markup for /pages/frequently-asked-questions",
+            "where": "Theme editor → page template for /pages/frequently-asked-questions",
+            "steps": [
+              "The answers are already written — they are just not machine-readable. This is markup around copy you have.",
+              "Reuse your real question-and-answer text verbatim; inventing answers here would misrepresent the store."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"How long does delivery take?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Can I return a Andamen order?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    }\n  ]\n}"
+          }
+        },
+        {
+          "key": "llmsTxt",
+          "spec": "llms.txt present",
+          "label": "llms.txt present",
+          "specSub": 10,
+          "effectiveSub": null,
+          "scored": false,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Measured and shown, excluded from the score. Its 10% is redistributed across the other five checks.",
+          "result": "Present — auto-generated by Shopify, not written by the brand",
+          "why": "Dropped from scoring. Shopify auto-generates llms.txt for every store, pointing agents at shop.app. Returned 100 on all 15 stores tested.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "4475 bytes served at /llms.txt",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "reviewSchema",
+          "spec": "Review/rating schema",
+          "label": "Review/rating schema",
+          "specSub": 10,
+          "effectiveSub": 11.1,
+          "scored": true,
+          "value": 25,
+          "basis": "state",
+          "basisNote": "A review app is displaying ratings but none are machine-readable. Scored 25 — reviews exist, agents just cannot read them.",
+          "result": "Judge.me is running but exposes no schema",
+          "why": "Three states instead of pass/fail. Review apps inject ratings via JavaScript, so a store with thousands of reviews scored 0 under the original check.",
+          "added": false,
+          "pointsEarned": 2.8,
+          "pointsLost": 8.3,
+          "costOfTotal": 2.5,
+          "evidence": {
+            "headline": "Review widget detected: Judge.me",
+            "items": [
+              {
+                "title": "Military Olive Cotton Triblend Pullover",
+                "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Walnut Brown Twill Cotton Shirt",
+                "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Forest Green Cotton Cables Polo",
+                "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Field Olive Cotton Trouser",
+                "url": "https://andamen.com/products/field-olive-cotton-trouser",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Abyss Indigo Cotton Dobby Overshirt",
+                "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Cinder Burgundy Explorer Cotton Shirt",
+                "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Tempo Teal Cotton Sweatshirt",
+                "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Gambit Olive Textured Cotton Polo",
+                "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+                "note": "no AggregateRating"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "AggregateRating for Military Olive Cotton Triblend Pullover",
+            "where": "Judge.me settings → enable rich snippets / SEO schema output",
+            "steps": [
+              "Judge.me renders ratings in JavaScript. Agents fetch the HTML once and never run it, so the ratings your customers see are invisible to them.",
+              "Most review apps have this as a single toggle; it does not need theme code.",
+              "Never publish a rating you cannot substantiate."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Product\",\n  \"name\": \"Military Olive Cotton Triblend Pullover\",\n  \"aggregateRating\": {\n    \"@type\": \"AggregateRating\",\n    \"ratingValue\": \"YOUR_AVERAGE_RATING\",\n    \"reviewCount\": \"YOUR_REVIEW_COUNT\",\n    \"bestRating\": 5\n  },\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"5999.00\",\n    \"priceCurrency\": \"INR\",\n    \"availability\": \"https://schema.org/OutOfStock\"\n  }\n}"
+          }
+        }
+      ]
+    },
+    "layer3": {
+      "name": "India Checkout & UCP Compatibility",
+      "specWeight": 25,
+      "checks": [
+        {
+          "key": "ucpProfile",
+          "spec": "UCP checkout capability declared",
+          "label": "UCP checkout capability declared",
+          "specSub": 35,
+          "effectiveSub": 50,
+          "scored": true,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Read from /.well-known/ucp. Checkout capability declared at the profile's current version = 100; declared at an older version only = 40; absent or unreachable = 0.",
+          "result": "Declares dev.ucp.shopping.checkout at 2026-08-25 · 8 capabilities",
+          "why": "Replaces the retired checkout-stack penalty. That check graded a store by how many checkout apps sat over native Shopify; fetching /.well-known/ucp on 13 stores spanning native checkout to four stacked apps returned an identical profile every time, so app count has no relationship to declared capability. Shopify serves this from its platform layer, beneath the storefront the apps modify. This confirms the endpoint DECLARES checkout capability — it does not simulate a live agent-initiated purchase, so app-specific friction during an actual transaction is untested.",
+          "added": false,
+          "pointsEarned": 50,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "UCP 2026-08-25 with 8 capabilities declared",
+            "items": [
+              {
+                "title": "checkout",
+                "url": "https://andamen.com/.well-known/ucp",
+                "note": "the scored capability",
+                "pass": true
+              },
+              {
+                "title": "fulfillment",
+                "url": "https://andamen.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "discount",
+                "url": "https://andamen.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "cart",
+                "url": "https://andamen.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "order",
+                "url": "https://andamen.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "catalog.search",
+                "url": "https://andamen.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "catalog.lookup",
+                "url": "https://andamen.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "shopify:catalog",
+                "url": "https://andamen.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              }
+            ],
+            "total": 8,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "codPayment",
+          "spec": "COD/prepaid logic exposed cleanly",
+          "label": "COD/prepaid logic exposed cleanly",
+          "specSub": 20,
+          "effectiveSub": 28.6,
+          "scored": true,
+          "value": 0,
+          "basis": "state",
+          "basisNote": "Binary, per the v2 spec: acceptedPaymentMethod declared on the Offer = 100, anything else = 0. Payment options rendered as page text earn no credit — they are shown below as context, not as partial marks.",
+          "result": "No acceptedPaymentMethod anywhere — COD appears only as page text on 20 of 20 products",
+          "why": "Not in the previous build. The spec asks for payment options structured rather than buried in JS widgets, so this separates a parseable field from prose a human reads.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 28.6,
+          "costOfTotal": 8.4,
+          "evidence": {
+            "headline": "COD named in the page text of 20 of 20 products; acceptedPaymentMethod on 0",
+            "items": [
+              {
+                "title": "Military Olive Cotton Triblend Pullover",
+                "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+                "note": "COD in text · prepaid in text"
+              },
+              {
+                "title": "Walnut Brown Twill Cotton Shirt",
+                "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+                "note": "COD in text · prepaid in text"
+              },
+              {
+                "title": "Forest Green Cotton Cables Polo",
+                "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+                "note": "COD in text · prepaid in text"
+              },
+              {
+                "title": "Field Olive Cotton Trouser",
+                "url": "https://andamen.com/products/field-olive-cotton-trouser",
+                "note": "COD in text · prepaid in text"
+              },
+              {
+                "title": "Abyss Indigo Cotton Dobby Overshirt",
+                "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+                "note": "COD in text · prepaid in text"
+              },
+              {
+                "title": "Cinder Burgundy Explorer Cotton Shirt",
+                "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+                "note": "COD in text · prepaid in text"
+              },
+              {
+                "title": "Tempo Teal Cotton Sweatshirt",
+                "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+                "note": "COD in text · prepaid in text"
+              },
+              {
+                "title": "Gambit Olive Textured Cotton Polo",
+                "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+                "note": "COD in text · prepaid in text"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "Declare payment methods on the Offer for Military Olive Cotton Triblend Pullover",
+            "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+            "steps": [
+              "COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.",
+              "This goes inside the Offer you already publish — it is two extra fields, not a new block.",
+              "List only the methods you genuinely accept."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://andamen.com/products/military-olive-cotton-triblend-pullover\",\n  \"price\": \"5999.00\",\n  \"priceCurrency\": \"INR\",\n  \"availability\": \"https://schema.org/OutOfStock\",\n  \"acceptedPaymentMethod\": [\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Cash on Delivery\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"UPI\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Credit Card\"\n    }\n  ]\n}"
+          }
+        },
+        {
+          "key": "serviceability",
+          "spec": "Shipping/serviceability data structured",
+          "label": "Shipping/serviceability data structured",
+          "specSub": 15,
+          "effectiveSub": 21.4,
+          "scored": true,
+          "value": 0,
+          "basis": "state",
+          "basisNote": "Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A pincode widget is a JavaScript call to a private API an agent cannot make, so it is reported below as context rather than scored.",
+          "result": "No OfferShippingDetails — a JS-only pincode checker runs on 20 of 20 pages",
+          "why": "Not in the previous build. The old shipping check measured the policy page's text length, which is a different question from pincode-level serviceability. That measurement is kept below as an extra, unscored.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 21.4,
+          "costOfTotal": 6.3,
+          "evidence": {
+            "headline": "Pincode or delivery-estimate widget found on 20 of 20 product pages",
+            "items": [
+              {
+                "title": "Military Olive Cotton Triblend Pullover",
+                "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Walnut Brown Twill Cotton Shirt",
+                "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Forest Green Cotton Cables Polo",
+                "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Field Olive Cotton Trouser",
+                "url": "https://andamen.com/products/field-olive-cotton-trouser",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Abyss Indigo Cotton Dobby Overshirt",
+                "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Cinder Burgundy Explorer Cotton Shirt",
+                "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Tempo Teal Cotton Sweatshirt",
+                "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Gambit Olive Textured Cotton Polo",
+                "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+                "note": "pincode checker, JS-only"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "Publish delivery windows as shippingDetails for Military Olive Cotton Triblend Pullover",
+            "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+            "steps": [
+              "The pincode widget already knows your delivery windows — this exposes the same answer in a field an agent can read.",
+              "Agents asked \"can you deliver to Pune by Friday\" currently have nothing to work from.",
+              "Publish your real handling and transit times; a wrong promise here is worse than none."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://andamen.com/products/military-olive-cotton-triblend-pullover\",\n  \"shippingDetails\": {\n    \"@type\": \"OfferShippingDetails\",\n    \"shippingDestination\": {\n      \"@type\": \"DefinedRegion\",\n      \"addressCountry\": \"IN\"\n    },\n    \"deliveryTime\": {\n      \"@type\": \"ShippingDeliveryTime\",\n      \"handlingTime\": {\n        \"@type\": \"QuantitativeValue\",\n        \"minValue\": 1,\n        \"maxValue\": 2,\n        \"unitCode\": \"DAY\"\n      },\n      \"transitTime\": {\n        \"@type\": \"QuantitativeValue\",\n        \"minValue\": 2,\n        \"maxValue\": 6,\n        \"unitCode\": \"DAY\"\n      }\n    }\n  }\n}"
+          }
+        }
+      ]
+    },
+    "layer4": {
+      "name": "Content Clarity",
+      "specWeight": 15,
+      "checks": [
+        {
+          "key": "answerFirst",
+          "spec": "Answer-first product descriptions",
+          "label": "Answer-first product descriptions",
+          "specSub": 40,
+          "effectiveSub": 40,
+          "scored": true,
+          "added": false,
+          "value": 41,
+          "basis": "measured",
+          "basisNote": "Each sampled description is checked for four facts an agent needs — material or composition, primary use case, size or dimension guidance, and one specific factual attribute. A product scores 25 per fact it covers, and the check is the average across 20 products. Graded by keyword detection, which errs in both directions: \"premium materials\" counts as covering material when a reader would not, and a use case phrased outside the matched vocabulary is missed. Treat it as an indicator, not a verdict.",
+          "result": "Descriptions cover 1.6 of the 4 facts on average · 20 of 20 never mention a specific factual attribute",
+          "why": "Built to the v2 spec structure, computed without the LLM call it specifies. Same four questions, keyword detection, so a scan needs no API key and costs nothing. Set GEMINI_API_KEY to grade these with a model instead.",
+          "pointsEarned": 16.4,
+          "pointsLost": 23.6,
+          "costOfTotal": 4.2,
+          "evidence": {
+            "headline": "Facts missing across the 20 sampled descriptions",
+            "items": [
+              {
+                "title": "material or composition",
+                "url": "https://andamen.com",
+                "note": "missing on 2 of 20",
+                "pass": false
+              },
+              {
+                "title": "primary use case",
+                "url": "https://andamen.com",
+                "note": "missing on 6 of 20",
+                "pass": false
+              },
+              {
+                "title": "size or dimension guidance",
+                "url": "https://andamen.com",
+                "note": "missing on 19 of 20",
+                "pass": false
+              },
+              {
+                "title": "a specific factual attribute",
+                "url": "https://andamen.com",
+                "note": "missing on 20 of 20",
+                "pass": false
+              }
+            ],
+            "total": 4,
+            "more": 0
+          },
+          "fix": {
+            "headline": "Lead with the facts, then the story",
+            "where": "Product descriptions — Shopify admin → Products, or your PIM",
+            "steps": [
+              "20 of 20 sampled descriptions never mention a specific factual attribute.",
+              "Agents answer shopper questions by quoting your copy. A description that opens with brand storytelling gives them nothing to quote.",
+              "Put material, size and use case in the first two sentences; keep the storytelling after."
+            ],
+            "snippet": null
+          }
+        },
+        {
+          "key": "factualDensity",
+          "spec": "Factual density",
+          "label": "Factual density",
+          "specSub": 30,
+          "effectiveSub": 30,
+          "scored": true,
+          "added": false,
+          "value": 27,
+          "basis": "measured",
+          "basisNote": "Per product: 20 points for each concrete measurement in the description (ml, g, cm, %, and similar) capped at 100, plus 30 for naming a spec term such as material, ingredients, dimensions or warranty. Averaged across the sample.",
+          "result": "0.0 measurements per description on average · 2 of 20 never name a spec term",
+          "why": "",
+          "pointsEarned": 8.1,
+          "pointsLost": 21.9,
+          "costOfTotal": 3.9,
+          "evidence": {
+            "headline": "Products with the least concrete detail",
+            "items": [
+              {
+                "title": "Tempo Teal Cotton Sweatshirt",
+                "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Gambit Olive Textured Cotton Polo",
+                "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Military Olive Cotton Triblend Pullover",
+                "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+                "note": "0 measurements"
+              },
+              {
+                "title": "Walnut Brown Twill Cotton Shirt",
+                "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+                "note": "0 measurements"
+              },
+              {
+                "title": "Forest Green Cotton Cables Polo",
+                "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+                "note": "0 measurements"
+              },
+              {
+                "title": "Field Olive Cotton Trouser",
+                "url": "https://andamen.com/products/field-olive-cotton-trouser",
+                "note": "0 measurements"
+              },
+              {
+                "title": "Abyss Indigo Cotton Dobby Overshirt",
+                "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+                "note": "0 measurements"
+              },
+              {
+                "title": "Cinder Burgundy Explorer Cotton Shirt",
+                "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+                "note": "0 measurements"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "Add measurable attributes to thin descriptions",
+            "where": "Product descriptions — Shopify admin → Products",
+            "steps": [
+              "Sampled descriptions average 0.0 concrete measurements.",
+              "Vague marketing copy ranks below a competitor that states grams, millilitres or dimensions.",
+              "One line of specifications per product moves this more than rewriting the prose."
+            ],
+            "snippet": null
+          }
+        },
+        {
+          "key": "entityConsistency",
+          "spec": "Consistent entity naming",
+          "label": "Consistent entity naming",
+          "specSub": 30,
+          "effectiveSub": 30,
+          "scored": true,
+          "added": false,
+          "value": 70,
+          "basis": "state",
+          "basisNote": "One rendered form of the brand name across all sampled pages = 100; several forms that match once case and spacing are normalised = 70; the name missing from some pages entirely = 40. Matching is anchored on \"Andamen\".",
+          "result": "2 written forms in use: \"Andamen\", \"andamen\"",
+          "why": "Returned 70 on every store tested so far — most brands render their name in more than one form but identically once case and spacing are normalised. Worth the same scrutiny as the other non-differentiating checks before its 30% weight is locked.",
+          "pointsEarned": 21,
+          "pointsLost": 9,
+          "costOfTotal": 1.6,
+          "evidence": {
+            "headline": "Distinct rendered forms of \"Andamen\" across 20 sampled pages",
+            "items": [
+              {
+                "title": "\"Andamen\"",
+                "url": "https://andamen.com",
+                "note": "in use",
+                "pass": false
+              },
+              {
+                "title": "\"andamen\"",
+                "url": "https://andamen.com",
+                "note": "in use",
+                "pass": false
+              }
+            ],
+            "total": 2,
+            "more": 0
+          },
+          "fix": {
+            "headline": "Settle on one written form of the brand name",
+            "where": "Product titles, descriptions and theme copy",
+            "steps": [
+              "This store renders the name as \"Andamen\", \"andamen\".",
+              "Agents match a catalogue to a brand entity by name. Aliasing makes that link weaker than it should be.",
+              "Pick the form used in your Organization schema and use it everywhere."
+            ],
+            "snippet": null
+          }
+        },
+        {
+          "key": "descriptionDepth",
+          "spec": "Description length",
+          "label": "Description length",
+          "specSub": null,
+          "effectiveSub": null,
+          "scored": false,
+          "added": true,
+          "value": 47,
+          "basis": "measured",
+          "basisNote": "Not in the spec. Graded per product on word count: 200+ words = 100, 120+ = 90, 60+ = 70, 25+ = 40, under 25 = 15, none = 0. Shown because it explains most of what the scored checks report.",
+          "result": "0 of 20 products have no description at all · 13 have fewer than 60 words",
+          "why": "",
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "Shortest descriptions in the sample",
+            "items": [
+              {
+                "title": "Tidal Blue Cotton Structured Knit Polo",
+                "url": "https://andamen.com/products/tidal-blue-cotton-structured-knit-polo",
+                "note": "17 words"
+              },
+              {
+                "title": "Luxe Burgundy Flat Knit Relaxed Shorts",
+                "url": "https://andamen.com/products/luxe-burgundy-flat-knit-relaxed-shorts",
+                "note": "18 words"
+              },
+              {
+                "title": "Field Olive Cotton Trouser",
+                "url": "https://andamen.com/products/field-olive-cotton-trouser",
+                "note": "20 words"
+              },
+              {
+                "title": "Walnut Brown Twill Cotton Shirt",
+                "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+                "note": "26 words"
+              },
+              {
+                "title": "Canopy Olive Grindle Cotton Polo",
+                "url": "https://andamen.com/products/canopy-olive-grindle-cotton-polo",
+                "note": "31 words"
+              },
+              {
+                "title": "Military Olive Cotton Triblend Pullover",
+                "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+                "note": "33 words"
+              },
+              {
+                "title": "Pea flower Blue Cotton Crewneck",
+                "url": "https://andamen.com/products/pea-flower-blue-cotton-crewneck",
+                "note": "34 words"
+              },
+              {
+                "title": "Buttermilk White Cotton Shirt",
+                "url": "https://andamen.com/products/buttermilk-white-cotton-shirt",
+                "note": "35 words"
+              }
+            ],
+            "total": 13,
+            "more": 5
+          },
+          "fix": null
+        },
+        {
+          "key": "uniqueness",
+          "spec": "Description uniqueness",
+          "label": "Description uniqueness",
+          "specSub": null,
+          "effectiveSub": null,
+          "scored": false,
+          "added": true,
+          "value": 95,
+          "basis": "measured",
+          "basisNote": "Not in the spec. The share of sampled products whose opening 200 characters are not reused by another product.",
+          "result": "1 of 20 sampled products reuse another product's description",
+          "why": "",
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "1 products share copy with another product",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "imageCoverage",
+          "spec": "Image coverage",
+          "label": "Image coverage",
+          "specSub": null,
+          "effectiveSub": null,
+          "scored": false,
+          "added": true,
+          "value": 100,
+          "basis": "measured",
+          "basisNote": "Not in the spec. Graded per product on image count: 7+ = 100, 5-6 = 90, 3-4 = 70, 2 = 45, 1 = 20, none = 0.",
+          "result": "0 of 20 products have one image or none",
+          "why": "",
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "Products with the fewest images",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        }
+      ]
+    }
+  },
+  "speed": {
+    "score": 67,
+    "sampleSize": 20,
+    "medianKb": 1437,
+    "medianTtfb": 886,
+    "medianTotal": 946,
+    "minTtfb": 662,
+    "maxTtfb": 1334,
+    "minKb": 1382,
+    "maxKb": 1485,
+    "sizePenalty": 30.9,
+    "timePenalty": 2.2,
+    "verdict": "The pages are heavy. Every store here sits on the same Shopify infrastructure, so this is theme and app payload rather than hosting.",
+    "slowest": [
+      {
+        "title": "Forest Green Cotton Cables Polo",
+        "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+        "note": "1334ms · 1384KB"
+      },
+      {
+        "title": "Walnut Brown Twill Cotton Shirt",
+        "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+        "note": "1122ms · 1426KB"
+      },
+      {
+        "title": "Field Olive Cotton Trouser",
+        "url": "https://andamen.com/products/field-olive-cotton-trouser",
+        "note": "1045ms · 1438KB"
+      },
+      {
+        "title": "Tempo Teal Cotton Sweatshirt",
+        "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+        "note": "1041ms · 1431KB"
+      },
+      {
+        "title": "Mystic Violet Lyocell Linen Shirt",
+        "url": "https://andamen.com/products/mystic-violet-lyocell-linen-shirt",
+        "note": "950ms · 1477KB"
+      }
+    ],
+    "thresholds": "Free below 600KB and 800ms to first byte, then graded.",
+    "caveat": "Time to first byte and HTML payload, measured from this machine — not Core Web Vitals. The spec asks for LCP via PageSpeed Insights, which needs an API key and around 30 seconds per URL."
+  },
+  "llm": {
+    "used": false,
+    "model": null,
+    "graded": 0,
+    "cached": 0,
+    "error": null
+  },
+  "layer2Report": {
+    "name": "Structured Data / Schema",
+    "score": 62,
+    "specWeight": 25,
+    "effectiveWeight": 29,
+    "currency": "INR",
+    "sampleSize": 20,
+    "note": "llms.txt is measured but not scored; its 10% is redistributed across the five scored checks, which is why the effective weights differ from the spec column.",
+    "checks": [
+      {
+        "key": "productSchema",
+        "spec": "Product schema (JSON-LD) coverage",
+        "label": "Product schema (JSON-LD) coverage",
+        "specSub": 35,
+        "effectiveSub": 38.9,
+        "scored": true,
+        "value": 100,
+        "basis": "measured",
+        "basisNote": "20 of 20 sampled products passed all four fields",
+        "result": "20 of 20 products have price + availability + SKU",
+        "why": "Built as specified. Real variance across stores — 0% to 100%.",
+        "added": false,
+        "pointsEarned": 38.9,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "All 20 sampled products publish price, availability and SKU",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "variantSchema",
+        "spec": "Variant data structured",
+        "label": "Variant data structured",
+        "specSub": 20,
+        "effectiveSub": 22.2,
+        "scored": true,
+        "value": 0,
+        "basis": "measured",
+        "basisNote": "20 of 20 sampled products have more than one variant",
+        "result": "20 of 20 multi-variant products expose only one price",
+        "why": "Redefined. Checking whether option names appear in HTML returned 100 everywhere, so it now checks variant-level offers.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 22.2,
+        "costOfTotal": 6.5,
+        "evidence": {
+          "headline": "20 products publish one offer for several buyable variants",
+          "items": [
+            {
+              "title": "Military Olive Cotton Triblend Pullover",
+              "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+              "note": "5 variants (Color × Size × Fit) · one offer published"
+            },
+            {
+              "title": "Walnut Brown Twill Cotton Shirt",
+              "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+              "note": "10 variants (Color × Size × Fit) · one offer published"
+            },
+            {
+              "title": "Forest Green Cotton Cables Polo",
+              "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+              "note": "5 variants (Color × Size × Fit) · one offer published"
+            },
+            {
+              "title": "Field Olive Cotton Trouser",
+              "url": "https://andamen.com/products/field-olive-cotton-trouser",
+              "note": "7 variants (Color × Size × Fit) · one offer published"
+            },
+            {
+              "title": "Abyss Indigo Cotton Dobby Overshirt",
+              "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+              "note": "5 variants (Color × Size × Fit) · one offer published"
+            },
+            {
+              "title": "Cinder Burgundy Explorer Cotton Shirt",
+              "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+              "note": "10 variants (Color × Size × Fit) · one offer published"
+            },
+            {
+              "title": "Tempo Teal Cotton Sweatshirt",
+              "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+              "note": "5 variants (Color × Size × Fit) · one offer published"
+            },
+            {
+              "title": "Gambit Olive Textured Cotton Polo",
+              "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+              "note": "5 variants (Color × Size × Fit) · one offer published"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "ProductGroup markup for Military Olive Cotton Triblend Pullover",
+          "where": "Theme editor → product template, replacing the single Product block",
+          "steps": [
+            "Military Olive Cotton Triblend Pullover sells 5 variants across Color and Size and Fit but publishes one offer.",
+            "An agent asked for a specific size cannot confirm that size exists, so it recommends a competitor that can.",
+            "ProductGroup + hasVariant is the pattern Google and the agent crawlers both read."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"ProductGroup\",\n  \"name\": \"Military Olive Cotton Triblend Pullover\",\n  \"url\": \"https://andamen.com/products/military-olive-cotton-triblend-pullover\",\n  \"productGroupID\": \"military-olive-cotton-triblend-pullover\",\n  \"brand\": {\n    \"@type\": \"Brand\",\n    \"name\": \"Andamen\"\n  },\n  \"variesBy\": [\n    \"color\",\n    \"size\",\n    \"fit\"\n  ],\n  \"hasVariant\": [\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Military Olive Cotton Triblend Pullover — Olive / S / Regular\",\n      \"sku\": \"A26CFPE137J-Olive-S-Regular\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"5999.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Military Olive Cotton Triblend Pullover — Olive / M / Regular\",\n      \"sku\": \"A26CFPE137J-Olive-M-Regular\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"5999.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Military Olive Cotton Triblend Pullover — Olive / L / Regular\",\n      \"sku\": \"A26CFPE137J-Olive-L-Regular\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"5999.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    }\n  ]\n}"
+        }
+      },
+      {
+        "key": "orgSchema",
+        "spec": "Organization/entity schema",
+        "label": "Organization/entity schema",
+        "specSub": 15,
+        "effectiveSub": 16.7,
+        "scored": true,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Three graded outcomes: 2+ linked profiles = 100, present but thin = 40, absent = 0",
+        "result": "Present, 3 linked profiles (plus 6 empty slots that count for nothing)",
+        "why": "Built as specified. Roughly half of tested stores fail on the sameAs requirement.",
+        "added": false,
+        "pointsEarned": 16.7,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "Organization block found on the homepage with 3 usable sameAs links, and 6 empty slots the theme published blank",
+          "items": [
+            {
+              "title": "https://www.facebook.com/andamenindia/",
+              "url": "https://www.facebook.com/andamenindia/",
+              "note": "linked profile",
+              "pass": true
+            },
+            {
+              "title": "https://www.instagram.com/andamenlife/",
+              "url": "https://www.instagram.com/andamenlife/",
+              "note": "linked profile",
+              "pass": true
+            },
+            {
+              "title": "https://www.linkedin.com/company/andamen/",
+              "url": "https://www.linkedin.com/company/andamen/",
+              "note": "linked profile",
+              "pass": true
+            }
+          ],
+          "total": 3,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "faqSchema",
+        "spec": "FAQ/HowTo schema",
+        "label": "FAQ/HowTo schema",
+        "specSub": 10,
+        "effectiveSub": 11.1,
+        "scored": true,
+        "value": 30,
+        "basis": "state",
+        "basisNote": "Graded outcomes: FAQ page 100, homepage 80, product pages 70, content but no markup 30",
+        "result": "FAQ page exists (/pages/frequently-asked-questions) but carries no schema",
+        "why": "Widened. The spec looked at product and category pages; FAQ markup almost always lives on a dedicated FAQ page.",
+        "added": false,
+        "pointsEarned": 3.3,
+        "pointsLost": 7.8,
+        "costOfTotal": 2.3,
+        "evidence": {
+          "headline": "FAQ page found at /pages/frequently-asked-questions with no FAQPage schema",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": {
+          "headline": "FAQPage markup for /pages/frequently-asked-questions",
+          "where": "Theme editor → page template for /pages/frequently-asked-questions",
+          "steps": [
+            "The answers are already written — they are just not machine-readable. This is markup around copy you have.",
+            "Reuse your real question-and-answer text verbatim; inventing answers here would misrepresent the store."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"How long does delivery take?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Can I return a Andamen order?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    }\n  ]\n}"
+        }
+      },
+      {
+        "key": "llmsTxt",
+        "spec": "llms.txt present",
+        "label": "llms.txt present",
+        "specSub": 10,
+        "effectiveSub": null,
+        "scored": false,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Measured and shown, excluded from the score. Its 10% is redistributed across the other five checks.",
+        "result": "Present — auto-generated by Shopify, not written by the brand",
+        "why": "Dropped from scoring. Shopify auto-generates llms.txt for every store, pointing agents at shop.app. Returned 100 on all 15 stores tested.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "4475 bytes served at /llms.txt",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "reviewSchema",
+        "spec": "Review/rating schema",
+        "label": "Review/rating schema",
+        "specSub": 10,
+        "effectiveSub": 11.1,
+        "scored": true,
+        "value": 25,
+        "basis": "state",
+        "basisNote": "A review app is displaying ratings but none are machine-readable. Scored 25 — reviews exist, agents just cannot read them.",
+        "result": "Judge.me is running but exposes no schema",
+        "why": "Three states instead of pass/fail. Review apps inject ratings via JavaScript, so a store with thousands of reviews scored 0 under the original check.",
+        "added": false,
+        "pointsEarned": 2.8,
+        "pointsLost": 8.3,
+        "costOfTotal": 2.5,
+        "evidence": {
+          "headline": "Review widget detected: Judge.me",
+          "items": [
+            {
+              "title": "Military Olive Cotton Triblend Pullover",
+              "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Walnut Brown Twill Cotton Shirt",
+              "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Forest Green Cotton Cables Polo",
+              "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Field Olive Cotton Trouser",
+              "url": "https://andamen.com/products/field-olive-cotton-trouser",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Abyss Indigo Cotton Dobby Overshirt",
+              "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Cinder Burgundy Explorer Cotton Shirt",
+              "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Tempo Teal Cotton Sweatshirt",
+              "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Gambit Olive Textured Cotton Polo",
+              "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+              "note": "no AggregateRating"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "AggregateRating for Military Olive Cotton Triblend Pullover",
+          "where": "Judge.me settings → enable rich snippets / SEO schema output",
+          "steps": [
+            "Judge.me renders ratings in JavaScript. Agents fetch the HTML once and never run it, so the ratings your customers see are invisible to them.",
+            "Most review apps have this as a single toggle; it does not need theme code.",
+            "Never publish a rating you cannot substantiate."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Product\",\n  \"name\": \"Military Olive Cotton Triblend Pullover\",\n  \"aggregateRating\": {\n    \"@type\": \"AggregateRating\",\n    \"ratingValue\": \"YOUR_AVERAGE_RATING\",\n    \"reviewCount\": \"YOUR_REVIEW_COUNT\",\n    \"bestRating\": 5\n  },\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"5999.00\",\n    \"priceCurrency\": \"INR\",\n    \"availability\": \"https://schema.org/OutOfStock\"\n  }\n}"
+        }
+      }
+    ]
+  },
+  "layer3Report": {
+    "name": "India Checkout & UCP Compatibility",
+    "score": 50,
+    "specWeight": 25,
+    "effectiveWeight": 29,
+    "sampleSize": 20,
+    "currency": "INR",
+    "note": "Rebuilt to the v2 spec. The checkout-stack penalty is retired — this store runs GoKwik, shown for context only and not scored. Return/exchange policy and Agentic Storefronts eligibility are held back for the next review, so the spec's 35/20/15 renormalise across the three checks below.",
+    "checks": [
+      {
+        "key": "ucpProfile",
+        "spec": "UCP checkout capability declared",
+        "label": "UCP checkout capability declared",
+        "specSub": 35,
+        "effectiveSub": 50,
+        "scored": true,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Read from /.well-known/ucp. Checkout capability declared at the profile's current version = 100; declared at an older version only = 40; absent or unreachable = 0.",
+        "result": "Declares dev.ucp.shopping.checkout at 2026-08-25 · 8 capabilities",
+        "why": "Replaces the retired checkout-stack penalty. That check graded a store by how many checkout apps sat over native Shopify; fetching /.well-known/ucp on 13 stores spanning native checkout to four stacked apps returned an identical profile every time, so app count has no relationship to declared capability. Shopify serves this from its platform layer, beneath the storefront the apps modify. This confirms the endpoint DECLARES checkout capability — it does not simulate a live agent-initiated purchase, so app-specific friction during an actual transaction is untested.",
+        "added": false,
+        "pointsEarned": 50,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "UCP 2026-08-25 with 8 capabilities declared",
+          "items": [
+            {
+              "title": "checkout",
+              "url": "https://andamen.com/.well-known/ucp",
+              "note": "the scored capability",
+              "pass": true
+            },
+            {
+              "title": "fulfillment",
+              "url": "https://andamen.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "discount",
+              "url": "https://andamen.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "cart",
+              "url": "https://andamen.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "order",
+              "url": "https://andamen.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "catalog.search",
+              "url": "https://andamen.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "catalog.lookup",
+              "url": "https://andamen.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "shopify:catalog",
+              "url": "https://andamen.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            }
+          ],
+          "total": 8,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "codPayment",
+        "spec": "COD/prepaid logic exposed cleanly",
+        "label": "COD/prepaid logic exposed cleanly",
+        "specSub": 20,
+        "effectiveSub": 28.6,
+        "scored": true,
+        "value": 0,
+        "basis": "state",
+        "basisNote": "Binary, per the v2 spec: acceptedPaymentMethod declared on the Offer = 100, anything else = 0. Payment options rendered as page text earn no credit — they are shown below as context, not as partial marks.",
+        "result": "No acceptedPaymentMethod anywhere — COD appears only as page text on 20 of 20 products",
+        "why": "Not in the previous build. The spec asks for payment options structured rather than buried in JS widgets, so this separates a parseable field from prose a human reads.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 28.6,
+        "costOfTotal": 8.4,
+        "evidence": {
+          "headline": "COD named in the page text of 20 of 20 products; acceptedPaymentMethod on 0",
+          "items": [
+            {
+              "title": "Military Olive Cotton Triblend Pullover",
+              "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+              "note": "COD in text · prepaid in text"
+            },
+            {
+              "title": "Walnut Brown Twill Cotton Shirt",
+              "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+              "note": "COD in text · prepaid in text"
+            },
+            {
+              "title": "Forest Green Cotton Cables Polo",
+              "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+              "note": "COD in text · prepaid in text"
+            },
+            {
+              "title": "Field Olive Cotton Trouser",
+              "url": "https://andamen.com/products/field-olive-cotton-trouser",
+              "note": "COD in text · prepaid in text"
+            },
+            {
+              "title": "Abyss Indigo Cotton Dobby Overshirt",
+              "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+              "note": "COD in text · prepaid in text"
+            },
+            {
+              "title": "Cinder Burgundy Explorer Cotton Shirt",
+              "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+              "note": "COD in text · prepaid in text"
+            },
+            {
+              "title": "Tempo Teal Cotton Sweatshirt",
+              "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+              "note": "COD in text · prepaid in text"
+            },
+            {
+              "title": "Gambit Olive Textured Cotton Polo",
+              "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+              "note": "COD in text · prepaid in text"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "Declare payment methods on the Offer for Military Olive Cotton Triblend Pullover",
+          "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+          "steps": [
+            "COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.",
+            "This goes inside the Offer you already publish — it is two extra fields, not a new block.",
+            "List only the methods you genuinely accept."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://andamen.com/products/military-olive-cotton-triblend-pullover\",\n  \"price\": \"5999.00\",\n  \"priceCurrency\": \"INR\",\n  \"availability\": \"https://schema.org/OutOfStock\",\n  \"acceptedPaymentMethod\": [\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Cash on Delivery\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"UPI\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Credit Card\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "key": "serviceability",
+        "spec": "Shipping/serviceability data structured",
+        "label": "Shipping/serviceability data structured",
+        "specSub": 15,
+        "effectiveSub": 21.4,
+        "scored": true,
+        "value": 0,
+        "basis": "state",
+        "basisNote": "Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A pincode widget is a JavaScript call to a private API an agent cannot make, so it is reported below as context rather than scored.",
+        "result": "No OfferShippingDetails — a JS-only pincode checker runs on 20 of 20 pages",
+        "why": "Not in the previous build. The old shipping check measured the policy page's text length, which is a different question from pincode-level serviceability. That measurement is kept below as an extra, unscored.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 21.4,
+        "costOfTotal": 6.3,
+        "evidence": {
+          "headline": "Pincode or delivery-estimate widget found on 20 of 20 product pages",
+          "items": [
+            {
+              "title": "Military Olive Cotton Triblend Pullover",
+              "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Walnut Brown Twill Cotton Shirt",
+              "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Forest Green Cotton Cables Polo",
+              "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Field Olive Cotton Trouser",
+              "url": "https://andamen.com/products/field-olive-cotton-trouser",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Abyss Indigo Cotton Dobby Overshirt",
+              "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Cinder Burgundy Explorer Cotton Shirt",
+              "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Tempo Teal Cotton Sweatshirt",
+              "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Gambit Olive Textured Cotton Polo",
+              "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+              "note": "pincode checker, JS-only"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "Publish delivery windows as shippingDetails for Military Olive Cotton Triblend Pullover",
+          "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+          "steps": [
+            "The pincode widget already knows your delivery windows — this exposes the same answer in a field an agent can read.",
+            "Agents asked \"can you deliver to Pune by Friday\" currently have nothing to work from.",
+            "Publish your real handling and transit times; a wrong promise here is worse than none."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://andamen.com/products/military-olive-cotton-triblend-pullover\",\n  \"shippingDetails\": {\n    \"@type\": \"OfferShippingDetails\",\n    \"shippingDestination\": {\n      \"@type\": \"DefinedRegion\",\n      \"addressCountry\": \"IN\"\n    },\n    \"deliveryTime\": {\n      \"@type\": \"ShippingDeliveryTime\",\n      \"handlingTime\": {\n        \"@type\": \"QuantitativeValue\",\n        \"minValue\": 1,\n        \"maxValue\": 2,\n        \"unitCode\": \"DAY\"\n      },\n      \"transitTime\": {\n        \"@type\": \"QuantitativeValue\",\n        \"minValue\": 2,\n        \"maxValue\": 6,\n        \"unitCode\": \"DAY\"\n      }\n    }\n  }\n}"
+        }
+      }
+    ]
+  },
+  "layer4Report": {
+    "name": "Content Clarity",
+    "score": 46,
+    "specWeight": 15,
+    "effectiveWeight": 18,
+    "sampleSize": 20,
+    "currency": "INR",
+    "note": "The spec computes the first two checks with an LLM call; they are measured here by keyword detection instead, so a scan needs no API key and costs nothing. Description length, uniqueness and image coverage are not in the spec — they are measured and shown, never scored.",
+    "checks": [
+      {
+        "key": "answerFirst",
+        "spec": "Answer-first product descriptions",
+        "label": "Answer-first product descriptions",
+        "specSub": 40,
+        "effectiveSub": 40,
+        "scored": true,
+        "added": false,
+        "value": 41,
+        "basis": "measured",
+        "basisNote": "Each sampled description is checked for four facts an agent needs — material or composition, primary use case, size or dimension guidance, and one specific factual attribute. A product scores 25 per fact it covers, and the check is the average across 20 products. Graded by keyword detection, which errs in both directions: \"premium materials\" counts as covering material when a reader would not, and a use case phrased outside the matched vocabulary is missed. Treat it as an indicator, not a verdict.",
+        "result": "Descriptions cover 1.6 of the 4 facts on average · 20 of 20 never mention a specific factual attribute",
+        "why": "Built to the v2 spec structure, computed without the LLM call it specifies. Same four questions, keyword detection, so a scan needs no API key and costs nothing. Set GEMINI_API_KEY to grade these with a model instead.",
+        "pointsEarned": 16.4,
+        "pointsLost": 23.6,
+        "costOfTotal": 4.2,
+        "evidence": {
+          "headline": "Facts missing across the 20 sampled descriptions",
+          "items": [
+            {
+              "title": "material or composition",
+              "url": "https://andamen.com",
+              "note": "missing on 2 of 20",
+              "pass": false
+            },
+            {
+              "title": "primary use case",
+              "url": "https://andamen.com",
+              "note": "missing on 6 of 20",
+              "pass": false
+            },
+            {
+              "title": "size or dimension guidance",
+              "url": "https://andamen.com",
+              "note": "missing on 19 of 20",
+              "pass": false
+            },
+            {
+              "title": "a specific factual attribute",
+              "url": "https://andamen.com",
+              "note": "missing on 20 of 20",
+              "pass": false
+            }
+          ],
+          "total": 4,
+          "more": 0
+        },
+        "fix": {
+          "headline": "Lead with the facts, then the story",
+          "where": "Product descriptions — Shopify admin → Products, or your PIM",
+          "steps": [
+            "20 of 20 sampled descriptions never mention a specific factual attribute.",
+            "Agents answer shopper questions by quoting your copy. A description that opens with brand storytelling gives them nothing to quote.",
+            "Put material, size and use case in the first two sentences; keep the storytelling after."
+          ],
+          "snippet": null
+        }
+      },
+      {
+        "key": "factualDensity",
+        "spec": "Factual density",
+        "label": "Factual density",
+        "specSub": 30,
+        "effectiveSub": 30,
+        "scored": true,
+        "added": false,
+        "value": 27,
+        "basis": "measured",
+        "basisNote": "Per product: 20 points for each concrete measurement in the description (ml, g, cm, %, and similar) capped at 100, plus 30 for naming a spec term such as material, ingredients, dimensions or warranty. Averaged across the sample.",
+        "result": "0.0 measurements per description on average · 2 of 20 never name a spec term",
+        "why": "",
+        "pointsEarned": 8.1,
+        "pointsLost": 21.9,
+        "costOfTotal": 3.9,
+        "evidence": {
+          "headline": "Products with the least concrete detail",
+          "items": [
+            {
+              "title": "Tempo Teal Cotton Sweatshirt",
+              "url": "https://andamen.com/products/tempo-teal-cotton-sweatshirt",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Gambit Olive Textured Cotton Polo",
+              "url": "https://andamen.com/products/gambit-olive-textured-cotton-polo",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Military Olive Cotton Triblend Pullover",
+              "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+              "note": "0 measurements"
+            },
+            {
+              "title": "Walnut Brown Twill Cotton Shirt",
+              "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+              "note": "0 measurements"
+            },
+            {
+              "title": "Forest Green Cotton Cables Polo",
+              "url": "https://andamen.com/products/forest-green-cotton-cables-polo",
+              "note": "0 measurements"
+            },
+            {
+              "title": "Field Olive Cotton Trouser",
+              "url": "https://andamen.com/products/field-olive-cotton-trouser",
+              "note": "0 measurements"
+            },
+            {
+              "title": "Abyss Indigo Cotton Dobby Overshirt",
+              "url": "https://andamen.com/products/abyss-indigo-cotton-dobby-overshirt",
+              "note": "0 measurements"
+            },
+            {
+              "title": "Cinder Burgundy Explorer Cotton Shirt",
+              "url": "https://andamen.com/products/cinder-burgundy-explorer-cotton-shirt",
+              "note": "0 measurements"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "Add measurable attributes to thin descriptions",
+          "where": "Product descriptions — Shopify admin → Products",
+          "steps": [
+            "Sampled descriptions average 0.0 concrete measurements.",
+            "Vague marketing copy ranks below a competitor that states grams, millilitres or dimensions.",
+            "One line of specifications per product moves this more than rewriting the prose."
+          ],
+          "snippet": null
+        }
+      },
+      {
+        "key": "entityConsistency",
+        "spec": "Consistent entity naming",
+        "label": "Consistent entity naming",
+        "specSub": 30,
+        "effectiveSub": 30,
+        "scored": true,
+        "added": false,
+        "value": 70,
+        "basis": "state",
+        "basisNote": "One rendered form of the brand name across all sampled pages = 100; several forms that match once case and spacing are normalised = 70; the name missing from some pages entirely = 40. Matching is anchored on \"Andamen\".",
+        "result": "2 written forms in use: \"Andamen\", \"andamen\"",
+        "why": "Returned 70 on every store tested so far — most brands render their name in more than one form but identically once case and spacing are normalised. Worth the same scrutiny as the other non-differentiating checks before its 30% weight is locked.",
+        "pointsEarned": 21,
+        "pointsLost": 9,
+        "costOfTotal": 1.6,
+        "evidence": {
+          "headline": "Distinct rendered forms of \"Andamen\" across 20 sampled pages",
+          "items": [
+            {
+              "title": "\"Andamen\"",
+              "url": "https://andamen.com",
+              "note": "in use",
+              "pass": false
+            },
+            {
+              "title": "\"andamen\"",
+              "url": "https://andamen.com",
+              "note": "in use",
+              "pass": false
+            }
+          ],
+          "total": 2,
+          "more": 0
+        },
+        "fix": {
+          "headline": "Settle on one written form of the brand name",
+          "where": "Product titles, descriptions and theme copy",
+          "steps": [
+            "This store renders the name as \"Andamen\", \"andamen\".",
+            "Agents match a catalogue to a brand entity by name. Aliasing makes that link weaker than it should be.",
+            "Pick the form used in your Organization schema and use it everywhere."
+          ],
+          "snippet": null
+        }
+      },
+      {
+        "key": "descriptionDepth",
+        "spec": "Description length",
+        "label": "Description length",
+        "specSub": null,
+        "effectiveSub": null,
+        "scored": false,
+        "added": true,
+        "value": 47,
+        "basis": "measured",
+        "basisNote": "Not in the spec. Graded per product on word count: 200+ words = 100, 120+ = 90, 60+ = 70, 25+ = 40, under 25 = 15, none = 0. Shown because it explains most of what the scored checks report.",
+        "result": "0 of 20 products have no description at all · 13 have fewer than 60 words",
+        "why": "",
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "Shortest descriptions in the sample",
+          "items": [
+            {
+              "title": "Tidal Blue Cotton Structured Knit Polo",
+              "url": "https://andamen.com/products/tidal-blue-cotton-structured-knit-polo",
+              "note": "17 words"
+            },
+            {
+              "title": "Luxe Burgundy Flat Knit Relaxed Shorts",
+              "url": "https://andamen.com/products/luxe-burgundy-flat-knit-relaxed-shorts",
+              "note": "18 words"
+            },
+            {
+              "title": "Field Olive Cotton Trouser",
+              "url": "https://andamen.com/products/field-olive-cotton-trouser",
+              "note": "20 words"
+            },
+            {
+              "title": "Walnut Brown Twill Cotton Shirt",
+              "url": "https://andamen.com/products/walnut-brown-twill-cotton-shirt",
+              "note": "26 words"
+            },
+            {
+              "title": "Canopy Olive Grindle Cotton Polo",
+              "url": "https://andamen.com/products/canopy-olive-grindle-cotton-polo",
+              "note": "31 words"
+            },
+            {
+              "title": "Military Olive Cotton Triblend Pullover",
+              "url": "https://andamen.com/products/military-olive-cotton-triblend-pullover",
+              "note": "33 words"
+            },
+            {
+              "title": "Pea flower Blue Cotton Crewneck",
+              "url": "https://andamen.com/products/pea-flower-blue-cotton-crewneck",
+              "note": "34 words"
+            },
+            {
+              "title": "Buttermilk White Cotton Shirt",
+              "url": "https://andamen.com/products/buttermilk-white-cotton-shirt",
+              "note": "35 words"
+            }
+          ],
+          "total": 13,
+          "more": 5
+        },
+        "fix": null
+      },
+      {
+        "key": "uniqueness",
+        "spec": "Description uniqueness",
+        "label": "Description uniqueness",
+        "specSub": null,
+        "effectiveSub": null,
+        "scored": false,
+        "added": true,
+        "value": 95,
+        "basis": "measured",
+        "basisNote": "Not in the spec. The share of sampled products whose opening 200 characters are not reused by another product.",
+        "result": "1 of 20 sampled products reuse another product's description",
+        "why": "",
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "1 products share copy with another product",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "imageCoverage",
+        "spec": "Image coverage",
+        "label": "Image coverage",
+        "specSub": null,
+        "effectiveSub": null,
+        "scored": false,
+        "added": true,
+        "value": 100,
+        "basis": "measured",
+        "basisNote": "Not in the spec. Graded per product on image count: 7+ = 100, 5-6 = 90, 3-4 = 70, 2 = 45, 1 = 20, none = 0.",
+        "result": "0 of 20 products have one image or none",
+        "why": "",
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "Products with the fewest images",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      }
+    ]
+  },
+  "agentView": {
+    "title": "Tidal Blue Cotton Structured Knit Polo",
+    "url": "https://andamen.com/products/tidal-blue-cotton-structured-knit-polo",
+    "catalogNote": "Weakest of 20 sampled products",
+    "fields": [
+      {
+        "label": "Name",
+        "value": "Tidal Blue Cotton Structured Knit Polo",
+        "visible": true
+      },
+      {
+        "label": "Price",
+        "value": "₹3999.00",
+        "visible": true,
+        "action": "Expose price in the product schema"
+      },
+      {
+        "label": "In stock",
+        "value": "Yes",
+        "visible": true,
+        "action": "Add availability to the offer"
+      },
+      {
+        "label": "SKU",
+        "value": "Present",
+        "visible": true,
+        "action": "Publish the SKU field"
+      },
+      {
+        "label": "Rating",
+        "value": null,
+        "visible": false,
+        "action": "Expose ratings from Judge.me as structured data"
+      },
+      {
+        "label": "Options",
+        "value": "Color, Size, Fit",
+        "visible": false,
+        "action": "Expose each variant as its own offer"
+      },
+      {
+        "label": "Images",
+        "value": "7",
+        "visible": true,
+        "action": "Add images — 7 today, 5 or more works better"
+      },
+      {
+        "label": "Description",
+        "value": "Crafted from 100% cotton with a structured knit finish. Comfortable, breathable, and designed for elevated everyday wear.",
+        "visible": false,
+        "action": "Write 60+ words covering material, size and use case — 17 today"
+      }
+    ],
+    "gapCount": 3
+  }
+}

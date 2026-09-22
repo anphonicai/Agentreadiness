@@ -5,3 +5,9 @@ node_modules/
 .DS_Store
 *.log
 .qodo/
+
+# Local lead database (personal data)
+/data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

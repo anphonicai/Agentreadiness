@@ -17,12 +17,16 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { scanStore, VERSION } from './engine.js';
+import { openLeadStore, handleLeadRequest } from './leads.js';
+import { normalizeStoreUrl, handleStoreRequest } from './store-url.js';
+import { VERSION } from './engine.js';
+import { scanWithCompetitors, COMPETITORS } from './competitive.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3100;
 const PUBLIC = join(__dirname, 'public');
 
+const leadStore = openLeadStore(process.env.LEADS_DB_PATH || join(__dirname, 'data', 'leads.sqlite'));
 const jobs = new Map();
 const history = [];
 
@@ -53,13 +57,13 @@ function startScan(url) {
   const job = { id, url, status: 'running', step: 'Starting', startedAt: Date.now(), result: null, error: null };
   jobs.set(id, job);
 
-  scanStore(url, (step) => { job.step = step; })
+  scanWithCompetitors(url, (step) => { job.step = step; })
     .then((result) => {
       job.result = result;
       job.status = 'done';
       job.step = 'Complete';
       job.ms = Date.now() - job.startedAt;
-      history.unshift({ id, domain: result.domain, score: result.finalScore, grade: result.grade, at: Date.now() });
+      history.unshift({ id, brandName: result.brandName, domain: result.domain, score: result.finalScore, grade: result.grade, at: Date.now() });
       history.splice(25);
     })
     .catch((err) => { job.status = 'error'; job.error = err.message; });
@@ -71,6 +75,16 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const ip = req.socket.remoteAddress || 'unknown';
 
+  if (req.method === 'POST' && url.pathname === '/api/store') {
+    if (rateLimited('store:' + ip)) return json(res, 429, { error: 'Too many requests. Please try again later.' });
+    return handleStoreRequest(req, res, [...history, ...Object.entries(COMPETITORS).flatMap(([domain, peers]) => [domain, ...peers].map(domain => ({domain})))]);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/leads') {
+    if (rateLimited('leads:' + ip)) return json(res, 429, { error: 'Too many submissions. Please try again later.' });
+    return handleLeadRequest(req, res, leadStore);
+  }
+
   if (req.method === 'POST' && url.pathname === '/api/scan') {
     if (rateLimited(ip)) return json(res, 429, { error: 'Too many scans from this address. Try again later.' });
     let body = '';
@@ -79,7 +93,7 @@ const server = createServer(async (req, res) => {
       const parsed = (() => { try { return JSON.parse(body); } catch { return null; } })();
       if (!parsed || !parsed.url) return json(res, 400, { error: 'Enter a store URL.' });
       let target;
-      try { target = new URL(/^https?:\/\//i.test(parsed.url) ? parsed.url : 'https://' + parsed.url).origin; }
+      try { target = normalizeStoreUrl(parsed.url); }
       catch { return json(res, 400, { error: "That doesn't look like a URL. Try example.com" }); }
       return json(res, 202, { id: startScan(target), domain: target });
     });
@@ -93,6 +107,17 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && url.pathname === '/api/version') return json(res, 200, { version: VERSION });
+
+  if (req.method === 'GET' && url.pathname === '/api/benchmarks') return json(res, 200, { competitors: COMPETITORS });
+
+  if (req.method === 'GET' && url.pathname.startsWith('/api/benchmark/')) {
+    const domain = url.pathname.slice('/api/benchmark/'.length);
+    if (!Object.hasOwn(COMPETITORS, domain)) return json(res, 404, { error: 'Unknown benchmark client.' });
+    try {
+      const report = JSON.parse(await readFile(join(__dirname, 'reports', 'layer5', `${domain}.json`), 'utf8'));
+      return json(res, 200, report);
+    } catch { return json(res, 404, { error: 'No saved benchmark yet. Run npm run benchmark first.' }); }
+  }
 
   if (req.method === 'GET' && url.pathname === '/api/history') return json(res, 200, { history });
 
