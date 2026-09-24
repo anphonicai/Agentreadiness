@@ -42,6 +42,7 @@ export function openLeadStore(filename) {
       const now = new Date().toISOString();
       save.run(randomUUID(), lead.name, lead.email, lead.storeUrl, now, now, now);
     },
+    verify(email, url) { db.prepare('UPDATE leads SET email_verified=1, updated_at=? WHERE email=? AND store_url=?').run(new Date().toISOString(),email,url); },
     close() { db.close(); },
   };
 }

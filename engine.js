@@ -11,6 +11,8 @@
  * Node 18+. No dependencies.
  */
 
+import {publicFetch} from './public-fetch.js';
+
 // ============================================================== SCORING CONFIG
 // Everything tunable lives here. Change a number, rerun, done.
 
@@ -445,8 +447,8 @@ async function get(url, ua = AGENTS.Chrome) {
   const t = setTimeout(() => ctl.abort(), TIMEOUT_MS);
   const t0 = Date.now();
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': ua }, redirect: 'follow', signal: ctl.signal });
-    const ttfb = Date.now() - t0;
+    const res = await publicFetch(url, { headers: { 'User-Agent': ua }, signal: ctl.signal });
+    const ttfb = res.headersAt - t0;
     const body = await res.text();
     return { ok: res.ok, status: res.status, finalUrl: res.url, bytes: body.length, body,
              ttfb, total: Date.now() - t0, cf: !!res.headers.get('cf-ray') };

@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agent Readiness Report — Anphonic</title>
+<title>Commerce.Anphonic.ai — Agent Readiness</title>
+<meta name="referrer" content="no-referrer">
 <style>
 :root{
   --paper:#F3F4F5;
@@ -243,6 +244,7 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
 <link rel="stylesheet" href="/design.css">
 <link rel="stylesheet" href="/flow.css">
 <link rel="stylesheet" href="/refinement.css">
+<link rel="stylesheet" href="/footer.css">
 </head>
 <body data-screen="home">
 <nav class="flow-nav" aria-label="Main navigation">
@@ -287,16 +289,16 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
 
   <section id="verification-screen" class="journey-card hidden" aria-labelledby="verification-title">
     <button type="button" class="journey-back" data-back="consent">← Change details</button>
-    <span class="journey-kicker">02 / EMAIL VERIFICATION · DEMO</span>
+    <span class="journey-kicker">02 / EMAIL VERIFICATION</span>
     <h1 id="verification-title" tabindex="-1">Enter the verification code<br>to verify your email</h1>
     <p>Continue with <span id="verification-email"></span></p>
-    <p class="journey-notice">Email delivery is not connected. No email has been sent. Use demo code <strong>123456</strong> to try the flow.</p>
+    <p class="journey-notice">We sent a six-digit code to your email. It expires in 5 minutes. Check your spam folder if needed.</p>
     <form id="verification-form" class="journey-form">
       <label for="verification-code">Six-digit verification code</label>
       <div class="code-entry"><input id="verification-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required aria-describedby="verification-error" aria-label="Six-digit verification code"><div class="code-boxes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
       <p id="verification-error" class="err hidden" role="alert"></p>
-      <button type="submit">Verify demo code &amp; analyse →</button>
-      <button type="button" id="resend-code" class="journey-secondary">Reset demo code</button>
+      <button type="submit">Verify email &amp; analyse →</button>
+      <button type="button" id="resend-code" class="journey-secondary">Resend code</button>
       <p id="resend-status" role="status"></p>
     </form>
   </section>
@@ -306,17 +308,44 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
     <div class="price-card"><span class="journey-kicker">ONE-TIME STORE AUDIT</span><div class="price">$249</div><p>USD · once · design preview</p><ul><li>Full per-check diagnostics</li><li>Named competitor benchmark, when available</li><li>Store-specific evidence and fixes</li><li>Downloadable report</li></ul><button id="checkout-open" type="button">Unlock full report →</button><small>Preview checkout · No charge</small></div>
   </section>
   <section id="payment-screen" class="checkout-screen hidden" aria-labelledby="payment-title">
-    <div class="checkout-copy"><button type="button" class="journey-back" data-back="upgrade">← Back</button><span class="journey-kicker">CHECKOUT PREVIEW</span><h1 id="payment-title" tabindex="-1">Unlock your full report</h1><p><span class="journey-store"></span> · Complete AI commerce intelligence audit</p><div class="order-total"><span>Report price</span><strong>$249.00</strong></div><p class="journey-notice">Demo checkout. No payment is collected. Continue to explore the full report from your scan.</p></div>
+    <div class="checkout-copy"><button type="button" class="journey-back" data-back="upgrade">← Back</button><span class="journey-kicker">CHECKOUT PREVIEW</span><h1 id="payment-title" tabindex="-1">Unlock your full report</h1><p><span class="journey-store"></span> · Complete AI commerce intelligence audit</p><div class="order-total"><span>Report price</span><strong>$249.00</strong></div><p class="journey-notice">Your report will be emailed after confirmed payment. Payment processing is not connected yet.</p></div>
     <div class="payment-card"><h2>Payment details</h2><span class="journey-kicker">DEMO · NO CHARGE</span><div class="journey-form"><label for="card-preview">Card number</label><input id="card-preview" value="4242 4242 4242 4242" disabled><label for="expiry-preview">Expiry</label><input id="expiry-preview" value="12 / 29" disabled><label for="cvc-preview">CVC</label><input id="cvc-preview" value="123" disabled><label for="name-preview">Name on card</label><input id="name-preview" value="Demo customer" disabled><button type="button" id="demo-payment">Preview full report →</button><small>Payment integration coming later</small><p id="payment-status" role="status"></p></div></div>
   </section>
 
+  <section id="report-loading-screen" class="report-link-stage hidden" aria-labelledby="report-loading-title">
+    <span class="journey-kicker">Commerce.Anphonic.ai</span><div class="flow-track" id="report-link-track" aria-hidden="true"><i></i></div>
+    <h1 id="report-loading-title" tabindex="-1">Opening your report</h1>
+    <p id="report-link-status" role="status">Loading your saved analysis and recommendations…</p>
+    <button type="button" id="report-link-retry" class="hidden">Try again</button><a href="/">Start a new scan</a>
+  </section>
   <div id="report" class="hidden"></div>
 
-  <div class="foot">
-    Built by Anphonic. Reads publicly served pages and samples up to 20 products per store rather than the full catalogue.
-    <span id="ver"></span>
-  </div>
 </main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="https://www.anphonic.ai/" aria-label="Anphonic"><img src="/assets/flow/logo.png" alt="Anphonic" width="136" height="32"></a>
+        <p class="footer-tagline">AI Commerce Intelligence</p>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <a href="https://www.anphonic.ai/">Platform</a>
+          <button type="button" id="footer-methodology">Methodology</button>
+          <button type="button" id="footer-pricing">Pricing</button>
+        </nav>
+      </div>
+      <div class="footer-contact">
+        <a class="footer-cta" href="mailto:hello@anphonic.com">Contact Us</a>
+        <div class="footer-social" aria-label="Social channels"><span class="footer-social-placeholder" role="img" aria-label="Facebook" title="Facebook link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></span><span class="footer-social-placeholder" role="img" aria-label="LinkedIn" title="LinkedIn link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></span><span class="footer-social-placeholder" role="img" aria-label="X" title="X link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span><span class="footer-social-placeholder" role="img" aria-label="Instagram" title="Instagram link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></span></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-legal"><span title="Link coming soon">Terms of Service</span><span title="Link coming soon">Privacy Policy</span><span title="Link coming soon">Cookie Settings</span></div>
+      <p>© <span id="footer-year">2026</span> Anphonic. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+<dialog id="footer-pricing-dialog" aria-labelledby="footer-pricing-title"><h2 id="footer-pricing-title">Report pricing</h2><p>Your storefront readiness scan is free.</p><p>The complete report is $249 USD, paid once. Paid reports are coming soon.</p><button type="button" id="footer-pricing-close">Close</button></dialog>
+
 <dialog id="flow-methodology" aria-labelledby="methodology-title">
   <h2 id="methodology-title">How the audit works</h2>
   <p>We inspect publicly served storefront pages and sample up to 20 products. The report checks crawler access, structured data, checkout declarations, and content clarity.</p>
@@ -336,7 +365,7 @@ function setScreen(screen){
   $('analysis-note').classList.toggle('hidden', screen !== 'analysis');
   $('progress').classList.toggle('hidden', screen !== 'analysis');
   $('report').classList.toggle('hidden', screen !== 'report');
-  ['consent', 'verification', 'upgrade', 'payment'].forEach(name => $(name + '-screen').classList.toggle('hidden', screen !== name));
+  ['consent', 'verification', 'upgrade', 'payment', 'report-loading'].forEach(name => $(name + '-screen').classList.toggle('hidden', screen !== name));
   document.querySelector('.flow-nav img').src = screen === 'upgrade' ? '/assets/flow/logo-dark.png' : '/assets/flow/logo.png';
   const title = $(screen + '-title');
   if (title) title.focus({preventScroll:true});
@@ -667,6 +696,9 @@ async function poll(id){
   if (j.status === 'running'){ renderSteps(j.step); return setTimeout(() => poll(id), 700); }
   $('progress').classList.add('hidden');
   if (j.status === 'error'){ resetForm(); return showError(j.error || 'The scan failed. Try again.'); }
+  currentScanId = id;
+  checkoutAvailable = j.checkoutAvailable === true;
+      reportPreviewAvailable = j.reportPreviewAvailable === true;
   $('report').innerHTML = renderReport(j.result);
   $('report').classList.remove('hidden');
   setScreen('report');
@@ -695,7 +727,7 @@ async function run(url){
   renderSteps(STEPS[0]);
   try {
   const res = await fetch('/api/scan', {
-    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url })
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url, verificationToken, contact: {name:$('contact-name').value, email:$('contact-email').value, consent:$('contact-consent').checked} })
   });
   const j = await res.json();
   if (!res.ok){ $('progress').classList.add('hidden'); resetForm(); return showError(j.error); }
@@ -756,11 +788,12 @@ async function loadRecent(){
 loadRecent();
 $('methodology-open').addEventListener('click', () => $('flow-methodology').showModal());
 $('methodology-close').addEventListener('click', () => $('flow-methodology').close());
-fetch('/api/version').then(r=>r.json()).then(j=>{$('ver').textContent=' · engine v'+j.version;}).catch(()=>{});
 </script>
 <script src="/report.js"></script>
 <script src="/journey.js"></script>
+<script src="/report-delivery.js"></script>
 <script src="/vendor/gsap/gsap.min.js"></script>
 <script src="/home-motion.js"></script>
+<script src="/footer.js"></script>
 </body>
 </html>

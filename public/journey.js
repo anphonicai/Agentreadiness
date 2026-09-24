@@ -1,8 +1,17 @@
 // Contact details persist through the leads API. Scans use the existing API.
-// Demo verification and checkout do not grant production authentication/access.
+// Email verification is checked by the server before a scan starts.
 let pendingStore = '';
 let demoUnlocked = false;
-let verificationExpires = 0;
+let verificationToken = '';
+let challengeId = '';
+async function requestCode() {
+  verificationToken = '';
+  const response = await fetch('/api/otp/request', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:$('contact-name').value.trim(),email:$('contact-email').value.trim(),url:pendingStore,consent:$('contact-consent').checked}),signal:AbortSignal.timeout(20000)});
+  const result = await response.json();
+  if(!response.ok) throw new Error(result.error || 'Unable to send code.');
+  challengeId=result.challengeId;
+  resetCodeTimer();
+}
 let resendAvailable = 0;
 let resendTimer;
 
@@ -49,8 +58,7 @@ $('url').addEventListener('input', () => {
   $('url').removeAttribute('aria-invalid');
 });
 
-function resetDemoCode() {
-  verificationExpires = Date.now() + 5 * 60 * 1000;
+function resetCodeTimer() {
   resendAvailable = Date.now() + 30 * 1000;
   $('verification-code').value = '';
   updateCodeBoxes();
@@ -59,7 +67,7 @@ function resetDemoCode() {
   const update = () => {
     const seconds = Math.max(0, Math.ceil((resendAvailable - Date.now()) / 1000));
     $('resend-code').disabled = seconds > 0;
-    $('resend-code').textContent = seconds ? `Reset demo code in ${seconds}s` : 'Reset demo code';
+    $('resend-code').textContent = seconds ? `Resend code in ${seconds}s` : 'Resend code';
     if (!seconds) clearInterval(resendTimer);
   };
   update();
@@ -78,16 +86,10 @@ $('consent-form').addEventListener('submit', async event => {
   button.textContent = 'Saving…';
   $('consent-error').classList.add('hidden');
   try {
-    const response = await fetch('/api/leads', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.value.trim(), email: $('contact-email').value.trim(), url: pendingStore, consent: $('contact-consent').checked }),
-      signal: AbortSignal.timeout(15000),
-    });
-    const result = await response.json();
-    if (!response.ok || !result.saved) throw new Error(result.error || 'Unable to save your details. Please try again.');
+    await requestCode();
     $('verification-email').textContent = $('contact-email').value.trim();
     $('resend-status').textContent = '';
-    resetDemoCode();
+    resetCodeTimer();
     if (document.body.dataset.screen === 'consent') setScreen('verification');
   } catch (error) {
     $('consent-error').textContent = error.name === 'TimeoutError' ? 'Saving took too long. Please try again.' : error.message || 'Unable to save your details. Please try again.';
@@ -102,24 +104,28 @@ $('verification-code').addEventListener('input', () => {
   $('verification-code').value = $('verification-code').value.replace(/\D/g, '').slice(0, 6);
   $('verification-error').classList.add('hidden');
 });
-$('verification-form').addEventListener('submit', event => {
+$('verification-form').addEventListener('submit', async event => {
   event.preventDefault();
   if (!$('verification-form').reportValidity()) return;
-  const error = Date.now() > verificationExpires
-    ? 'Demo code expired. Reset the code to continue.'
-    : $('verification-code').value !== '123456' ? 'Incorrect demo code. Enter 123456.' : '';
-  if (error) {
-    $('verification-error').textContent = error;
+  const button=$('verification-form').querySelector('button[type="submit"]');
+  if(button.disabled) return;
+  button.disabled=true;
+  try {
+    const response=await fetch('/api/otp/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({challengeId,code:$('verification-code').value}),signal:AbortSignal.timeout(15000)});
+    const result=await response.json();
+    if(!response.ok) throw new Error(result.error || 'Unable to verify code.');
+    verificationToken=result.verificationToken;
+    clearInterval(resendTimer);
+    run(pendingStore);
+  } catch(error) {
+    $('verification-error').textContent=error.message;
     $('verification-error').classList.remove('hidden');
-    $('verification-code').focus();
-    return;
-  }
-  clearInterval(resendTimer);
-  run(pendingStore);
+  } finally {button.disabled=false;}
 });
-$('resend-code').addEventListener('click', () => {
-  resetDemoCode();
-  $('resend-status').textContent = 'Demo code reset to 123456. No email was sent.';
+$('resend-code').addEventListener('click', async () => {
+  $('resend-code').disabled=true;
+  try {await requestCode();$('resend-status').textContent='A new code has been sent. Check your inbox.';}
+  catch(error) {$('resend-status').textContent=error.message;$('resend-code').disabled=false;}
 });
 document.querySelectorAll('[data-back]').forEach(button => button.addEventListener('click', () => {
   clearInterval(resendTimer);
@@ -127,23 +133,27 @@ document.querySelectorAll('[data-back]').forEach(button => button.addEventListen
 }));
 
 function openPayment() {
+  document.querySelector('.price-card > p').textContent = checkoutAvailable ? 'USD · one-time payment' : 'USD · once · design preview';
+  document.querySelector('.price-card > small').textContent = checkoutAvailable ? 'Secure payment via Stripe · Report link by email' : 'Preview checkout · No charge';
+  if (!checkoutAvailable && !reportPreviewAvailable) {
+    document.querySelector('.price-card > p').textContent = 'USD · one-time report · coming soon';
+    document.querySelector('.price-card > small').textContent = 'Your free report is ready. Paid reports will be available soon.';
+    $('checkout-open').textContent = 'Paid reports coming soon';
+    $('checkout-open').disabled = true;
+  }
   $('payment-status').textContent = '';
   setScreen('upgrade');
 }
-$('demo-payment').addEventListener('click', () => {
-  if (!$('full-detail')) return;
-  demoUnlocked = true;
-  setScreen('report');
-  $('full-detail').classList.remove('hidden');
-  $('paid-preview').classList.add('hidden');
-  const notice = document.querySelector('#full-detail .preview-notice');
-  notice.setAttribute('tabindex', '-1');
-  notice.focus();
-  notice.scrollIntoView({block:'start'});
-});
-
 $('checkout-open').addEventListener('click', () => {
   $('name-preview').value = $('contact-name').value.trim() || 'Demo customer';
+  $('demo-payment').disabled = !reportPreviewAvailable && !checkoutAvailable;
+  $('demo-payment').textContent = checkoutAvailable ? 'Pay $249 & unlock report →' : 'Preview full report →';
+  document.querySelectorAll('.payment-card input, .payment-card label').forEach(el => el.classList.toggle('hidden', checkoutAvailable));
+  document.querySelector('.payment-card .journey-kicker').textContent = checkoutAvailable ? 'SECURE STRIPE CHECKOUT' : 'DEMO · NO CHARGE';
+  document.querySelector('.payment-card small').textContent = checkoutAvailable ? 'Enter your payment details securely on Stripe.' : 'Payment integration not configured';
+  document.querySelector('.checkout-copy .journey-kicker').textContent = checkoutAvailable ? 'CHECKOUT' : 'CHECKOUT PREVIEW';
+  document.querySelector('.checkout-copy .journey-notice').textContent = 'Your report will be emailed after confirmed payment.';
+  $('payment-status').textContent = checkoutAvailable ? 'After payment, your report opens here and a private link is emailed to you.' : reportPreviewAvailable ? 'Demo checkout. No payment collected or email sent.' : 'Email delivery follows confirmed payment. Checkout is not connected yet.';
   setScreen('payment');
 });
 function updateCodeBoxes() {

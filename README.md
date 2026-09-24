@@ -472,6 +472,93 @@ There is no public lead-list endpoint. Inspect locally with a SQLite client:
 sqlite3 -header -column data/leads.sqlite 'SELECT name, email, store_url, consent_at, email_verified FROM leads ORDER BY updated_at DESC;'
 ```
 
-This stores contacts only; scan jobs/history still live in memory. Payment,
-real email delivery, CRM integration, and lead-to-scan result linking are not
-part of this change.
+The lead database stores contacts. Completed reports and their submitted contact
+details are stored separately as described below; running jobs/history remain in memory.
+
+### Commerce.Anphonic.ai report email flow
+
+Completed scan results and their submitted contact details now persist in
+`data/reports.sqlite`. The public scan API returns only a free summary. Full
+findings require a private 30-day report link. Saved benchmark report API
+responses are restricted too. Browser flags cannot grant access.
+
+The existing customer journey is preserved: free report → upgrade → checkout →
+full report. On a local non-production server, **Preview full report** opens it
+directly, with no intermediate email screen and no email sent. In production,
+this demo endpoint is disabled. Paid delivery is an additional action after a
+verified payment, not a replacement for displaying the report immediately.
+
+The development-only email template endpoint can still be enabled with
+`REPORT_EMAIL_PREVIEW=1` for testing; it is not part of the customer journey.
+
+Real sending is prepared through Resend. Configure `RESEND_API_KEY`, a verified
+sender address in `REPORT_EMAIL_FROM`, and `PUBLIC_APP_URL` (the live HTTPS
+origin). Use `node --env-file=.env` to load a local environment file; no keys are
+committed. The trusted fulfillment command is:
+
+```bash
+node --env-file=.env scripts/deliver-report.js SCAN_ID VERIFIED_PAYMENT_REFERENCE
+```
+
+Only run this after independently confirming the payment and recipient. There
+is no public endpoint that accepts a payment claim. A payment provider/webhook
+is implemented below to automate this step. The command records provider
+acceptance, not guaranteed inbox delivery. Existing demo email verification
+does not prove ownership of an address. No real email is sent by the local
+preview. Delivery uses the provider's documented endpoint:
+https://resend.com/docs/api-reference/emails/send-email
+
+Full report links carry a cryptographically random access token. Link lookup uses
+a hash; Stripe checkout records also retain the token for idempotent fulfillment. Opening a link shows a loading state while fetching
+the saved report, without rescanning. The token is removed from the address
+bar and retained in session storage for refresh; invalid/expired links show
+an error and retry action. Keep these bearer links private. Production requires
+persistent disks/backups for both databases and HTTPS.
+
+### Stripe payment and automatic report email
+
+The original checkout/report layout and Anphonic logo are retained. When configured,
+checkout sends the buyer to Stripe for a $249 USD card payment. After server verification,
+the full report opens and a separate Commerce.Anphonic.ai email links to the saved report.
+No email-preview screen is inserted into the purchase flow.
+
+Set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `PUBLIC_APP_URL`, `RESEND_API_KEY`,
+and `REPORT_EMAIL_FROM` in the server environment. The public URL must use HTTPS in
+production; the sender must be verified in Resend. Start with Stripe test keys.
+`node --env-file=.env server.js` loads local configuration (plain `node server.js` uses
+only exported environment variables).
+
+Register `https://commerce.anphonic.ai/api/stripe/webhook` in Stripe for
+`checkout.session.completed` and `checkout.session.async_payment_succeeded` and use
+that endpoint's signing secret. The webhook verifies the raw-body signature, retrieves
+the session from Stripe, and checks its report reference, paid status, currency and
+24900-cent amount. Browser redirects alone never authorize a report.
+
+Email failures return a retryable webhook response; they do not block paid report
+access. Successful sends are recorded, concurrent fulfillment is coalesced, and Resend
+receives a stable idempotency key. Monitor failed webhook deliveries in Stripe and replay
+them after correcting email configuration. Provider acceptance does not guarantee inbox
+delivery. A process crash after email acceptance but before saving it may require manual
+reconciliation if replayed outside the provider's idempotency retention window.
+
+Deploy a single Node process with persistent SQLite storage and backups. Checkout
+records contain private report tokens for repeat fulfillment, so protect the reports
+DB like credentials (report link lookup separately uses hashes). Configure `NODE_ENV=production`
+to disable local free full-report previews. Before going live, verify test checkout,
+cancellation, webhook retries, email delivery and email links from a separate browser.
+
+### Email OTP setup
+
+The demo `123456` code has been removed. Set `RESEND_API_KEY` and
+`REPORT_EMAIL_FROM` (an address on your Resend-verified domain) in `.env`, then
+restart with `node --env-file=.env server.js`. OTP and paid report delivery use
+the same Resend configuration. Never commit or paste the API key into chat.
+Without these settings, requesting a code shows a configuration error.
+
+Codes expire after five minutes, allow five verification attempts, and can be
+resent after 30 seconds, up to five emails per address per hour. Successful
+verification marks the lead verified and issues a one-use, store-bound scan
+token valid for 30 minutes. The scan API rejects unverified requests and uses
+the verified contact rather than caller-supplied contact details. OTPs and scan
+grants are held in memory and expire on restart; deploy one Node process or
+move this state and rate limits into a shared store before scaling horizontally.
