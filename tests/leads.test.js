@@ -65,3 +65,35 @@ test('lead endpoint validates requests, limits size, and contains storage errors
   assert.equal(failed.status, 503);
   assert.ok(!failed.body.error.includes('private database path'));
 });
+
+test('contact enquiries persist company and email, reject invalid input, and contain database errors', async () => {
+  const {handleEnquiryRequest} = await import('../leads.js');
+  const dir = mkdtempSync(join(tmpdir(), 'enquiry-test-'));
+  const filename = join(dir, 'leads.sqlite');
+  let store = openLeadStore(filename);
+  const enquiry = {...input, company:"Northstar & Co.", message:'Please review our store.'};
+  const send = async (value, target = store) => {
+    const req = Readable.from([Buffer.from(JSON.stringify(value))]);
+    req.headers = {'content-type':'application/json'};
+    const response = {};
+    await handleEnquiryRequest(req, {writeHead(code) {response.code = code;}, end(body) {response.body = JSON.parse(body);}}, target);
+    return response;
+  };
+  let db;
+  try {
+    assert.equal((await send(enquiry)).code, 201);
+    assert.equal((await send({...enquiry, company:''})).code, 400);
+    assert.equal((await send({...enquiry, email:'invalid'})).code, 400);
+    assert.equal((await send(enquiry, {saveEnquiry() {throw new Error('private database details');}})).code, 503);
+    store.close();
+    store = openLeadStore(filename);
+    db = new DatabaseSync(filename);
+    const rows = db.prepare('SELECT * FROM contact_enquiries').all();
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].company_name, enquiry.company);
+    assert.equal(rows[0].email, 'alex@example.com');
+    assert.equal(rows[0].store_url, 'https://example.com');
+    assert.equal(rows[0].message, enquiry.message);
+    assert.equal(rows[0].status, 'new');
+  } finally { db?.close(); store.close(); rmSync(dir, {recursive:true, force:true}); }
+});

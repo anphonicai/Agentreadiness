@@ -23,7 +23,7 @@ import { freeReport, openReportStore } from './report-access.js';
 import {createPayments, verifyStripeEvent} from './stripe-payment.js';
 import {createCoupons} from './coupons.js';
 import { reportEmail } from './report-email.js';
-import { openLeadStore, handleLeadRequest, validateLead } from './leads.js';
+import { openLeadStore, handleLeadRequest, handleEnquiryRequest, validateLead } from './leads.js';
 import { normalizeStoreUrl, handleStoreRequest } from './store-url.js';
 import { VERSION } from './engine.js';
 import { scanWithCompetitors, COMPETITORS } from './competitive.js';
@@ -143,6 +143,11 @@ const server = createServer(async (req, res) => {
   if (req.method === 'POST' && url.pathname === '/api/store') {
     if (rateLimited('store:' + ip)) return json(res, 429, { error: 'Too many requests. Please try again later.' });
     return handleStoreRequest(req, res, [...history, ...Object.entries(COMPETITORS).flatMap(([domain, peers]) => [domain, ...peers].map(domain => ({domain})))]);
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/contact') {
+    if (rateLimited('contact:' + ip)) return json(res, 429, {error:'Too many enquiries. Please try again later.'});
+    return handleEnquiryRequest(req, res, leadStore);
   }
 
   if (req.method === 'POST' && url.pathname === '/api/leads') {

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Contact us — Anphonic</title>
+  <link rel="stylesheet" href="/flow.css"><link rel="stylesheet" href="/contact.css">
+</head>
+<body>
+  <nav class="flow-nav"><a href="/" aria-label="Anphonic home"><img src="/assets/flow/logo.png" alt="Anphonic" width="136" height="32"></a><a href="/">Back to scanner</a></nav>
+  <main class="contact-layout">
+    <div class="contact-copy"><span class="journey-kicker">LET’S TAKE A CLOSER LOOK</span><h1>Your store deserves<br>a closer look.</h1><p>Couldn’t complete your scan? Tell us about your store. We can discuss a manual review, public catalogue access, or help with your audit.</p><p>A scan limitation doesn’t mean your store is unready for AI commerce.</p></div>
+    <section class="contact-card" aria-labelledby="contact-heading"><h2 id="contact-heading">Contact our team</h2><p>Leave your details and our team will reach out by email.</p>
+      <form id="review-form">
+        <label for="review-name">Your name</label><input id="review-name" autocomplete="name" required maxlength="120">
+        <label for="review-company">Company name</label><input id="review-company" autocomplete="organization" required maxlength="200">
+        <label for="review-email">Work email</label><input id="review-email" type="email" autocomplete="email" required maxlength="254">
+        <label for="review-store">Store website</label><input id="review-store" type="url" placeholder="https://yourstore.com" required maxlength="2048">
+        <label for="review-message">How can we help?</label><textarea id="review-message" rows="5" required maxlength="3000" placeholder="Tell us what happened or what you’d like help with."></textarea>
+        <button type="submit">Send enquiry →</button><p class="contact-note">We’ll save your details and message so our team can follow up by email.</p><p id="review-status" role="status"></p>
+      </form>
+    </section>
+  </main>
+  <script src="/contact.js"></script>
+</body>
+</html>

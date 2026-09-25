@@ -79,7 +79,7 @@ test('checkout turns a partial code into a Stripe coupon and fulfils the discoun
  const {dir,store,env} = fixture('PARTNER50:50:25');
  const calls = [];
  let session = {id:'cs_test_disc',url:'https://checkout.stripe.com/x',client_reference_id:'scan',mode:'payment',
-   amount_subtotal:24900,amount_total:12450,currency:'usd',payment_status:'paid',status:'complete'};
+   amount_subtotal:24900,amount_total:12450,total_details:{amount_discount:12450,amount_tax:0,amount_shipping:0},currency:'usd',payment_status:'paid',status:'complete'};
  try {
   const coupons = createCoupons(store,{env,send:async()=>'id'});
   const payments = createPayments(store,{env,send:async()=>'id',coupons,fetchImpl:async(url,request)=>{

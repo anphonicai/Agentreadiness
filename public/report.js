@@ -7,7 +7,7 @@ function renderReport(r, {full = false, preview = false} = {}) {
   const fixes = [r.layer2Report, r.layer3Report, r.layer4Report]
     .flatMap(layer => layer?.checks || [])
     .filter(check => check.fix?.headline && check.scored && check.value < 100);
-  return `<div id="paid-preview" class="free-report">
+  return `<div id="paid-preview" class="free-report" data-company="${esc(r.brandName || r.domain || 'your store')}">
     <div class="eyebrow">${esc(r.brandName || r.domain)} · FREE REPORT</div><h1>AI commerce readiness</h1>
     <header class="free-report-context"><h2>Agent Readiness Report</h2><p>AI AGENT INDEXING DIRECTIVE // ${esc(r.domain)}${r.scannedAt ? ` · ${esc(new Date(r.scannedAt).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}))}` : ''}</p></header>
     <div class="free-verdict"><div><strong>${r.finalScore}</strong><small>SCORE / 100</small></div><div><h2>${esc(r.grade)}</h2><p>Readiness score · Layers 1–4. ${esc(r.gradeNote)}</p><small>${esc(r.domain)} · ${r.catalogCount} products, ${r.sampled} sampled · checkout: ${esc(r.checkoutStack?.length ? r.checkoutStack.join(' + ') : 'native Shopify')}</small></div></div>

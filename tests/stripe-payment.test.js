@@ -17,9 +17,9 @@ test('server fixes price, denies unpaid/mismatched sessions, retries email and f
  const dir=mkdtempSync(join(tmpdir(),'stripe-test-')), path=join(dir,'reports.sqlite');
  let store=openReportStore(path), sent=0, fail=true;
  const env={PUBLIC_APP_URL:'https://commerce.anphonic.ai',STRIPE_SECRET_KEY:'test',STRIPE_WEBHOOK_SECRET:'test',RESEND_API_KEY:'test',REPORT_EMAIL_FROM:'reports@example.com'};
- let session={id:'cs_test_123',url:'https://checkout.stripe.com/test',client_reference_id:'scan',mode:'payment',amount_subtotal:24900,amount_total:24900,currency:'usd',payment_status:'unpaid',status:'open'};
+ let session={id:'cs_test_123',url:'https://checkout.stripe.com/test',client_reference_id:'scan',mode:'payment',amount_subtotal:24900,amount_subtotal:24900,amount_total:24900,currency:'usd',payment_status:'unpaid',status:'open'};
  const options={env,fetchImpl:async(url,request)=>{
-   if(request.method==='POST') {const form=new URLSearchParams(request.body);assert.equal(form.get('line_items[0][price_data][unit_amount]'),'24900');assert.equal(form.get('customer_email'),'buyer@example.com');}
+   if(request.method==='POST') {const form=new URLSearchParams(request.body);assert.equal(form.get('line_items[0][price_data][unit_amount]'),'24900');assert.equal(form.get('customer_email'),'buyer@example.com');assert.equal(form.get('allow_promotion_codes'),'true');assert.equal(form.get('payment_method_collection'),'if_required');}
    return {ok:true,json:async()=>({...session})};
  },send:async()=>{sent++;if(fail) throw new Error('offline');return 'email-id';}};
  try {
@@ -37,5 +37,17 @@ test('server fixes price, denies unpaid/mismatched sessions, retries email and f
  store.close();store=openReportStore(path);payments=createPayments(store,options);
  assert.equal((await payments.fulfill(session.id)).token,a.token);assert.equal(sent,2);
  await assert.rejects(payments.fulfill('cs_test_unknown'));
+ // Partial discounts require paid status; a completed full discount can need no payment.
+ for (const [suffix,discount,paymentStatus] of [['half',12450,'paid'],['free',24900,'no_payment_required']]) {
+   session={...session,id:'cs_test_'+suffix,total_details:{amount_discount:discount,amount_tax:0,amount_shipping:0},amount_total:24900-discount,payment_status:paymentStatus,status:'open'};
+   await payments.checkout('scan');
+   assert.deepEqual(await payments.fulfill(session.id),{pending:true});
+   session.status='complete';
+   assert.ok(store.resolve((await payments.fulfill(session.id)).token));
+ }
+ session={...session,id:'cs_test_forged',amount_subtotal:0,total_details:{amount_discount:0},amount_total:0};
+ await payments.checkout('scan');
+ await assert.rejects(payments.fulfill(session.id),/match|totals/);
+
  } finally {store.close();rmSync(dir,{recursive:true,force:true});}
 });

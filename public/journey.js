@@ -133,10 +133,14 @@ document.querySelectorAll('[data-back]').forEach(button => button.addEventListen
 }));
 
 function openPayment() {
-  document.querySelector('.price-card > p').textContent = checkoutAvailable ? 'USD · one-time payment' : 'USD · once · design preview';
-  document.querySelector('.price-card > small').textContent = checkoutAvailable ? 'Secure payment via Stripe · Report link by email' : 'Preview checkout · No charge';
+  const company = $('paid-preview')?.dataset.company || pendingStore || 'your store';
+  document.querySelectorAll('.journey-company').forEach(node => { node.textContent = company; });
+  $('checkout-open').disabled = false;
+  $('checkout-open').textContent = 'Unlock full report →';
+  document.querySelector('.price-card > p').textContent = 'USD · per store · one-time';
+  document.querySelector('.price-card > small').textContent = checkoutAvailable ? 'Secure checkout · Instant access · No subscription' : 'Preview checkout · No charge';
   if (!checkoutAvailable && !reportPreviewAvailable) {
-    document.querySelector('.price-card > p').textContent = 'USD · one-time report · coming soon';
+    document.querySelector('.price-card > p').textContent = 'USD · per store · one-time';
     document.querySelector('.price-card > small').textContent = 'Your free report is ready. Paid reports will be available soon.';
     $('checkout-open').textContent = 'Paid reports coming soon';
     $('checkout-open').disabled = true;
@@ -147,7 +151,7 @@ function openPayment() {
 $('checkout-open').addEventListener('click', () => {
   $('name-preview').value = $('contact-name').value.trim() || 'Demo customer';
   $('demo-payment').disabled = !reportPreviewAvailable && !checkoutAvailable;
-  $('demo-payment').textContent = checkoutAvailable ? 'Pay $249 & unlock report →' : 'Preview full report →';
+  $('demo-payment').textContent = checkoutAvailable ? 'Continue to Stripe →' : 'Preview full report →';
   document.querySelectorAll('.journey-form > input, .journey-form > label').forEach(el => el.classList.toggle('hidden', checkoutAvailable));
   // A code is worth offering whenever a real report can be unlocked by one.
   $('coupon-box').classList.toggle('hidden', !couponsAvailable || (!checkoutAvailable && !reportPreviewAvailable));
@@ -156,7 +160,7 @@ $('checkout-open').addEventListener('click', () => {
   $('coupon-apply').disabled = false;
   appliedCode = '';
   document.querySelector('.payment-card .journey-kicker').textContent = checkoutAvailable ? 'SECURE STRIPE CHECKOUT' : 'DEMO · NO CHARGE';
-  document.querySelector('.payment-card small').textContent = checkoutAvailable ? 'Enter your payment details securely on Stripe.' : 'Payment integration not configured';
+  document.querySelector('.payment-card small').textContent = checkoutAvailable ? 'Have a coupon? Select Add promotion code on Stripe. A 100% discount requires no card payment.' : 'Payment integration not configured';
   document.querySelector('.checkout-copy .journey-kicker').textContent = checkoutAvailable ? 'CHECKOUT' : 'CHECKOUT PREVIEW';
   document.querySelector('.checkout-copy .journey-notice').textContent = 'Your report will be emailed after confirmed payment.';
   $('payment-status').textContent = checkoutAvailable ? 'After payment, your report opens here and a private link is emailed to you.' : reportPreviewAvailable ? 'Demo checkout. No payment collected or email sent.' : 'Email delivery follows confirmed payment. Checkout is not connected yet.';

@@ -305,11 +305,11 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
   </section>
 
   <section id="upgrade-screen" class="upgrade-screen hidden" aria-labelledby="upgrade-title">
-    <div class="upgrade-copy"><button type="button" class="journey-back" data-back="report">← Back to free report</button><span class="journey-kicker">PREMIUM REPORT</span><h1 id="upgrade-title" tabindex="-1">Turn insight into a<br>sharper growth plan.</h1><p>Unlock the evidence, benchmarks and exact changes that make <span class="journey-store"></span> easier for AI agents to understand.</p></div>
-    <div class="price-card"><span class="journey-kicker">ONE-TIME STORE AUDIT</span><div class="price">$249</div><p>USD · once · design preview</p><ul><li>Full per-check diagnostics</li><li>Named competitor benchmark, when available</li><li>Store-specific evidence and fixes</li><li>Downloadable report</li></ul><button id="checkout-open" type="button">Unlock full report →</button><small>Preview checkout · No charge</small></div>
+    <div class="upgrade-copy"><button type="button" class="journey-back" data-back="report">← Back to free report</button><span class="journey-kicker">PREMIUM REPORT</span><h1 id="upgrade-title" tabindex="-1">See what matters.<br>Unlock exactly how to<br>fix it.</h1><p>Every locked finding for <span class="journey-company">your store</span> — store-specific JSON-LD, a ranked fix roadmap, and a competitor benchmark when available — becomes available the moment you unlock the full report.</p></div>
+    <div class="price-card"><span class="journey-kicker">ONE-TIME STORE AUDIT</span><div class="price">$249</div><p>USD · per store · one-time</p><ul><li>Full diagnostics for sampled product pages</li><li>Named competitor benchmark, when available</li><li>Store-specific JSON-LD fixes</li><li>Downloadable PDF report</li></ul><button id="checkout-open" type="button">Unlock full report →</button><small>Preview checkout · No charge</small></div>
   </section>
   <section id="payment-screen" class="checkout-screen hidden" aria-labelledby="payment-title">
-    <div class="checkout-copy"><button type="button" class="journey-back" data-back="upgrade">← Back</button><span class="journey-kicker">CHECKOUT PREVIEW</span><h1 id="payment-title" tabindex="-1">Unlock your full report</h1><p><span class="journey-store"></span> · Complete AI commerce intelligence audit</p><div class="order-total"><span>Report price</span><strong>$249.00</strong></div><p class="journey-notice">Your report will be emailed after confirmed payment. Payment processing is not connected yet.</p></div>
+    <div class="checkout-copy"><button type="button" class="journey-back" data-back="upgrade">← Back</button><span class="journey-kicker">CHECKOUT PREVIEW</span><h1 id="payment-title" tabindex="-1">Unlock your full report</h1><p><span class="journey-company">your store</span> · Complete AI commerce intelligence audit</p><div class="order-total"><span>Report price</span><strong>$249.00</strong></div><p class="journey-notice">Your report will be emailed after confirmed payment. Payment processing is not connected yet.</p></div>
     <div class="payment-card"><h2>Payment details</h2><span class="journey-kicker">DEMO · NO CHARGE</span><div class="journey-form"><label for="card-preview">Card number</label><input id="card-preview" value="4242 4242 4242 4242" disabled><label for="expiry-preview">Expiry</label><input id="expiry-preview" value="12 / 29" disabled><label for="cvc-preview">CVC</label><input id="cvc-preview" value="123" disabled><label for="name-preview">Name on card</label><input id="name-preview" value="Demo customer" disabled><div class="coupon-box hidden" id="coupon-box"><label for="coupon-code">Discount or access code</label><div class="coupon-row"><input id="coupon-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40" placeholder="Enter code"><button type="button" id="coupon-apply">Apply</button></div><p id="coupon-status" role="status"></p></div><button type="button" id="demo-payment">Preview full report →</button><small>Payment integration coming later</small><p id="payment-status" role="status"></p></div></div>
   </section>
 
@@ -335,7 +335,7 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
         </nav>
       </div>
       <div class="footer-contact">
-        <a class="footer-cta" href="mailto:hello@anphonic.com">Contact Us</a>
+        <a class="footer-cta" href="/contact.html">Contact Us</a>
         <div class="footer-social" aria-label="Social channels"><span class="footer-social-placeholder" role="img" aria-label="Facebook" title="Facebook link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></span><span class="footer-social-placeholder" role="img" aria-label="LinkedIn" title="LinkedIn link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></span><span class="footer-social-placeholder" role="img" aria-label="X" title="X link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span><span class="footer-social-placeholder" role="img" aria-label="Instagram" title="Instagram link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></span></div>
       </div>
     </div>
@@ -550,10 +550,11 @@ function renderDetailedReport(r){
       NO_CATALOG: "The store is on Shopify but its public product feed is closed, so products can't be sampled.",
     };
     const msg = first.startsWith('BLOCKED_')
-      ? `The store returned ${first.replace('BLOCKED_','')} to our crawler. It's blocking automated requests — which is also what an AI shopping agent would hit.`
+      ? `The store returned ${first.replace('BLOCKED_','')} to our crawler. We couldn’t access it with this scan; other crawlers may receive different responses.`
       : (reasons[first] || r.errors.join(', '));
-    return `<div class="verdict"><div class="scoreblock bad"><div class="n">—</div><div class="g">Can't scan</div></div>
-      <div><h2>${esc(r.domain)}</h2><p class="meta">${esc(msg)}</p></div></div>`;
+    return `<div class="verdict"><div class="scoreblock bad"><div class="n">—</div><div class="g">Scan unavailable</div></div>
+      <div><h2>${esc(r.domain)}</h2><p class="meta">${esc(msg)}</p></div></div>
+      <section class="scan-help"><span class="journey-kicker">LET’S TAKE A CLOSER LOOK</span><h2>We couldn’t complete your scan.</h2><p>This isn’t a readiness score. Contact our team to discuss a manual review and the next steps for your store.</p><a class="scan-contact" href="/contact.html?store=${encodeURIComponent(r.domain || '')}&amp;reason=${encodeURIComponent(first)}">Contact us →</a><a class="scan-retry" href="/">Try another store</a><p class="scan-help-note">If access to your public catalogue changes, you can run a new scan. Automatic monitoring is not enabled.</p></section>`;
   }
 
   const av = r.agentView;

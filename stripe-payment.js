@@ -44,7 +44,7 @@ export function createPayments(store, {env=process.env, fetchImpl=fetch, send=se
         if(!created.id) throw new Error('Unable to apply that code.');
         discount={'discounts[0][coupon]':created.id};
       }
-      const session=await stripe('/checkout/sessions',{mode:'payment',client_reference_id:id,customer_email:report.email,
+      const session=await stripe('/checkout/sessions',{mode:'payment',client_reference_id:id,customer_email:report.email,payment_method_collection:'if_required',
         'payment_method_types[0]':'card','line_items[0][quantity]':'1',
         'line_items[0][price_data][currency]':'usd','line_items[0][price_data][unit_amount]':String(PRICE_CENTS),
         'line_items[0][price_data][product_data][name]':'Commerce.Anphonic.ai — Full report',
@@ -64,7 +64,12 @@ export function createPayments(store, {env=process.env, fetchImpl=fetch, send=se
         // reduced by a discount, so that is what may legitimately vary.
         if(session.id!==id || session.client_reference_id!==checkout.report_id || session.mode!=='payment' || session.amount_subtotal!==PRICE_CENTS || session.currency!=='usd') throw new Error('Payment does not match this report.');
         if(!Number.isInteger(session.amount_total) || session.amount_total<0 || session.amount_total>PRICE_CENTS) throw new Error('Payment does not match this report.');
-        if(!['paid','no_payment_required'].includes(session.payment_status) || session.status!=='complete') return {pending:true};
+        const discount=session.total_details?.amount_discount ?? 0;
+        if(!Number.isInteger(discount) || discount<0 || discount>PRICE_CENTS ||
+           (session.total_details?.amount_tax ?? 0)!==0 || (session.total_details?.amount_shipping ?? 0)!==0 ||
+           session.amount_total!==PRICE_CENTS-discount) throw new Error('Invalid checkout totals.');
+        const settled=session.payment_status==='paid' || (session.amount_total===0 && session.payment_status==='no_payment_required');
+        if(!settled || session.status!=='complete') return {pending:true};
         const report=store.get(checkout.report_id);
         const token=checkout.token || store.issue(checkout.report_id,{paymentReference:id});
         store.checkoutToken(id,token);
