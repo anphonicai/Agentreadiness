@@ -37,7 +37,7 @@ $('demo-payment').addEventListener('click', async () => {
 function showFullReport(result, preview) {
   $('report').innerHTML = renderReport(result, {full:true, preview});
   demoUnlocked = true;
-  setScreen('report');
+  setScreen('report', {privateReport:true});
   $('paid-preview').classList.add('hidden');
   $('full-detail').classList.remove('hidden');
   $('full-detail').focus({preventScroll:true});

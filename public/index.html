@@ -249,7 +249,7 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
 <body data-screen="home">
 <nav class="flow-nav" aria-label="Main navigation">
   <a href="/" aria-label="Anphonic home"><img src="/assets/flow/logo.png" alt="Anphonic" width="136" height="32"></a>
-  <button type="button" id="methodology-open">Methodology</button>
+  <div class="site-navigation"><button type="button" id="journey-back" aria-label="Go back" disabled>← Back</button><button type="button" id="journey-forward" aria-label="Go forward" disabled>Forward →</button><button type="button" id="methodology-open">Methodology</button></div>
 </nav>
 <main class="wrap">
 
@@ -781,6 +781,7 @@ $('methodology-close').addEventListener('click', () => $('flow-methodology').clo
 </script>
 <script src="/report.js"></script>
 <script src="/journey.js"></script>
+<script src="/navigation.js"></script>
 <script src="/report-delivery.js"></script>
 <script src="/vendor/gsap/gsap.min.js"></script>
 <script src="/home-motion.js"></script>
