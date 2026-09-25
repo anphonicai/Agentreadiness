@@ -81,11 +81,11 @@ test('paid report shows informational fixes, readable schema labels and intact J
   assert.match(image,/needs-attention/);
   assert.ok(!image.includes('nothing here to fix'));
   assert.ok(!image.includes('spec null'));
-  assert.equal(context.reportText('FAQ/HowTo schema'), 'FAQ / How-to schema');
+  assert.equal(context.reportText('FAQ/HowTo schema'), 'FAQ / How To Schema');
   const snippet='{"acceptedPaymentMethod":"Cash"}';
   layer.checks=[{key:'codPayment',label:'acceptedPaymentMethod',value:0,scored:true,basis:'state',fix:{headline:'Add acceptedPaymentMethod',where:'Offer',steps:['Declare acceptedPaymentMethod'],snippet}}];
   const payment=context.renderLayer2(layer);
-  assert.match(payment,/accepted payment methods/);
+  assert.match(payment,/Accepted Payment Method/);
   assert.match(payment,/&quot;acceptedPaymentMethod&quot;/);
   layer.checks=[{key:'faqSchema',label:'FAQ',value:50,scored:true,basis:'baseline'}];
   assert.ok(!context.renderLayer2(layer).includes('needs-attention'));

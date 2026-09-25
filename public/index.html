@@ -440,8 +440,8 @@ function renderSpeed(s){
 // block. Only the short labels on the weight bar differ.
 // Human-readable report copy; code snippets and product names remain unchanged.
 function reportText(value) {
-  const names = {acceptedPaymentMethod:'accepted payment methods', OfferShippingDetails:'shipping details', MerchantReturnPolicy:'merchant return policy', hasMerchantReturnPolicy:'return policy reference', merchantReturnLink:'return policy link', AggregateRating:'aggregate rating', FAQPage:'FAQ page', HowTo:'How-to', sameAs:'linked social profiles'};
-  return esc(String(value ?? '').replace(/\b(acceptedPaymentMethod|OfferShippingDetails|MerchantReturnPolicy|hasMerchantReturnPolicy|merchantReturnLink|AggregateRating|FAQPage|HowTo|sameAs)\b/g, word => names[word]).replace(/FAQ\/How-to/g, 'FAQ / How-to'));
+  const names = {acceptedPaymentMethod:'Accepted Payment Method', OfferShippingDetails:'Offer Shipping Details', MerchantReturnPolicy:'Merchant Return Policy', hasMerchantReturnPolicy:'Has Merchant Return Policy', merchantReturnLink:'Merchant Return Link', AggregateRating:'Aggregate Rating', FAQPage:'FAQ Page', HowTo:'How To', sameAs:'Same As'};
+  return esc(String(value ?? '').replace(/\b(acceptedPaymentMethod|OfferShippingDetails|MerchantReturnPolicy|hasMerchantReturnPolicy|merchantReturnLink|AggregateRating|FAQPage|HowTo|sameAs)\b/g, word => names[word]).replace(/FAQ\/How To schema/g, 'FAQ / How To Schema'));
 }
 function reportFix(c) {
   if (c.fix) return c.fix;
