@@ -1,0 +1,1986 @@
+{
+  "version": "2.2-agentnew",
+  "domain": "https://anveshan.farm",
+  "brandName": "Anveshan",
+  "scannedAt": "2026-09-18T09:58:58.022Z",
+  "catalogCount": 63,
+  "sampled": 20,
+  "sampleAttempted": 20,
+  "homeStatus": 200,
+  "checkoutStack": [
+    "Fastrr",
+    "Shiprocket"
+  ],
+  "botVerdicts": {
+    "GPTBot": "ok",
+    "ClaudeBot": "ok",
+    "PerplexityBot": "ok"
+  },
+  "behindCloudflare": true,
+  "errors": [],
+  "layers": {
+    "layer1": {
+      "name": "Crawler & technical access",
+      "score": 98,
+      "checks": {
+        "botWall": 100,
+        "robots": 100,
+        "productFeed": 90,
+        "endpoints": 100,
+        "indexability": 90,
+        "pageWeight": 100
+      },
+      "weight": 0.2
+    },
+    "layer2": {
+      "name": "Structured data",
+      "score": 42,
+      "checks": {
+        "productSchema": 0,
+        "orgSchema": 100,
+        "reviewSchema": 25,
+        "variantSchema": 65,
+        "faqSchema": 70
+      },
+      "weight": 0.25
+    },
+    "layer3": {
+      "name": "Checkout & UCP readiness",
+      "score": 71,
+      "checks": {
+        "ucpProfile": 100,
+        "codPayment": 0,
+        "serviceability": 100,
+        "returnPolicy": 100,
+        "shippingPolicy": 70
+      },
+      "weight": 0.25
+    },
+    "layer4": {
+      "name": "Content clarity",
+      "score": 35,
+      "checks": {
+        "answerFirst": 30,
+        "factualDensity": 5,
+        "entityConsistency": 70,
+        "descriptionDepth": 50,
+        "uniqueness": 95,
+        "imageCoverage": 91
+      },
+      "weight": 0.15
+    }
+  },
+  "skipped": [
+    "layer5"
+  ],
+  "finalScore": 62,
+  "grade": "Partially Ready",
+  "gradeNote": "Readable, but losing ground on details agents rank on.",
+  "gaps": [
+    {
+      "layer": "layer2",
+      "check": "productSchema",
+      "score": 0,
+      "impact": 11.437908496732026,
+      "message": "20 of 20 sampled products have incomplete structured data — SKU is missing on 20 of 20. Agents read price and stock from this, not from the page."
+    },
+    {
+      "layer": "layer3",
+      "check": "codPayment",
+      "score": 0,
+      "impact": 8.403361344537814,
+      "message": "No product declares acceptedPaymentMethod in its Offer, though 5 of 20 name payment options in page text a shopper can read and an agent cannot. COD versus prepaid is the biggest purchase-path question in Indian ecommerce and it is invisible to agents."
+    },
+    {
+      "layer": "layer4",
+      "check": "factualDensity",
+      "score": 5,
+      "impact": 5.029411764705882,
+      "message": "Sampled descriptions average 0.1 concrete measurements each, and 18 of 20 never mention material, ingredients or dimensions."
+    }
+  ],
+  "specDetail": {
+    "layer1": {
+      "name": "Crawler & Technical Access",
+      "specWeight": 20,
+      "checks": [
+        {
+          "spec": "robots.txt allows AI crawlers",
+          "specSub": 30,
+          "scored": false,
+          "result": "All 6 AI crawlers allowed",
+          "value": 100,
+          "why": "Shopify never disallows AI crawlers by default. Returned 100 on all 15 stores tested."
+        },
+        {
+          "spec": "JS-independent content render",
+          "specSub": 35,
+          "scored": false,
+          "result": "98% of title/price/stock visible without JavaScript",
+          "value": 98,
+          "why": "Shopify renders server-side in Liquid, so this returned 100 on all 15 stores tested."
+        },
+        {
+          "spec": "Page load speed",
+          "specSub": 15,
+          "scored": true,
+          "result": "467KB, 555ms to first byte",
+          "value": 100,
+          "why": "Measured as response time and payload size rather than PageSpeed Insights — no API key, no 30s wait per scan."
+        },
+        {
+          "spec": "Sitemap present & current",
+          "specSub": 20,
+          "scored": false,
+          "result": "Present, 57 product URLs",
+          "value": 100,
+          "why": "Shopify auto-generates sitemap.xml for every store. Returned 100 on all 15 stores tested."
+        },
+        {
+          "spec": "AI crawler access by user-agent",
+          "specSub": null,
+          "scored": true,
+          "added": true,
+          "result": "GPTBot: ok · ClaudeBot: ok · PerplexityBot: ok",
+          "value": 100,
+          "why": "Not in the spec. Fetches the store as each crawler and compares — catches edge blocking that robots.txt cannot show."
+        },
+        {
+          "spec": "Product feed & indexability",
+          "specSub": null,
+          "scored": true,
+          "added": true,
+          "result": "products.json open · 10% noindex · 0% no canonical",
+          "value": 95,
+          "why": "Not in the spec. Whether agents can enumerate and index the catalogue at all."
+        }
+      ]
+    },
+    "layer2": {
+      "name": "Structured Data / Schema",
+      "specWeight": 25,
+      "checks": [
+        {
+          "key": "productSchema",
+          "spec": "Product schema (JSON-LD) coverage",
+          "label": "Product schema (JSON-LD) coverage",
+          "specSub": 35,
+          "effectiveSub": 38.9,
+          "scored": true,
+          "value": 0,
+          "basis": "measured",
+          "basisNote": "0 of 20 sampled products passed all four fields",
+          "result": "0 of 20 products have price + availability + SKU",
+          "why": "Built as specified. Real variance across stores — 0% to 100%.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 38.9,
+          "costOfTotal": 11.4,
+          "evidence": {
+            "headline": "20 of 20 sampled products are missing at least one field",
+            "items": [
+              {
+                "title": "Cold-pressed Virgin Coconut Oil",
+                "url": "https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle",
+                "note": "no sku"
+              },
+              {
+                "title": "Kashmiri Mongra Saffron -2g",
+                "url": "https://anveshan.farm/products/kashmiri-mongra-saffron-copy",
+                "note": "no sku"
+              },
+              {
+                "title": "High Protein Atta",
+                "url": "https://anveshan.farm/products/high-protein-atta",
+                "note": "no sku"
+              },
+              {
+                "title": "Khapli Multigrain Atta",
+                "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+                "note": "no sku"
+              },
+              {
+                "title": "Raw Chia Seeds",
+                "url": "https://anveshan.farm/products/organic-chia-seed",
+                "note": "no sku"
+              },
+              {
+                "title": "Sunrise to Sundown Wellness Set",
+                "url": "https://anveshan.farm/products/sunrise-to-sundown-wellness-set",
+                "note": "no sku"
+              },
+              {
+                "title": "Smart Kitchen Stock Up Set",
+                "url": "https://anveshan.farm/products/smart-kitchen-stock-up-set",
+                "note": "no sku"
+              },
+              {
+                "title": "Jaggery Powder Combo",
+                "url": "https://anveshan.farm/products/jaggerypowder-combo",
+                "note": "no sku"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "Product JSON-LD for Cold-pressed Virgin Coconut Oil",
+            "where": "Theme editor → product template, or your schema app’s Product settings",
+            "steps": [
+              "20 of 20 omit sku.",
+              "Agents read price and stock from this block, not from the rendered page.",
+              "Fix it in the template once and it applies to the whole catalogue."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Product\",\n  \"name\": \"Cold-pressed Virgin Coconut Oil\",\n  \"url\": \"https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle\",\n  \"sku\": \"FPCL-OILL-VRCO-GBOT-1LTR\",\n  \"brand\": {\n    \"@type\": \"Brand\",\n    \"name\": \"Anveshan\"\n  },\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"url\": \"https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle\",\n    \"price\": \"875.00\",\n    \"priceCurrency\": \"INR\",\n    \"availability\": \"https://schema.org/InStock\"\n  }\n}"
+          }
+        },
+        {
+          "key": "variantSchema",
+          "spec": "Variant data structured",
+          "label": "Variant data structured",
+          "specSub": 20,
+          "effectiveSub": 22.2,
+          "scored": true,
+          "value": 65,
+          "basis": "measured",
+          "basisNote": "7 of 20 sampled products have more than one variant",
+          "result": "7 of 20 multi-variant products expose only one price",
+          "why": "Redefined. Checking whether option names appear in HTML returned 100 everywhere, so it now checks variant-level offers.",
+          "added": false,
+          "pointsEarned": 14.4,
+          "pointsLost": 7.8,
+          "costOfTotal": 2.3,
+          "evidence": {
+            "headline": "7 products publish one offer for several buyable variants",
+            "items": [
+              {
+                "title": "High Protein Atta",
+                "url": "https://anveshan.farm/products/high-protein-atta",
+                "note": "3 variants (Select Variant) · one offer published"
+              },
+              {
+                "title": "Khapli Multigrain Atta",
+                "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+                "note": "2 variants (Net Quantity) · one offer published"
+              },
+              {
+                "title": "Cold-Pressed Coconut Oil",
+                "url": "https://anveshan.farm/products/wood-pressed-coconut-oil",
+                "note": "4 variants (Net Quantity) · one offer published"
+              },
+              {
+                "title": "Bilona-Churned Desi Buffalo Ghee",
+                "url": "https://anveshan.farm/products/desi-buffalo-ghee",
+                "note": "4 variants (Net Quantity) · one offer published"
+              },
+              {
+                "title": "A2 Gir Cow Ghee",
+                "url": "https://anveshan.farm/products/gir-cow-ghee",
+                "note": "4 variants (Net Quantity) · one offer published"
+              },
+              {
+                "title": "Cold-Pressed Sunflower Oil",
+                "url": "https://anveshan.farm/products/sunflower-oil",
+                "note": "5 variants (Net Quantity) · one offer published"
+              },
+              {
+                "title": "A2 Cow Ghee and Cold Pressed Groundnut Oil",
+                "url": "https://anveshan.farm/products/a2-ghee-groundnut-oil",
+                "note": "2 variants (Net Quantity) · one offer published"
+              }
+            ],
+            "total": 7,
+            "more": 0
+          },
+          "fix": {
+            "headline": "ProductGroup markup for High Protein Atta",
+            "where": "Theme editor → product template, replacing the single Product block",
+            "steps": [
+              "High Protein Atta sells 3 variants across Select Variant but publishes one offer.",
+              "An agent asked for a specific size cannot confirm that size exists, so it recommends a competitor that can.",
+              "ProductGroup + hasVariant is the pattern Google and the agent crawlers both read."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"ProductGroup\",\n  \"name\": \"High Protein Atta\",\n  \"url\": \"https://anveshan.farm/products/high-protein-atta\",\n  \"productGroupID\": \"high-protein-atta\",\n  \"brand\": {\n    \"@type\": \"Brand\",\n    \"name\": \"Anveshan\"\n  },\n  \"variesBy\": [\n    \"select variant\"\n  ],\n  \"hasVariant\": [\n    {\n      \"@type\": \"Product\",\n      \"name\": \"High Protein Atta — 1 Kg\",\n      \"sku\": \"FPCL-ATTA-HPTN-POUC-01KG\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"400.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/InStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"High Protein Atta — Pack of 3\",\n      \"sku\": \"FPCL-COMB-X1X3-HPTN-03KG\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"1164.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/InStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"High Protein Atta — Pack of 5\",\n      \"sku\": \"FPCL-COMB-X1X5-HPTN-05KG\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"1880.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/InStock\"\n      }\n    }\n  ]\n}"
+          }
+        },
+        {
+          "key": "orgSchema",
+          "spec": "Organization/entity schema",
+          "label": "Organization/entity schema",
+          "specSub": 15,
+          "effectiveSub": 16.7,
+          "scored": true,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Three graded outcomes: 2+ linked profiles = 100, present but thin = 40, absent = 0",
+          "result": "Present, 3 linked profiles",
+          "why": "Built as specified. Roughly half of tested stores fail on the sameAs requirement.",
+          "added": false,
+          "pointsEarned": 16.7,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "Organization block found on the homepage with 3 usable sameAs links",
+            "items": [
+              {
+                "title": "https://www.facebook.com/anveshan.farm/",
+                "url": "https://www.facebook.com/anveshan.farm/",
+                "note": "linked profile",
+                "pass": true
+              },
+              {
+                "title": "https://www.instagram.com/anveshan.farms/",
+                "url": "https://www.instagram.com/anveshan.farms/",
+                "note": "linked profile",
+                "pass": true
+              },
+              {
+                "title": "https://x.com/Anveshan_farms/",
+                "url": "https://x.com/Anveshan_farms/",
+                "note": "linked profile",
+                "pass": true
+              }
+            ],
+            "total": 3,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "faqSchema",
+          "spec": "FAQ/HowTo schema",
+          "label": "FAQ/HowTo schema",
+          "specSub": 10,
+          "effectiveSub": 11.1,
+          "scored": true,
+          "value": 70,
+          "basis": "state",
+          "basisNote": "Graded outcomes: FAQ page 100, homepage 80, product pages 70, content but no markup 30",
+          "result": "On 9 product pages, not on the FAQ page",
+          "why": "Widened. The spec looked at product and category pages; FAQ markup almost always lives on a dedicated FAQ page.",
+          "added": false,
+          "pointsEarned": 7.8,
+          "pointsLost": 3.3,
+          "costOfTotal": 1,
+          "evidence": {
+            "headline": "No FAQ page found at any of the four standard paths",
+            "items": [
+              {
+                "title": "Cold-pressed Virgin Coconut Oil",
+                "url": "https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle",
+                "note": "FAQ schema on the product page",
+                "pass": true
+              },
+              {
+                "title": "Kashmiri Mongra Saffron -2g",
+                "url": "https://anveshan.farm/products/kashmiri-mongra-saffron-copy",
+                "note": "FAQ schema on the product page",
+                "pass": true
+              },
+              {
+                "title": "High Protein Atta",
+                "url": "https://anveshan.farm/products/high-protein-atta",
+                "note": "FAQ schema on the product page",
+                "pass": true
+              },
+              {
+                "title": "Khapli Multigrain Atta",
+                "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+                "note": "FAQ schema on the product page",
+                "pass": true
+              },
+              {
+                "title": "Jaggery Powder Combo",
+                "url": "https://anveshan.farm/products/jaggerypowder-combo",
+                "note": "FAQ schema on the product page",
+                "pass": true
+              },
+              {
+                "title": "Cold-Pressed Coconut Oil",
+                "url": "https://anveshan.farm/products/wood-pressed-coconut-oil",
+                "note": "FAQ schema on the product page",
+                "pass": true
+              },
+              {
+                "title": "Bilona-Churned Desi Buffalo Ghee",
+                "url": "https://anveshan.farm/products/desi-buffalo-ghee",
+                "note": "FAQ schema on the product page",
+                "pass": true
+              },
+              {
+                "title": "A2 Gir Cow Ghee",
+                "url": "https://anveshan.farm/products/gir-cow-ghee",
+                "note": "FAQ schema on the product page",
+                "pass": true
+              }
+            ],
+            "total": 9,
+            "more": 1
+          },
+          "fix": {
+            "headline": "FAQPage markup",
+            "where": "A new /pages/faq page",
+            "steps": [
+              "There is no FAQ content to mark up yet. Write the delivery and returns answers first.",
+              "Reuse your real question-and-answer text verbatim; inventing answers here would misrepresent the store."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"How long does delivery take?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Can I return a Anveshan order?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    }\n  ]\n}"
+          }
+        },
+        {
+          "key": "llmsTxt",
+          "spec": "llms.txt present",
+          "label": "llms.txt present",
+          "specSub": 10,
+          "effectiveSub": null,
+          "scored": false,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Measured and shown, excluded from the score. Its 10% is redistributed across the other five checks.",
+          "result": "Present — auto-generated by Shopify, not written by the brand",
+          "why": "Dropped from scoring. Shopify auto-generates llms.txt for every store, pointing agents at shop.app. Returned 100 on all 15 stores tested.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "4491 bytes served at /llms.txt",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "reviewSchema",
+          "spec": "Review/rating schema",
+          "label": "Review/rating schema",
+          "specSub": 10,
+          "effectiveSub": 11.1,
+          "scored": true,
+          "value": 25,
+          "basis": "state",
+          "basisNote": "A review app is displaying ratings but none are machine-readable. Scored 25 — reviews exist, agents just cannot read them.",
+          "result": "Judge.me is running but exposes no schema",
+          "why": "Three states instead of pass/fail. Review apps inject ratings via JavaScript, so a store with thousands of reviews scored 0 under the original check.",
+          "added": false,
+          "pointsEarned": 2.8,
+          "pointsLost": 8.3,
+          "costOfTotal": 2.5,
+          "evidence": {
+            "headline": "Review widget detected: Judge.me",
+            "items": [
+              {
+                "title": "Cold-pressed Virgin Coconut Oil",
+                "url": "https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Kashmiri Mongra Saffron -2g",
+                "url": "https://anveshan.farm/products/kashmiri-mongra-saffron-copy",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "High Protein Atta",
+                "url": "https://anveshan.farm/products/high-protein-atta",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Khapli Multigrain Atta",
+                "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Raw Chia Seeds",
+                "url": "https://anveshan.farm/products/organic-chia-seed",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Sunrise to Sundown Wellness Set",
+                "url": "https://anveshan.farm/products/sunrise-to-sundown-wellness-set",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Smart Kitchen Stock Up Set",
+                "url": "https://anveshan.farm/products/smart-kitchen-stock-up-set",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Jaggery Powder Combo",
+                "url": "https://anveshan.farm/products/jaggerypowder-combo",
+                "note": "no AggregateRating"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "AggregateRating for Cold-pressed Virgin Coconut Oil",
+            "where": "Judge.me settings → enable rich snippets / SEO schema output",
+            "steps": [
+              "Judge.me renders ratings in JavaScript. Agents fetch the HTML once and never run it, so the ratings your customers see are invisible to them.",
+              "Most review apps have this as a single toggle; it does not need theme code.",
+              "Never publish a rating you cannot substantiate."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Product\",\n  \"name\": \"Cold-pressed Virgin Coconut Oil\",\n  \"aggregateRating\": {\n    \"@type\": \"AggregateRating\",\n    \"ratingValue\": \"YOUR_AVERAGE_RATING\",\n    \"reviewCount\": \"YOUR_REVIEW_COUNT\",\n    \"bestRating\": 5\n  },\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"875.00\",\n    \"priceCurrency\": \"INR\",\n    \"availability\": \"https://schema.org/InStock\"\n  }\n}"
+          }
+        }
+      ]
+    },
+    "layer3": {
+      "name": "India Checkout & UCP Compatibility",
+      "specWeight": 25,
+      "checks": [
+        {
+          "key": "ucpProfile",
+          "spec": "UCP checkout capability declared",
+          "label": "UCP checkout capability declared",
+          "specSub": 35,
+          "effectiveSub": 50,
+          "scored": true,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Read from /.well-known/ucp. Checkout capability declared at the profile's current version = 100; declared at an older version only = 40; absent or unreachable = 0.",
+          "result": "Declares dev.ucp.shopping.checkout at 2026-08-25 · 9 capabilities",
+          "why": "Replaces the retired checkout-stack penalty. That check graded a store by how many checkout apps sat over native Shopify; fetching /.well-known/ucp on 13 stores spanning native checkout to four stacked apps returned an identical profile every time, so app count has no relationship to declared capability. Shopify serves this from its platform layer, beneath the storefront the apps modify. This confirms the endpoint DECLARES checkout capability — it does not simulate a live agent-initiated purchase, so app-specific friction during an actual transaction is untested.",
+          "added": false,
+          "pointsEarned": 50,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "UCP 2026-08-25 with 9 capabilities declared",
+            "items": [
+              {
+                "title": "checkout",
+                "url": "https://anveshan.farm/.well-known/ucp",
+                "note": "the scored capability",
+                "pass": true
+              },
+              {
+                "title": "fulfillment",
+                "url": "https://anveshan.farm/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "discount",
+                "url": "https://anveshan.farm/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "cart",
+                "url": "https://anveshan.farm/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "order",
+                "url": "https://anveshan.farm/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "catalog.search",
+                "url": "https://anveshan.farm/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "catalog.lookup",
+                "url": "https://anveshan.farm/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "shopify:catalog",
+                "url": "https://anveshan.farm/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "dev.ucp.common.identity_linking",
+                "url": "https://anveshan.farm/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              }
+            ],
+            "total": 9,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "codPayment",
+          "spec": "COD/prepaid logic exposed cleanly",
+          "label": "COD/prepaid logic exposed cleanly",
+          "specSub": 20,
+          "effectiveSub": 28.6,
+          "scored": true,
+          "value": 0,
+          "basis": "state",
+          "basisNote": "Binary, per the v2 spec: acceptedPaymentMethod declared on the Offer = 100, anything else = 0. Payment options rendered as page text earn no credit — they are shown below as context, not as partial marks.",
+          "result": "No acceptedPaymentMethod, and no COD or prepaid signal in page text either",
+          "why": "Not in the previous build. The spec asks for payment options structured rather than buried in JS widgets, so this separates a parseable field from prose a human reads.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 28.6,
+          "costOfTotal": 8.4,
+          "evidence": {
+            "headline": "No COD signal on any of 20 sampled products",
+            "items": [
+              {
+                "title": "A2 Desi Cow Ghee and Turmeric Latte Combo",
+                "url": "https://anveshan.farm/products/a2-desi-cow-ghee-and-turmeric-latte-combo",
+                "note": "prepaid in text"
+              },
+              {
+                "title": "Bilona-Churned Desi Buffalo Ghee",
+                "url": "https://anveshan.farm/products/desi-buffalo-ghee",
+                "note": "prepaid in text"
+              },
+              {
+                "title": "A2 Gir Cow Ghee",
+                "url": "https://anveshan.farm/products/gir-cow-ghee",
+                "note": "prepaid in text"
+              },
+              {
+                "title": "A2 Cow Ghee and Cold Pressed Groundnut Oil",
+                "url": "https://anveshan.farm/products/a2-ghee-groundnut-oil",
+                "note": "prepaid in text"
+              },
+              {
+                "title": "A2 Desi Cow Ghee & Honey Combo",
+                "url": "https://anveshan.farm/products/ghee-honey-combo",
+                "note": "prepaid in text"
+              }
+            ],
+            "total": 5,
+            "more": 0
+          },
+          "fix": {
+            "headline": "Declare payment methods on the Offer for Cold-pressed Virgin Coconut Oil",
+            "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+            "steps": [
+              "COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.",
+              "This goes inside the Offer you already publish — it is two extra fields, not a new block.",
+              "List only the methods you genuinely accept."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle\",\n  \"price\": \"875.00\",\n  \"priceCurrency\": \"INR\",\n  \"availability\": \"https://schema.org/InStock\",\n  \"acceptedPaymentMethod\": [\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Cash on Delivery\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"UPI\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Credit Card\"\n    }\n  ]\n}"
+          }
+        },
+        {
+          "key": "serviceability",
+          "spec": "Shipping/serviceability data structured",
+          "label": "Shipping/serviceability data structured",
+          "specSub": 15,
+          "effectiveSub": 21.4,
+          "scored": true,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A pincode widget is a JavaScript call to a private API an agent cannot make, so it is reported below as context rather than scored.",
+          "result": "20 of 20 products publish OfferShippingDetails",
+          "why": "Not in the previous build. The old shipping check measured the policy page's text length, which is a different question from pincode-level serviceability. That measurement is kept below as an extra, unscored.",
+          "added": false,
+          "pointsEarned": 21.4,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "No pincode or delivery-estimate widget found on any sampled product page",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        }
+      ]
+    },
+    "layer4": {
+      "name": "Content Clarity",
+      "specWeight": 15,
+      "checks": [
+        {
+          "key": "answerFirst",
+          "spec": "Answer-first product descriptions",
+          "label": "Answer-first product descriptions",
+          "specSub": 40,
+          "effectiveSub": 40,
+          "scored": true,
+          "added": false,
+          "value": 30,
+          "basis": "measured",
+          "basisNote": "Each sampled description is checked for four facts an agent needs — material or composition, primary use case, size or dimension guidance, and one specific factual attribute. A product scores 25 per fact it covers, and the check is the average across 20 products. Graded by keyword detection, which errs in both directions: \"premium materials\" counts as covering material when a reader would not, and a use case phrased outside the matched vocabulary is missed. Treat it as an indicator, not a verdict.",
+          "result": "Descriptions cover 1.2 of the 4 facts on average · 19 of 20 never mention size or dimension guidance",
+          "why": "Built to the v2 spec structure, computed without the LLM call it specifies. Same four questions, keyword detection, so a scan needs no API key and costs nothing. Set GEMINI_API_KEY to grade these with a model instead.",
+          "pointsEarned": 12,
+          "pointsLost": 28,
+          "costOfTotal": 4.9,
+          "evidence": {
+            "headline": "Facts missing across the 20 sampled descriptions",
+            "items": [
+              {
+                "title": "material or composition",
+                "url": "https://anveshan.farm",
+                "note": "missing on 13 of 20",
+                "pass": false
+              },
+              {
+                "title": "primary use case",
+                "url": "https://anveshan.farm",
+                "note": "missing on 12 of 20",
+                "pass": false
+              },
+              {
+                "title": "size or dimension guidance",
+                "url": "https://anveshan.farm",
+                "note": "missing on 19 of 20",
+                "pass": false
+              },
+              {
+                "title": "a specific factual attribute",
+                "url": "https://anveshan.farm",
+                "note": "missing on 12 of 20",
+                "pass": false
+              }
+            ],
+            "total": 4,
+            "more": 0
+          },
+          "fix": {
+            "headline": "Lead with the facts, then the story",
+            "where": "Product descriptions — Shopify admin → Products, or your PIM",
+            "steps": [
+              "19 of 20 sampled descriptions never mention size or dimension guidance.",
+              "Agents answer shopper questions by quoting your copy. A description that opens with brand storytelling gives them nothing to quote.",
+              "Put material, size and use case in the first two sentences; keep the storytelling after."
+            ],
+            "snippet": null
+          }
+        },
+        {
+          "key": "factualDensity",
+          "spec": "Factual density",
+          "label": "Factual density",
+          "specSub": 30,
+          "effectiveSub": 30,
+          "scored": true,
+          "added": false,
+          "value": 5,
+          "basis": "measured",
+          "basisNote": "Per product: 20 points for each concrete measurement in the description (ml, g, cm, %, and similar) capped at 100, plus 30 for naming a spec term such as material, ingredients, dimensions or warranty. Averaged across the sample.",
+          "result": "0.1 measurements per description on average · 18 of 20 never name a spec term",
+          "why": "",
+          "pointsEarned": 1.5,
+          "pointsLost": 28.5,
+          "costOfTotal": 5,
+          "evidence": {
+            "headline": "Products with the least concrete detail",
+            "items": [
+              {
+                "title": "Cold-pressed Virgin Coconut Oil",
+                "url": "https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Khapli Multigrain Atta",
+                "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Raw Chia Seeds",
+                "url": "https://anveshan.farm/products/organic-chia-seed",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Sunrise to Sundown Wellness Set",
+                "url": "https://anveshan.farm/products/sunrise-to-sundown-wellness-set",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Smart Kitchen Stock Up Set",
+                "url": "https://anveshan.farm/products/smart-kitchen-stock-up-set",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Jaggery Powder Combo",
+                "url": "https://anveshan.farm/products/jaggerypowder-combo",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Moong-Dal Halwa",
+                "url": "https://anveshan.farm/products/moong-dal-halwa",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Satvik Starter Trio",
+                "url": "https://anveshan.farm/products/satvik-starter-trio",
+                "note": "0 measurements, no spec term"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "Add measurable attributes to thin descriptions",
+            "where": "Product descriptions — Shopify admin → Products",
+            "steps": [
+              "Sampled descriptions average 0.1 concrete measurements.",
+              "Vague marketing copy ranks below a competitor that states grams, millilitres or dimensions.",
+              "One line of specifications per product moves this more than rewriting the prose."
+            ],
+            "snippet": null
+          }
+        },
+        {
+          "key": "entityConsistency",
+          "spec": "Consistent entity naming",
+          "label": "Consistent entity naming",
+          "specSub": 30,
+          "effectiveSub": 30,
+          "scored": true,
+          "added": false,
+          "value": 70,
+          "basis": "state",
+          "basisNote": "One rendered form of the brand name across all sampled pages = 100; several forms that match once case and spacing are normalised = 70; the name missing from some pages entirely = 40. Matching is anchored on \"Anveshan\".",
+          "result": "3 written forms in use: \"Anveshan\", \"anveshan\", \"ANVESHAN\"",
+          "why": "Returned 70 on every store tested so far — most brands render their name in more than one form but identically once case and spacing are normalised. Worth the same scrutiny as the other non-differentiating checks before its 30% weight is locked.",
+          "pointsEarned": 21,
+          "pointsLost": 9,
+          "costOfTotal": 1.6,
+          "evidence": {
+            "headline": "Distinct rendered forms of \"Anveshan\" across 20 sampled pages",
+            "items": [
+              {
+                "title": "\"Anveshan\"",
+                "url": "https://anveshan.farm",
+                "note": "in use",
+                "pass": false
+              },
+              {
+                "title": "\"anveshan\"",
+                "url": "https://anveshan.farm",
+                "note": "in use",
+                "pass": false
+              },
+              {
+                "title": "\"ANVESHAN\"",
+                "url": "https://anveshan.farm",
+                "note": "in use",
+                "pass": false
+              }
+            ],
+            "total": 3,
+            "more": 0
+          },
+          "fix": {
+            "headline": "Settle on one written form of the brand name",
+            "where": "Product titles, descriptions and theme copy",
+            "steps": [
+              "This store renders the name as \"Anveshan\", \"anveshan\", \"ANVESHAN\".",
+              "Agents match a catalogue to a brand entity by name. Aliasing makes that link weaker than it should be.",
+              "Pick the form used in your Organization schema and use it everywhere."
+            ],
+            "snippet": null
+          }
+        },
+        {
+          "key": "descriptionDepth",
+          "spec": "Description length",
+          "label": "Description length",
+          "specSub": null,
+          "effectiveSub": null,
+          "scored": false,
+          "added": true,
+          "value": 50,
+          "basis": "measured",
+          "basisNote": "Not in the spec. Graded per product on word count: 200+ words = 100, 120+ = 90, 60+ = 70, 25+ = 40, under 25 = 15, none = 0. Shown because it explains most of what the scored checks report.",
+          "result": "2 of 20 products have no description at all · 9 have fewer than 60 words",
+          "why": "",
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "Shortest descriptions in the sample",
+            "items": [
+              {
+                "title": "Groundnut Oil - 100ml",
+                "url": "https://anveshan.farm/products/sample-groundnut-oil-100ml",
+                "note": "no description"
+              },
+              {
+                "title": "Sunflower Oil Plastic Bottle (500ml)",
+                "url": "https://anveshan.farm/products/sunflower-oil-plastic-bottle-500ml",
+                "note": "no description"
+              },
+              {
+                "title": "Light & Nutty Combo",
+                "url": "https://anveshan.farm/products/light-nutty-combo",
+                "note": "13 words"
+              },
+              {
+                "title": "Satvik Starter Trio",
+                "url": "https://anveshan.farm/products/satvik-starter-trio",
+                "note": "17 words"
+              },
+              {
+                "title": "Smart Kitchen Stock Up Set",
+                "url": "https://anveshan.farm/products/smart-kitchen-stock-up-set",
+                "note": "26 words"
+              },
+              {
+                "title": "A2 Desi Cow Ghee & Honey Combo",
+                "url": "https://anveshan.farm/products/ghee-honey-combo",
+                "note": "27 words"
+              },
+              {
+                "title": "Sunrise to Sundown Wellness Set",
+                "url": "https://anveshan.farm/products/sunrise-to-sundown-wellness-set",
+                "note": "31 words"
+              },
+              {
+                "title": "A2 Cow Ghee and Cold Pressed Groundnut Oil",
+                "url": "https://anveshan.farm/products/a2-ghee-groundnut-oil",
+                "note": "36 words"
+              }
+            ],
+            "total": 11,
+            "more": 3
+          },
+          "fix": null
+        },
+        {
+          "key": "uniqueness",
+          "spec": "Description uniqueness",
+          "label": "Description uniqueness",
+          "specSub": null,
+          "effectiveSub": null,
+          "scored": false,
+          "added": true,
+          "value": 95,
+          "basis": "measured",
+          "basisNote": "Not in the spec. The share of sampled products whose opening 200 characters are not reused by another product.",
+          "result": "1 of 20 sampled products reuse another product's description",
+          "why": "",
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "1 products share copy with another product",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "imageCoverage",
+          "spec": "Image coverage",
+          "label": "Image coverage",
+          "specSub": null,
+          "effectiveSub": null,
+          "scored": false,
+          "added": true,
+          "value": 91,
+          "basis": "measured",
+          "basisNote": "Not in the spec. Graded per product on image count: 7+ = 100, 5-6 = 90, 3-4 = 70, 2 = 45, 1 = 20, none = 0.",
+          "result": "2 of 20 products have one image or none",
+          "why": "",
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "Products with the fewest images",
+            "items": [
+              {
+                "title": "Groundnut Oil - 100ml",
+                "url": "https://anveshan.farm/products/sample-groundnut-oil-100ml",
+                "note": "1 image"
+              },
+              {
+                "title": "Sunflower Oil Plastic Bottle (500ml)",
+                "url": "https://anveshan.farm/products/sunflower-oil-plastic-bottle-500ml",
+                "note": "1 image"
+              }
+            ],
+            "total": 2,
+            "more": 0
+          },
+          "fix": null
+        }
+      ]
+    }
+  },
+  "speed": {
+    "score": 100,
+    "sampleSize": 20,
+    "medianKb": 467,
+    "medianTtfb": 555,
+    "medianTotal": 568,
+    "minTtfb": 509,
+    "maxTtfb": 5908,
+    "minKb": 337,
+    "maxKb": 528,
+    "sizePenalty": 0,
+    "timePenalty": 0,
+    "verdict": "Inside both thresholds — no penalty applied.",
+    "slowest": [
+      {
+        "title": "A2 Desi Cow Ghee and Turmeric Latte Combo",
+        "url": "https://anveshan.farm/products/a2-desi-cow-ghee-and-turmeric-latte-combo",
+        "note": "5908ms · 414KB"
+      },
+      {
+        "title": "High Protein Atta",
+        "url": "https://anveshan.farm/products/high-protein-atta",
+        "note": "801ms · 528KB"
+      },
+      {
+        "title": "Kashmiri Mongra Saffron -2g",
+        "url": "https://anveshan.farm/products/kashmiri-mongra-saffron-copy",
+        "note": "709ms · 464KB"
+      },
+      {
+        "title": "Smart Kitchen Stock Up Set",
+        "url": "https://anveshan.farm/products/smart-kitchen-stock-up-set",
+        "note": "619ms · 505KB"
+      },
+      {
+        "title": "A2 Gir Cow Ghee",
+        "url": "https://anveshan.farm/products/gir-cow-ghee",
+        "note": "587ms · 522KB"
+      }
+    ],
+    "thresholds": "Free below 600KB and 800ms to first byte, then graded.",
+    "caveat": "Time to first byte and HTML payload, measured from this machine — not Core Web Vitals. The spec asks for LCP via PageSpeed Insights, which needs an API key and around 30 seconds per URL."
+  },
+  "llm": {
+    "used": false,
+    "model": null,
+    "graded": 0,
+    "cached": 0,
+    "error": null
+  },
+  "layer2Report": {
+    "name": "Structured Data / Schema",
+    "score": 42,
+    "specWeight": 25,
+    "effectiveWeight": 29,
+    "currency": "INR",
+    "sampleSize": 20,
+    "note": "llms.txt is measured but not scored; its 10% is redistributed across the five scored checks, which is why the effective weights differ from the spec column.",
+    "checks": [
+      {
+        "key": "productSchema",
+        "spec": "Product schema (JSON-LD) coverage",
+        "label": "Product schema (JSON-LD) coverage",
+        "specSub": 35,
+        "effectiveSub": 38.9,
+        "scored": true,
+        "value": 0,
+        "basis": "measured",
+        "basisNote": "0 of 20 sampled products passed all four fields",
+        "result": "0 of 20 products have price + availability + SKU",
+        "why": "Built as specified. Real variance across stores — 0% to 100%.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 38.9,
+        "costOfTotal": 11.4,
+        "evidence": {
+          "headline": "20 of 20 sampled products are missing at least one field",
+          "items": [
+            {
+              "title": "Cold-pressed Virgin Coconut Oil",
+              "url": "https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle",
+              "note": "no sku"
+            },
+            {
+              "title": "Kashmiri Mongra Saffron -2g",
+              "url": "https://anveshan.farm/products/kashmiri-mongra-saffron-copy",
+              "note": "no sku"
+            },
+            {
+              "title": "High Protein Atta",
+              "url": "https://anveshan.farm/products/high-protein-atta",
+              "note": "no sku"
+            },
+            {
+              "title": "Khapli Multigrain Atta",
+              "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+              "note": "no sku"
+            },
+            {
+              "title": "Raw Chia Seeds",
+              "url": "https://anveshan.farm/products/organic-chia-seed",
+              "note": "no sku"
+            },
+            {
+              "title": "Sunrise to Sundown Wellness Set",
+              "url": "https://anveshan.farm/products/sunrise-to-sundown-wellness-set",
+              "note": "no sku"
+            },
+            {
+              "title": "Smart Kitchen Stock Up Set",
+              "url": "https://anveshan.farm/products/smart-kitchen-stock-up-set",
+              "note": "no sku"
+            },
+            {
+              "title": "Jaggery Powder Combo",
+              "url": "https://anveshan.farm/products/jaggerypowder-combo",
+              "note": "no sku"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "Product JSON-LD for Cold-pressed Virgin Coconut Oil",
+          "where": "Theme editor → product template, or your schema app’s Product settings",
+          "steps": [
+            "20 of 20 omit sku.",
+            "Agents read price and stock from this block, not from the rendered page.",
+            "Fix it in the template once and it applies to the whole catalogue."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Product\",\n  \"name\": \"Cold-pressed Virgin Coconut Oil\",\n  \"url\": \"https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle\",\n  \"sku\": \"FPCL-OILL-VRCO-GBOT-1LTR\",\n  \"brand\": {\n    \"@type\": \"Brand\",\n    \"name\": \"Anveshan\"\n  },\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"url\": \"https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle\",\n    \"price\": \"875.00\",\n    \"priceCurrency\": \"INR\",\n    \"availability\": \"https://schema.org/InStock\"\n  }\n}"
+        }
+      },
+      {
+        "key": "variantSchema",
+        "spec": "Variant data structured",
+        "label": "Variant data structured",
+        "specSub": 20,
+        "effectiveSub": 22.2,
+        "scored": true,
+        "value": 65,
+        "basis": "measured",
+        "basisNote": "7 of 20 sampled products have more than one variant",
+        "result": "7 of 20 multi-variant products expose only one price",
+        "why": "Redefined. Checking whether option names appear in HTML returned 100 everywhere, so it now checks variant-level offers.",
+        "added": false,
+        "pointsEarned": 14.4,
+        "pointsLost": 7.8,
+        "costOfTotal": 2.3,
+        "evidence": {
+          "headline": "7 products publish one offer for several buyable variants",
+          "items": [
+            {
+              "title": "High Protein Atta",
+              "url": "https://anveshan.farm/products/high-protein-atta",
+              "note": "3 variants (Select Variant) · one offer published"
+            },
+            {
+              "title": "Khapli Multigrain Atta",
+              "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+              "note": "2 variants (Net Quantity) · one offer published"
+            },
+            {
+              "title": "Cold-Pressed Coconut Oil",
+              "url": "https://anveshan.farm/products/wood-pressed-coconut-oil",
+              "note": "4 variants (Net Quantity) · one offer published"
+            },
+            {
+              "title": "Bilona-Churned Desi Buffalo Ghee",
+              "url": "https://anveshan.farm/products/desi-buffalo-ghee",
+              "note": "4 variants (Net Quantity) · one offer published"
+            },
+            {
+              "title": "A2 Gir Cow Ghee",
+              "url": "https://anveshan.farm/products/gir-cow-ghee",
+              "note": "4 variants (Net Quantity) · one offer published"
+            },
+            {
+              "title": "Cold-Pressed Sunflower Oil",
+              "url": "https://anveshan.farm/products/sunflower-oil",
+              "note": "5 variants (Net Quantity) · one offer published"
+            },
+            {
+              "title": "A2 Cow Ghee and Cold Pressed Groundnut Oil",
+              "url": "https://anveshan.farm/products/a2-ghee-groundnut-oil",
+              "note": "2 variants (Net Quantity) · one offer published"
+            }
+          ],
+          "total": 7,
+          "more": 0
+        },
+        "fix": {
+          "headline": "ProductGroup markup for High Protein Atta",
+          "where": "Theme editor → product template, replacing the single Product block",
+          "steps": [
+            "High Protein Atta sells 3 variants across Select Variant but publishes one offer.",
+            "An agent asked for a specific size cannot confirm that size exists, so it recommends a competitor that can.",
+            "ProductGroup + hasVariant is the pattern Google and the agent crawlers both read."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"ProductGroup\",\n  \"name\": \"High Protein Atta\",\n  \"url\": \"https://anveshan.farm/products/high-protein-atta\",\n  \"productGroupID\": \"high-protein-atta\",\n  \"brand\": {\n    \"@type\": \"Brand\",\n    \"name\": \"Anveshan\"\n  },\n  \"variesBy\": [\n    \"select variant\"\n  ],\n  \"hasVariant\": [\n    {\n      \"@type\": \"Product\",\n      \"name\": \"High Protein Atta — 1 Kg\",\n      \"sku\": \"FPCL-ATTA-HPTN-POUC-01KG\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"400.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/InStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"High Protein Atta — Pack of 3\",\n      \"sku\": \"FPCL-COMB-X1X3-HPTN-03KG\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"1164.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/InStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"High Protein Atta — Pack of 5\",\n      \"sku\": \"FPCL-COMB-X1X5-HPTN-05KG\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"1880.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/InStock\"\n      }\n    }\n  ]\n}"
+        }
+      },
+      {
+        "key": "orgSchema",
+        "spec": "Organization/entity schema",
+        "label": "Organization/entity schema",
+        "specSub": 15,
+        "effectiveSub": 16.7,
+        "scored": true,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Three graded outcomes: 2+ linked profiles = 100, present but thin = 40, absent = 0",
+        "result": "Present, 3 linked profiles",
+        "why": "Built as specified. Roughly half of tested stores fail on the sameAs requirement.",
+        "added": false,
+        "pointsEarned": 16.7,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "Organization block found on the homepage with 3 usable sameAs links",
+          "items": [
+            {
+              "title": "https://www.facebook.com/anveshan.farm/",
+              "url": "https://www.facebook.com/anveshan.farm/",
+              "note": "linked profile",
+              "pass": true
+            },
+            {
+              "title": "https://www.instagram.com/anveshan.farms/",
+              "url": "https://www.instagram.com/anveshan.farms/",
+              "note": "linked profile",
+              "pass": true
+            },
+            {
+              "title": "https://x.com/Anveshan_farms/",
+              "url": "https://x.com/Anveshan_farms/",
+              "note": "linked profile",
+              "pass": true
+            }
+          ],
+          "total": 3,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "faqSchema",
+        "spec": "FAQ/HowTo schema",
+        "label": "FAQ/HowTo schema",
+        "specSub": 10,
+        "effectiveSub": 11.1,
+        "scored": true,
+        "value": 70,
+        "basis": "state",
+        "basisNote": "Graded outcomes: FAQ page 100, homepage 80, product pages 70, content but no markup 30",
+        "result": "On 9 product pages, not on the FAQ page",
+        "why": "Widened. The spec looked at product and category pages; FAQ markup almost always lives on a dedicated FAQ page.",
+        "added": false,
+        "pointsEarned": 7.8,
+        "pointsLost": 3.3,
+        "costOfTotal": 1,
+        "evidence": {
+          "headline": "No FAQ page found at any of the four standard paths",
+          "items": [
+            {
+              "title": "Cold-pressed Virgin Coconut Oil",
+              "url": "https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle",
+              "note": "FAQ schema on the product page",
+              "pass": true
+            },
+            {
+              "title": "Kashmiri Mongra Saffron -2g",
+              "url": "https://anveshan.farm/products/kashmiri-mongra-saffron-copy",
+              "note": "FAQ schema on the product page",
+              "pass": true
+            },
+            {
+              "title": "High Protein Atta",
+              "url": "https://anveshan.farm/products/high-protein-atta",
+              "note": "FAQ schema on the product page",
+              "pass": true
+            },
+            {
+              "title": "Khapli Multigrain Atta",
+              "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+              "note": "FAQ schema on the product page",
+              "pass": true
+            },
+            {
+              "title": "Jaggery Powder Combo",
+              "url": "https://anveshan.farm/products/jaggerypowder-combo",
+              "note": "FAQ schema on the product page",
+              "pass": true
+            },
+            {
+              "title": "Cold-Pressed Coconut Oil",
+              "url": "https://anveshan.farm/products/wood-pressed-coconut-oil",
+              "note": "FAQ schema on the product page",
+              "pass": true
+            },
+            {
+              "title": "Bilona-Churned Desi Buffalo Ghee",
+              "url": "https://anveshan.farm/products/desi-buffalo-ghee",
+              "note": "FAQ schema on the product page",
+              "pass": true
+            },
+            {
+              "title": "A2 Gir Cow Ghee",
+              "url": "https://anveshan.farm/products/gir-cow-ghee",
+              "note": "FAQ schema on the product page",
+              "pass": true
+            }
+          ],
+          "total": 9,
+          "more": 1
+        },
+        "fix": {
+          "headline": "FAQPage markup",
+          "where": "A new /pages/faq page",
+          "steps": [
+            "There is no FAQ content to mark up yet. Write the delivery and returns answers first.",
+            "Reuse your real question-and-answer text verbatim; inventing answers here would misrepresent the store."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"How long does delivery take?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Can I return a Anveshan order?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    }\n  ]\n}"
+        }
+      },
+      {
+        "key": "llmsTxt",
+        "spec": "llms.txt present",
+        "label": "llms.txt present",
+        "specSub": 10,
+        "effectiveSub": null,
+        "scored": false,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Measured and shown, excluded from the score. Its 10% is redistributed across the other five checks.",
+        "result": "Present — auto-generated by Shopify, not written by the brand",
+        "why": "Dropped from scoring. Shopify auto-generates llms.txt for every store, pointing agents at shop.app. Returned 100 on all 15 stores tested.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "4491 bytes served at /llms.txt",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "reviewSchema",
+        "spec": "Review/rating schema",
+        "label": "Review/rating schema",
+        "specSub": 10,
+        "effectiveSub": 11.1,
+        "scored": true,
+        "value": 25,
+        "basis": "state",
+        "basisNote": "A review app is displaying ratings but none are machine-readable. Scored 25 — reviews exist, agents just cannot read them.",
+        "result": "Judge.me is running but exposes no schema",
+        "why": "Three states instead of pass/fail. Review apps inject ratings via JavaScript, so a store with thousands of reviews scored 0 under the original check.",
+        "added": false,
+        "pointsEarned": 2.8,
+        "pointsLost": 8.3,
+        "costOfTotal": 2.5,
+        "evidence": {
+          "headline": "Review widget detected: Judge.me",
+          "items": [
+            {
+              "title": "Cold-pressed Virgin Coconut Oil",
+              "url": "https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Kashmiri Mongra Saffron -2g",
+              "url": "https://anveshan.farm/products/kashmiri-mongra-saffron-copy",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "High Protein Atta",
+              "url": "https://anveshan.farm/products/high-protein-atta",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Khapli Multigrain Atta",
+              "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Raw Chia Seeds",
+              "url": "https://anveshan.farm/products/organic-chia-seed",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Sunrise to Sundown Wellness Set",
+              "url": "https://anveshan.farm/products/sunrise-to-sundown-wellness-set",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Smart Kitchen Stock Up Set",
+              "url": "https://anveshan.farm/products/smart-kitchen-stock-up-set",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Jaggery Powder Combo",
+              "url": "https://anveshan.farm/products/jaggerypowder-combo",
+              "note": "no AggregateRating"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "AggregateRating for Cold-pressed Virgin Coconut Oil",
+          "where": "Judge.me settings → enable rich snippets / SEO schema output",
+          "steps": [
+            "Judge.me renders ratings in JavaScript. Agents fetch the HTML once and never run it, so the ratings your customers see are invisible to them.",
+            "Most review apps have this as a single toggle; it does not need theme code.",
+            "Never publish a rating you cannot substantiate."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Product\",\n  \"name\": \"Cold-pressed Virgin Coconut Oil\",\n  \"aggregateRating\": {\n    \"@type\": \"AggregateRating\",\n    \"ratingValue\": \"YOUR_AVERAGE_RATING\",\n    \"reviewCount\": \"YOUR_REVIEW_COUNT\",\n    \"bestRating\": 5\n  },\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"875.00\",\n    \"priceCurrency\": \"INR\",\n    \"availability\": \"https://schema.org/InStock\"\n  }\n}"
+        }
+      }
+    ]
+  },
+  "layer3Report": {
+    "name": "India Checkout & UCP Compatibility",
+    "score": 71,
+    "specWeight": 25,
+    "effectiveWeight": 29,
+    "sampleSize": 20,
+    "currency": "INR",
+    "note": "Rebuilt to the v2 spec. The checkout-stack penalty is retired — this store runs Fastrr + Shiprocket, shown for context only and not scored. Return/exchange policy and Agentic Storefronts eligibility are held back for the next review, so the spec's 35/20/15 renormalise across the three checks below.",
+    "checks": [
+      {
+        "key": "ucpProfile",
+        "spec": "UCP checkout capability declared",
+        "label": "UCP checkout capability declared",
+        "specSub": 35,
+        "effectiveSub": 50,
+        "scored": true,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Read from /.well-known/ucp. Checkout capability declared at the profile's current version = 100; declared at an older version only = 40; absent or unreachable = 0.",
+        "result": "Declares dev.ucp.shopping.checkout at 2026-08-25 · 9 capabilities",
+        "why": "Replaces the retired checkout-stack penalty. That check graded a store by how many checkout apps sat over native Shopify; fetching /.well-known/ucp on 13 stores spanning native checkout to four stacked apps returned an identical profile every time, so app count has no relationship to declared capability. Shopify serves this from its platform layer, beneath the storefront the apps modify. This confirms the endpoint DECLARES checkout capability — it does not simulate a live agent-initiated purchase, so app-specific friction during an actual transaction is untested.",
+        "added": false,
+        "pointsEarned": 50,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "UCP 2026-08-25 with 9 capabilities declared",
+          "items": [
+            {
+              "title": "checkout",
+              "url": "https://anveshan.farm/.well-known/ucp",
+              "note": "the scored capability",
+              "pass": true
+            },
+            {
+              "title": "fulfillment",
+              "url": "https://anveshan.farm/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "discount",
+              "url": "https://anveshan.farm/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "cart",
+              "url": "https://anveshan.farm/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "order",
+              "url": "https://anveshan.farm/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "catalog.search",
+              "url": "https://anveshan.farm/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "catalog.lookup",
+              "url": "https://anveshan.farm/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "shopify:catalog",
+              "url": "https://anveshan.farm/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "dev.ucp.common.identity_linking",
+              "url": "https://anveshan.farm/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            }
+          ],
+          "total": 9,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "codPayment",
+        "spec": "COD/prepaid logic exposed cleanly",
+        "label": "COD/prepaid logic exposed cleanly",
+        "specSub": 20,
+        "effectiveSub": 28.6,
+        "scored": true,
+        "value": 0,
+        "basis": "state",
+        "basisNote": "Binary, per the v2 spec: acceptedPaymentMethod declared on the Offer = 100, anything else = 0. Payment options rendered as page text earn no credit — they are shown below as context, not as partial marks.",
+        "result": "No acceptedPaymentMethod, and no COD or prepaid signal in page text either",
+        "why": "Not in the previous build. The spec asks for payment options structured rather than buried in JS widgets, so this separates a parseable field from prose a human reads.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 28.6,
+        "costOfTotal": 8.4,
+        "evidence": {
+          "headline": "No COD signal on any of 20 sampled products",
+          "items": [
+            {
+              "title": "A2 Desi Cow Ghee and Turmeric Latte Combo",
+              "url": "https://anveshan.farm/products/a2-desi-cow-ghee-and-turmeric-latte-combo",
+              "note": "prepaid in text"
+            },
+            {
+              "title": "Bilona-Churned Desi Buffalo Ghee",
+              "url": "https://anveshan.farm/products/desi-buffalo-ghee",
+              "note": "prepaid in text"
+            },
+            {
+              "title": "A2 Gir Cow Ghee",
+              "url": "https://anveshan.farm/products/gir-cow-ghee",
+              "note": "prepaid in text"
+            },
+            {
+              "title": "A2 Cow Ghee and Cold Pressed Groundnut Oil",
+              "url": "https://anveshan.farm/products/a2-ghee-groundnut-oil",
+              "note": "prepaid in text"
+            },
+            {
+              "title": "A2 Desi Cow Ghee & Honey Combo",
+              "url": "https://anveshan.farm/products/ghee-honey-combo",
+              "note": "prepaid in text"
+            }
+          ],
+          "total": 5,
+          "more": 0
+        },
+        "fix": {
+          "headline": "Declare payment methods on the Offer for Cold-pressed Virgin Coconut Oil",
+          "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+          "steps": [
+            "COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.",
+            "This goes inside the Offer you already publish — it is two extra fields, not a new block.",
+            "List only the methods you genuinely accept."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle\",\n  \"price\": \"875.00\",\n  \"priceCurrency\": \"INR\",\n  \"availability\": \"https://schema.org/InStock\",\n  \"acceptedPaymentMethod\": [\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Cash on Delivery\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"UPI\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Credit Card\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "key": "serviceability",
+        "spec": "Shipping/serviceability data structured",
+        "label": "Shipping/serviceability data structured",
+        "specSub": 15,
+        "effectiveSub": 21.4,
+        "scored": true,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A pincode widget is a JavaScript call to a private API an agent cannot make, so it is reported below as context rather than scored.",
+        "result": "20 of 20 products publish OfferShippingDetails",
+        "why": "Not in the previous build. The old shipping check measured the policy page's text length, which is a different question from pincode-level serviceability. That measurement is kept below as an extra, unscored.",
+        "added": false,
+        "pointsEarned": 21.4,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "No pincode or delivery-estimate widget found on any sampled product page",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      }
+    ]
+  },
+  "layer4Report": {
+    "name": "Content Clarity",
+    "score": 35,
+    "specWeight": 15,
+    "effectiveWeight": 18,
+    "sampleSize": 20,
+    "currency": "INR",
+    "note": "The spec computes the first two checks with an LLM call; they are measured here by keyword detection instead, so a scan needs no API key and costs nothing. Description length, uniqueness and image coverage are not in the spec — they are measured and shown, never scored.",
+    "checks": [
+      {
+        "key": "answerFirst",
+        "spec": "Answer-first product descriptions",
+        "label": "Answer-first product descriptions",
+        "specSub": 40,
+        "effectiveSub": 40,
+        "scored": true,
+        "added": false,
+        "value": 30,
+        "basis": "measured",
+        "basisNote": "Each sampled description is checked for four facts an agent needs — material or composition, primary use case, size or dimension guidance, and one specific factual attribute. A product scores 25 per fact it covers, and the check is the average across 20 products. Graded by keyword detection, which errs in both directions: \"premium materials\" counts as covering material when a reader would not, and a use case phrased outside the matched vocabulary is missed. Treat it as an indicator, not a verdict.",
+        "result": "Descriptions cover 1.2 of the 4 facts on average · 19 of 20 never mention size or dimension guidance",
+        "why": "Built to the v2 spec structure, computed without the LLM call it specifies. Same four questions, keyword detection, so a scan needs no API key and costs nothing. Set GEMINI_API_KEY to grade these with a model instead.",
+        "pointsEarned": 12,
+        "pointsLost": 28,
+        "costOfTotal": 4.9,
+        "evidence": {
+          "headline": "Facts missing across the 20 sampled descriptions",
+          "items": [
+            {
+              "title": "material or composition",
+              "url": "https://anveshan.farm",
+              "note": "missing on 13 of 20",
+              "pass": false
+            },
+            {
+              "title": "primary use case",
+              "url": "https://anveshan.farm",
+              "note": "missing on 12 of 20",
+              "pass": false
+            },
+            {
+              "title": "size or dimension guidance",
+              "url": "https://anveshan.farm",
+              "note": "missing on 19 of 20",
+              "pass": false
+            },
+            {
+              "title": "a specific factual attribute",
+              "url": "https://anveshan.farm",
+              "note": "missing on 12 of 20",
+              "pass": false
+            }
+          ],
+          "total": 4,
+          "more": 0
+        },
+        "fix": {
+          "headline": "Lead with the facts, then the story",
+          "where": "Product descriptions — Shopify admin → Products, or your PIM",
+          "steps": [
+            "19 of 20 sampled descriptions never mention size or dimension guidance.",
+            "Agents answer shopper questions by quoting your copy. A description that opens with brand storytelling gives them nothing to quote.",
+            "Put material, size and use case in the first two sentences; keep the storytelling after."
+          ],
+          "snippet": null
+        }
+      },
+      {
+        "key": "factualDensity",
+        "spec": "Factual density",
+        "label": "Factual density",
+        "specSub": 30,
+        "effectiveSub": 30,
+        "scored": true,
+        "added": false,
+        "value": 5,
+        "basis": "measured",
+        "basisNote": "Per product: 20 points for each concrete measurement in the description (ml, g, cm, %, and similar) capped at 100, plus 30 for naming a spec term such as material, ingredients, dimensions or warranty. Averaged across the sample.",
+        "result": "0.1 measurements per description on average · 18 of 20 never name a spec term",
+        "why": "",
+        "pointsEarned": 1.5,
+        "pointsLost": 28.5,
+        "costOfTotal": 5,
+        "evidence": {
+          "headline": "Products with the least concrete detail",
+          "items": [
+            {
+              "title": "Cold-pressed Virgin Coconut Oil",
+              "url": "https://anveshan.farm/products/cold-pressed-virgin-coconut-oil-1l-bottle",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Khapli Multigrain Atta",
+              "url": "https://anveshan.farm/products/khapli-multigrain-atta",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Raw Chia Seeds",
+              "url": "https://anveshan.farm/products/organic-chia-seed",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Sunrise to Sundown Wellness Set",
+              "url": "https://anveshan.farm/products/sunrise-to-sundown-wellness-set",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Smart Kitchen Stock Up Set",
+              "url": "https://anveshan.farm/products/smart-kitchen-stock-up-set",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Jaggery Powder Combo",
+              "url": "https://anveshan.farm/products/jaggerypowder-combo",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Moong-Dal Halwa",
+              "url": "https://anveshan.farm/products/moong-dal-halwa",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Satvik Starter Trio",
+              "url": "https://anveshan.farm/products/satvik-starter-trio",
+              "note": "0 measurements, no spec term"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "Add measurable attributes to thin descriptions",
+          "where": "Product descriptions — Shopify admin → Products",
+          "steps": [
+            "Sampled descriptions average 0.1 concrete measurements.",
+            "Vague marketing copy ranks below a competitor that states grams, millilitres or dimensions.",
+            "One line of specifications per product moves this more than rewriting the prose."
+          ],
+          "snippet": null
+        }
+      },
+      {
+        "key": "entityConsistency",
+        "spec": "Consistent entity naming",
+        "label": "Consistent entity naming",
+        "specSub": 30,
+        "effectiveSub": 30,
+        "scored": true,
+        "added": false,
+        "value": 70,
+        "basis": "state",
+        "basisNote": "One rendered form of the brand name across all sampled pages = 100; several forms that match once case and spacing are normalised = 70; the name missing from some pages entirely = 40. Matching is anchored on \"Anveshan\".",
+        "result": "3 written forms in use: \"Anveshan\", \"anveshan\", \"ANVESHAN\"",
+        "why": "Returned 70 on every store tested so far — most brands render their name in more than one form but identically once case and spacing are normalised. Worth the same scrutiny as the other non-differentiating checks before its 30% weight is locked.",
+        "pointsEarned": 21,
+        "pointsLost": 9,
+        "costOfTotal": 1.6,
+        "evidence": {
+          "headline": "Distinct rendered forms of \"Anveshan\" across 20 sampled pages",
+          "items": [
+            {
+              "title": "\"Anveshan\"",
+              "url": "https://anveshan.farm",
+              "note": "in use",
+              "pass": false
+            },
+            {
+              "title": "\"anveshan\"",
+              "url": "https://anveshan.farm",
+              "note": "in use",
+              "pass": false
+            },
+            {
+              "title": "\"ANVESHAN\"",
+              "url": "https://anveshan.farm",
+              "note": "in use",
+              "pass": false
+            }
+          ],
+          "total": 3,
+          "more": 0
+        },
+        "fix": {
+          "headline": "Settle on one written form of the brand name",
+          "where": "Product titles, descriptions and theme copy",
+          "steps": [
+            "This store renders the name as \"Anveshan\", \"anveshan\", \"ANVESHAN\".",
+            "Agents match a catalogue to a brand entity by name. Aliasing makes that link weaker than it should be.",
+            "Pick the form used in your Organization schema and use it everywhere."
+          ],
+          "snippet": null
+        }
+      },
+      {
+        "key": "descriptionDepth",
+        "spec": "Description length",
+        "label": "Description length",
+        "specSub": null,
+        "effectiveSub": null,
+        "scored": false,
+        "added": true,
+        "value": 50,
+        "basis": "measured",
+        "basisNote": "Not in the spec. Graded per product on word count: 200+ words = 100, 120+ = 90, 60+ = 70, 25+ = 40, under 25 = 15, none = 0. Shown because it explains most of what the scored checks report.",
+        "result": "2 of 20 products have no description at all · 9 have fewer than 60 words",
+        "why": "",
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "Shortest descriptions in the sample",
+          "items": [
+            {
+              "title": "Groundnut Oil - 100ml",
+              "url": "https://anveshan.farm/products/sample-groundnut-oil-100ml",
+              "note": "no description"
+            },
+            {
+              "title": "Sunflower Oil Plastic Bottle (500ml)",
+              "url": "https://anveshan.farm/products/sunflower-oil-plastic-bottle-500ml",
+              "note": "no description"
+            },
+            {
+              "title": "Light & Nutty Combo",
+              "url": "https://anveshan.farm/products/light-nutty-combo",
+              "note": "13 words"
+            },
+            {
+              "title": "Satvik Starter Trio",
+              "url": "https://anveshan.farm/products/satvik-starter-trio",
+              "note": "17 words"
+            },
+            {
+              "title": "Smart Kitchen Stock Up Set",
+              "url": "https://anveshan.farm/products/smart-kitchen-stock-up-set",
+              "note": "26 words"
+            },
+            {
+              "title": "A2 Desi Cow Ghee & Honey Combo",
+              "url": "https://anveshan.farm/products/ghee-honey-combo",
+              "note": "27 words"
+            },
+            {
+              "title": "Sunrise to Sundown Wellness Set",
+              "url": "https://anveshan.farm/products/sunrise-to-sundown-wellness-set",
+              "note": "31 words"
+            },
+            {
+              "title": "A2 Cow Ghee and Cold Pressed Groundnut Oil",
+              "url": "https://anveshan.farm/products/a2-ghee-groundnut-oil",
+              "note": "36 words"
+            }
+          ],
+          "total": 11,
+          "more": 3
+        },
+        "fix": null
+      },
+      {
+        "key": "uniqueness",
+        "spec": "Description uniqueness",
+        "label": "Description uniqueness",
+        "specSub": null,
+        "effectiveSub": null,
+        "scored": false,
+        "added": true,
+        "value": 95,
+        "basis": "measured",
+        "basisNote": "Not in the spec. The share of sampled products whose opening 200 characters are not reused by another product.",
+        "result": "1 of 20 sampled products reuse another product's description",
+        "why": "",
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "1 products share copy with another product",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "imageCoverage",
+        "spec": "Image coverage",
+        "label": "Image coverage",
+        "specSub": null,
+        "effectiveSub": null,
+        "scored": false,
+        "added": true,
+        "value": 91,
+        "basis": "measured",
+        "basisNote": "Not in the spec. Graded per product on image count: 7+ = 100, 5-6 = 90, 3-4 = 70, 2 = 45, 1 = 20, none = 0.",
+        "result": "2 of 20 products have one image or none",
+        "why": "",
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "Products with the fewest images",
+          "items": [
+            {
+              "title": "Groundnut Oil - 100ml",
+              "url": "https://anveshan.farm/products/sample-groundnut-oil-100ml",
+              "note": "1 image"
+            },
+            {
+              "title": "Sunflower Oil Plastic Bottle (500ml)",
+              "url": "https://anveshan.farm/products/sunflower-oil-plastic-bottle-500ml",
+              "note": "1 image"
+            }
+          ],
+          "total": 2,
+          "more": 0
+        },
+        "fix": null
+      }
+    ]
+  },
+  "agentView": {
+    "title": "Groundnut Oil - 100ml",
+    "url": "https://anveshan.farm/products/sample-groundnut-oil-100ml",
+    "catalogNote": "Weakest of 20 sampled products",
+    "fields": [
+      {
+        "label": "Name",
+        "value": "Groundnut Oil - 100ml",
+        "visible": true
+      },
+      {
+        "label": "Price",
+        "value": "₹0.00",
+        "visible": true,
+        "action": "Expose price in the product schema"
+      },
+      {
+        "label": "In stock",
+        "value": "No",
+        "visible": true,
+        "action": "Add availability to the offer"
+      },
+      {
+        "label": "SKU",
+        "value": null,
+        "visible": false,
+        "action": "Publish the SKU field"
+      },
+      {
+        "label": "Rating",
+        "value": null,
+        "visible": false,
+        "action": "Expose ratings from Judge.me as structured data"
+      },
+      {
+        "label": "Options",
+        "value": "Single variant",
+        "visible": true,
+        "action": "Expose each variant as its own offer"
+      },
+      {
+        "label": "Images",
+        "value": "1",
+        "visible": false,
+        "action": "Add images — 1 today, 5 or more works better"
+      },
+      {
+        "label": "Description",
+        "value": null,
+        "visible": false,
+        "action": "Write 60+ words covering material, size and use case — 0 today"
+      }
+    ],
+    "gapCount": 4
+  }
+}

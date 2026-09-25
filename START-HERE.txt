@@ -1,0 +1,30 @@
+AGENTNEW — AI Agent Readiness Scanner
+=====================================
+
+TO RUN:
+
+  1. Open Terminal
+  2. Type  cd   (with a space after it)
+  3. Drag THIS FOLDER onto the Terminal window, press Enter
+  4. Type:  node server.js
+  5. Open http://localhost:3100 in your browser
+
+You should see:
+
+    ==========================================
+     AGENTNEW  —  engine v2.2-agentnew
+     Open: http://localhost:3100
+    ==========================================
+
+If you don't see "v2.2-agentnew", you are running an older copy.
+
+LAYER 5:
+  Run npm run benchmark to refresh all five configured client comparisons.
+  Scan a configured brand, then open "Full audit preview".
+  Layer 5 appears after Layer 4 in the paid report for configured brands.
+  The Figma design prompt is in FIGMA-LAYER5-PROMPT.md.
+
+TO STOP:  press Ctrl + C in that Terminal window.
+
+NOTE: this runs on port 3100, not 3000, so it will not clash with
+any older version you may still have running.

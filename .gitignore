@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+.qodo/
+
+# Local lead database (personal data)
+/data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

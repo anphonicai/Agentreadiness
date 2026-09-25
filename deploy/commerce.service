@@ -1,0 +1,17 @@
+[Unit]
+Description=Anphonic Commerce
+After=network-online.target
+Wants=network-online.target
+[Service]
+User=commerce
+Group=commerce
+WorkingDirectory=/opt/commerce/app
+EnvironmentFile=/etc/commerce.env
+ExecStart=/usr/local/bin/node /opt/commerce/app/server.js
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target

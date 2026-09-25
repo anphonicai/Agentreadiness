@@ -1,0 +1,1894 @@
+{
+  "version": "2.2-agentnew",
+  "domain": "https://wforwoman.com",
+  "brandName": "wforwoman",
+  "scannedAt": "2026-09-18T10:00:03.253Z",
+  "catalogCount": 250,
+  "sampled": 20,
+  "sampleAttempted": 20,
+  "homeStatus": 200,
+  "checkoutStack": [
+    "GoKwik",
+    "Shopflo"
+  ],
+  "botVerdicts": {
+    "GPTBot": "ok",
+    "ClaudeBot": "ok",
+    "PerplexityBot": "ok"
+  },
+  "behindCloudflare": true,
+  "errors": [],
+  "layers": {
+    "layer1": {
+      "name": "Crawler & technical access",
+      "score": 98,
+      "checks": {
+        "botWall": 100,
+        "robots": 100,
+        "productFeed": 100,
+        "endpoints": 100,
+        "indexability": 100,
+        "pageWeight": 94
+      },
+      "weight": 0.2
+    },
+    "layer2": {
+      "name": "Structured data",
+      "score": 64,
+      "checks": {
+        "productSchema": 100,
+        "orgSchema": 100,
+        "reviewSchema": 25,
+        "variantSchema": 10,
+        "faqSchema": 30
+      },
+      "weight": 0.25
+    },
+    "layer3": {
+      "name": "Checkout & UCP readiness",
+      "score": 50,
+      "checks": {
+        "ucpProfile": 100,
+        "codPayment": 0,
+        "serviceability": 0,
+        "returnPolicy": 40,
+        "shippingPolicy": 0
+      },
+      "weight": 0.25
+    },
+    "layer4": {
+      "name": "Content clarity",
+      "score": 48,
+      "checks": {
+        "answerFirst": 61,
+        "factualDensity": 9,
+        "entityConsistency": 70,
+        "descriptionDepth": 51,
+        "uniqueness": 100,
+        "imageCoverage": 96
+      },
+      "weight": 0.15
+    }
+  },
+  "skipped": [
+    "layer5"
+  ],
+  "finalScore": 65,
+  "grade": "Partially Ready",
+  "gradeNote": "Readable, but losing ground on details agents rank on.",
+  "gaps": [
+    {
+      "layer": "layer3",
+      "check": "codPayment",
+      "score": 0,
+      "impact": 8.403361344537814,
+      "message": "No product declares acceptedPaymentMethod in its Offer, though 20 of 20 name payment options in page text a shopper can read and an agent cannot. COD versus prepaid is the biggest purchase-path question in Indian ecommerce and it is invisible to agents."
+    },
+    {
+      "layer": "layer3",
+      "check": "serviceability",
+      "score": 0,
+      "impact": 6.302521008403361,
+      "message": "No product publishes OfferShippingDetails, and the pincode checker on 20 of 20 pages calls a private API from JavaScript. An agent asked whether you deliver to a given pincode has nothing to read."
+    },
+    {
+      "layer": "layer2",
+      "check": "variantSchema",
+      "score": 10,
+      "impact": 5.882352941176471,
+      "message": "18 of 20 products have multiple variants but expose only one price, so an agent asked for a specific size can't confirm it exists."
+    }
+  ],
+  "specDetail": {
+    "layer1": {
+      "name": "Crawler & Technical Access",
+      "specWeight": 20,
+      "checks": [
+        {
+          "spec": "robots.txt allows AI crawlers",
+          "specSub": 30,
+          "scored": false,
+          "result": "All 6 AI crawlers allowed",
+          "value": 100,
+          "why": "Shopify never disallows AI crawlers by default. Returned 100 on all 15 stores tested."
+        },
+        {
+          "spec": "JS-independent content render",
+          "specSub": 35,
+          "scored": false,
+          "result": "100% of title/price/stock visible without JavaScript",
+          "value": 100,
+          "why": "Shopify renders server-side in Liquid, so this returned 100 on all 15 stores tested."
+        },
+        {
+          "spec": "Page load speed",
+          "specSub": 15,
+          "scored": true,
+          "result": "725KB, 632ms to first byte",
+          "value": 94,
+          "why": "Measured as response time and payload size rather than PageSpeed Insights — no API key, no 30s wait per scan."
+        },
+        {
+          "spec": "Sitemap present & current",
+          "specSub": 20,
+          "scored": false,
+          "result": "Present, 2000 product URLs",
+          "value": 100,
+          "why": "Shopify auto-generates sitemap.xml for every store. Returned 100 on all 15 stores tested."
+        },
+        {
+          "spec": "AI crawler access by user-agent",
+          "specSub": null,
+          "scored": true,
+          "added": true,
+          "result": "GPTBot: ok · ClaudeBot: ok · PerplexityBot: ok",
+          "value": 100,
+          "why": "Not in the spec. Fetches the store as each crawler and compares — catches edge blocking that robots.txt cannot show."
+        },
+        {
+          "spec": "Product feed & indexability",
+          "specSub": null,
+          "scored": true,
+          "added": true,
+          "result": "products.json open · 0% noindex · 0% no canonical",
+          "value": 100,
+          "why": "Not in the spec. Whether agents can enumerate and index the catalogue at all."
+        }
+      ]
+    },
+    "layer2": {
+      "name": "Structured Data / Schema",
+      "specWeight": 25,
+      "checks": [
+        {
+          "key": "productSchema",
+          "spec": "Product schema (JSON-LD) coverage",
+          "label": "Product schema (JSON-LD) coverage",
+          "specSub": 35,
+          "effectiveSub": 38.9,
+          "scored": true,
+          "value": 100,
+          "basis": "measured",
+          "basisNote": "20 of 20 sampled products passed all four fields",
+          "result": "20 of 20 products have price + availability + SKU",
+          "why": "Built as specified. Real variance across stores — 0% to 100%.",
+          "added": false,
+          "pointsEarned": 38.9,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "All 20 sampled products publish price, availability and SKU",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "variantSchema",
+          "spec": "Variant data structured",
+          "label": "Variant data structured",
+          "specSub": 20,
+          "effectiveSub": 22.2,
+          "scored": true,
+          "value": 10,
+          "basis": "measured",
+          "basisNote": "18 of 20 sampled products have more than one variant",
+          "result": "18 of 20 multi-variant products expose only one price",
+          "why": "Redefined. Checking whether option names appear in HTML returned 100 everywhere, so it now checks variant-level offers.",
+          "added": false,
+          "pointsEarned": 2.2,
+          "pointsLost": 20,
+          "costOfTotal": 5.9,
+          "evidence": {
+            "headline": "18 products publish one offer for several buyable variants",
+            "items": [
+              {
+                "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+                "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+                "note": "7 variants (Size) · one offer published"
+              },
+              {
+                "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+                "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+                "note": "7 variants (Size) · one offer published"
+              },
+              {
+                "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+                "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+                "note": "7 variants (Size) · one offer published"
+              },
+              {
+                "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+                "note": "7 variants (Size) · one offer published"
+              },
+              {
+                "title": "Orange Floral Printed Straight Kurta",
+                "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+                "note": "7 variants (Size) · one offer published"
+              },
+              {
+                "title": "Maroon Embroidered Sequin Straight Kurta",
+                "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+                "note": "6 variants (Size) · one offer published"
+              },
+              {
+                "title": "Sea Green Shibori Embroidered Cotton Silk Straight Kurta",
+                "url": "https://wforwoman.com/products/sea-green-shibori-embroidered-cotton-silk-straight-kurta-f12322-912184",
+                "note": "6 variants (Size) · one offer published"
+              },
+              {
+                "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+                "note": "7 variants (Size) · one offer published"
+              }
+            ],
+            "total": 18,
+            "more": 10
+          },
+          "fix": {
+            "headline": "ProductGroup markup for Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+            "where": "Theme editor → product template, replacing the single Product block",
+            "steps": [
+              "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set sells 7 variants across Size but publishes one offer.",
+              "An agent asked for a specific size cannot confirm that size exists, so it recommends a competitor that can.",
+              "ProductGroup + hasVariant is the pattern Google and the agent crawlers both read."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"ProductGroup\",\n  \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set\",\n  \"url\": \"https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220\",\n  \"productGroupID\": \"beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220\",\n  \"brand\": {\n    \"@type\": \"Brand\",\n    \"name\": \"wforwoman\"\n  },\n  \"variesBy\": [\n    \"size\"\n  ],\n  \"hasVariant\": [\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set — 16\",\n      \"sku\": \"8905661823611\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"4599.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set — 8\",\n      \"sku\": \"8905661823642\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"4599.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set — 10\",\n      \"sku\": \"8905661823581\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"4599.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    }\n  ]\n}"
+          }
+        },
+        {
+          "key": "orgSchema",
+          "spec": "Organization/entity schema",
+          "label": "Organization/entity schema",
+          "specSub": 15,
+          "effectiveSub": 16.7,
+          "scored": true,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Three graded outcomes: 2+ linked profiles = 100, present but thin = 40, absent = 0",
+          "result": "Present, 4 linked profiles",
+          "why": "Built as specified. Roughly half of tested stores fail on the sameAs requirement.",
+          "added": false,
+          "pointsEarned": 16.7,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "Organization block found on the homepage with 4 usable sameAs links",
+            "items": [
+              {
+                "title": "https://www.facebook.com/WforWoman",
+                "url": "https://www.facebook.com/WforWoman",
+                "note": "linked profile",
+                "pass": true
+              },
+              {
+                "title": "https://x.com/WforWoman",
+                "url": "https://x.com/WforWoman",
+                "note": "linked profile",
+                "pass": true
+              },
+              {
+                "title": "https://www.instagram.com/wforwoman",
+                "url": "https://www.instagram.com/wforwoman",
+                "note": "linked profile",
+                "pass": true
+              },
+              {
+                "title": "https://www.youtube.com/user/WforWoman",
+                "url": "https://www.youtube.com/user/WforWoman",
+                "note": "linked profile",
+                "pass": true
+              }
+            ],
+            "total": 4,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "faqSchema",
+          "spec": "FAQ/HowTo schema",
+          "label": "FAQ/HowTo schema",
+          "specSub": 10,
+          "effectiveSub": 11.1,
+          "scored": true,
+          "value": 30,
+          "basis": "state",
+          "basisNote": "Graded outcomes: FAQ page 100, homepage 80, product pages 70, content but no markup 30",
+          "result": "FAQ page exists (/pages/faqs) but carries no schema",
+          "why": "Widened. The spec looked at product and category pages; FAQ markup almost always lives on a dedicated FAQ page.",
+          "added": false,
+          "pointsEarned": 3.3,
+          "pointsLost": 7.8,
+          "costOfTotal": 2.3,
+          "evidence": {
+            "headline": "FAQ page found at /pages/faqs with no FAQPage schema",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": {
+            "headline": "FAQPage markup for /pages/faqs",
+            "where": "Theme editor → page template for /pages/faqs",
+            "steps": [
+              "The answers are already written — they are just not machine-readable. This is markup around copy you have.",
+              "Reuse your real question-and-answer text verbatim; inventing answers here would misrepresent the store."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"How long does delivery take?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Can I return a wforwoman order?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    }\n  ]\n}"
+          }
+        },
+        {
+          "key": "llmsTxt",
+          "spec": "llms.txt present",
+          "label": "llms.txt present",
+          "specSub": 10,
+          "effectiveSub": null,
+          "scored": false,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Measured and shown, excluded from the score. Its 10% is redistributed across the other five checks.",
+          "result": "Present, custom",
+          "why": "Dropped from scoring. Shopify auto-generates llms.txt for every store, pointing agents at shop.app. Returned 100 on all 15 stores tested.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "7277 bytes served at /llms.txt",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "reviewSchema",
+          "spec": "Review/rating schema",
+          "label": "Review/rating schema",
+          "specSub": 10,
+          "effectiveSub": 11.1,
+          "scored": true,
+          "value": 25,
+          "basis": "state",
+          "basisNote": "A review app is displaying ratings but none are machine-readable. Scored 25 — reviews exist, agents just cannot read them.",
+          "result": "Judge.me is running but exposes no schema",
+          "why": "Three states instead of pass/fail. Review apps inject ratings via JavaScript, so a store with thousands of reviews scored 0 under the original check.",
+          "added": false,
+          "pointsEarned": 2.8,
+          "pointsLost": 8.3,
+          "costOfTotal": 2.5,
+          "evidence": {
+            "headline": "Review widget detected: Judge.me",
+            "items": [
+              {
+                "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+                "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+                "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+                "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Orange Floral Printed Straight Kurta",
+                "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Maroon Embroidered Sequin Straight Kurta",
+                "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Sea Green Shibori Embroidered Cotton Silk Straight Kurta",
+                "url": "https://wforwoman.com/products/sea-green-shibori-embroidered-cotton-silk-straight-kurta-f12322-912184",
+                "note": "no AggregateRating"
+              },
+              {
+                "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+                "note": "no AggregateRating"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "AggregateRating for Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+            "where": "Judge.me settings → enable rich snippets / SEO schema output",
+            "steps": [
+              "Judge.me renders ratings in JavaScript. Agents fetch the HTML once and never run it, so the ratings your customers see are invisible to them.",
+              "Most review apps have this as a single toggle; it does not need theme code.",
+              "Never publish a rating you cannot substantiate."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Product\",\n  \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set\",\n  \"aggregateRating\": {\n    \"@type\": \"AggregateRating\",\n    \"ratingValue\": \"YOUR_AVERAGE_RATING\",\n    \"reviewCount\": \"YOUR_REVIEW_COUNT\",\n    \"bestRating\": 5\n  },\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"4599.00\",\n    \"priceCurrency\": \"INR\",\n    \"availability\": \"https://schema.org/OutOfStock\"\n  }\n}"
+          }
+        }
+      ]
+    },
+    "layer3": {
+      "name": "India Checkout & UCP Compatibility",
+      "specWeight": 25,
+      "checks": [
+        {
+          "key": "ucpProfile",
+          "spec": "UCP checkout capability declared",
+          "label": "UCP checkout capability declared",
+          "specSub": 35,
+          "effectiveSub": 50,
+          "scored": true,
+          "value": 100,
+          "basis": "state",
+          "basisNote": "Read from /.well-known/ucp. Checkout capability declared at the profile's current version = 100; declared at an older version only = 40; absent or unreachable = 0.",
+          "result": "Declares dev.ucp.shopping.checkout at 2026-08-25 · 8 capabilities",
+          "why": "Replaces the retired checkout-stack penalty. That check graded a store by how many checkout apps sat over native Shopify; fetching /.well-known/ucp on 13 stores spanning native checkout to four stacked apps returned an identical profile every time, so app count has no relationship to declared capability. Shopify serves this from its platform layer, beneath the storefront the apps modify. This confirms the endpoint DECLARES checkout capability — it does not simulate a live agent-initiated purchase, so app-specific friction during an actual transaction is untested.",
+          "added": false,
+          "pointsEarned": 50,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "UCP 2026-08-25 with 8 capabilities declared",
+            "items": [
+              {
+                "title": "checkout",
+                "url": "https://wforwoman.com/.well-known/ucp",
+                "note": "the scored capability",
+                "pass": true
+              },
+              {
+                "title": "fulfillment",
+                "url": "https://wforwoman.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "discount",
+                "url": "https://wforwoman.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "cart",
+                "url": "https://wforwoman.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "order",
+                "url": "https://wforwoman.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "catalog.search",
+                "url": "https://wforwoman.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "catalog.lookup",
+                "url": "https://wforwoman.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              },
+              {
+                "title": "shopify:catalog",
+                "url": "https://wforwoman.com/.well-known/ucp",
+                "note": "declared",
+                "pass": true
+              }
+            ],
+            "total": 8,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "codPayment",
+          "spec": "COD/prepaid logic exposed cleanly",
+          "label": "COD/prepaid logic exposed cleanly",
+          "specSub": 20,
+          "effectiveSub": 28.6,
+          "scored": true,
+          "value": 0,
+          "basis": "state",
+          "basisNote": "Binary, per the v2 spec: acceptedPaymentMethod declared on the Offer = 100, anything else = 0. Payment options rendered as page text earn no credit — they are shown below as context, not as partial marks.",
+          "result": "No acceptedPaymentMethod anywhere — COD appears only as page text on 20 of 20 products",
+          "why": "Not in the previous build. The spec asks for payment options structured rather than buried in JS widgets, so this separates a parseable field from prose a human reads.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 28.6,
+          "costOfTotal": 8.4,
+          "evidence": {
+            "headline": "COD named in the page text of 20 of 20 products; acceptedPaymentMethod on 0",
+            "items": [
+              {
+                "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+                "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+                "note": "COD in text"
+              },
+              {
+                "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+                "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+                "note": "COD in text"
+              },
+              {
+                "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+                "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+                "note": "COD in text"
+              },
+              {
+                "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+                "note": "COD in text"
+              },
+              {
+                "title": "Orange Floral Printed Straight Kurta",
+                "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+                "note": "COD in text"
+              },
+              {
+                "title": "Maroon Embroidered Sequin Straight Kurta",
+                "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+                "note": "COD in text"
+              },
+              {
+                "title": "Sea Green Shibori Embroidered Cotton Silk Straight Kurta",
+                "url": "https://wforwoman.com/products/sea-green-shibori-embroidered-cotton-silk-straight-kurta-f12322-912184",
+                "note": "COD in text"
+              },
+              {
+                "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+                "note": "COD in text"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "Declare payment methods on the Offer for Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+            "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+            "steps": [
+              "COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.",
+              "This goes inside the Offer you already publish — it is two extra fields, not a new block.",
+              "List only the methods you genuinely accept."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220\",\n  \"price\": \"4599.00\",\n  \"priceCurrency\": \"INR\",\n  \"availability\": \"https://schema.org/OutOfStock\",\n  \"acceptedPaymentMethod\": [\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Cash on Delivery\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"UPI\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Credit Card\"\n    }\n  ]\n}"
+          }
+        },
+        {
+          "key": "serviceability",
+          "spec": "Shipping/serviceability data structured",
+          "label": "Shipping/serviceability data structured",
+          "specSub": 15,
+          "effectiveSub": 21.4,
+          "scored": true,
+          "value": 0,
+          "basis": "state",
+          "basisNote": "Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A pincode widget is a JavaScript call to a private API an agent cannot make, so it is reported below as context rather than scored.",
+          "result": "No OfferShippingDetails — a JS-only pincode checker runs on 20 of 20 pages",
+          "why": "Not in the previous build. The old shipping check measured the policy page's text length, which is a different question from pincode-level serviceability. That measurement is kept below as an extra, unscored.",
+          "added": false,
+          "pointsEarned": 0,
+          "pointsLost": 21.4,
+          "costOfTotal": 6.3,
+          "evidence": {
+            "headline": "Pincode or delivery-estimate widget found on 20 of 20 product pages",
+            "items": [
+              {
+                "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+                "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+                "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+                "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Orange Floral Printed Straight Kurta",
+                "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Maroon Embroidered Sequin Straight Kurta",
+                "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Sea Green Shibori Embroidered Cotton Silk Straight Kurta",
+                "url": "https://wforwoman.com/products/sea-green-shibori-embroidered-cotton-silk-straight-kurta-f12322-912184",
+                "note": "pincode checker, JS-only"
+              },
+              {
+                "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+                "note": "pincode checker, JS-only"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "Publish delivery windows as shippingDetails for Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+            "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+            "steps": [
+              "The pincode widget already knows your delivery windows — this exposes the same answer in a field an agent can read.",
+              "Agents asked \"can you deliver to Pune by Friday\" currently have nothing to work from.",
+              "Publish your real handling and transit times; a wrong promise here is worse than none."
+            ],
+            "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220\",\n  \"shippingDetails\": {\n    \"@type\": \"OfferShippingDetails\",\n    \"shippingDestination\": {\n      \"@type\": \"DefinedRegion\",\n      \"addressCountry\": \"IN\"\n    },\n    \"deliveryTime\": {\n      \"@type\": \"ShippingDeliveryTime\",\n      \"handlingTime\": {\n        \"@type\": \"QuantitativeValue\",\n        \"minValue\": 1,\n        \"maxValue\": 2,\n        \"unitCode\": \"DAY\"\n      },\n      \"transitTime\": {\n        \"@type\": \"QuantitativeValue\",\n        \"minValue\": 2,\n        \"maxValue\": 6,\n        \"unitCode\": \"DAY\"\n      }\n    }\n  }\n}"
+          }
+        }
+      ]
+    },
+    "layer4": {
+      "name": "Content Clarity",
+      "specWeight": 15,
+      "checks": [
+        {
+          "key": "answerFirst",
+          "spec": "Answer-first product descriptions",
+          "label": "Answer-first product descriptions",
+          "specSub": 40,
+          "effectiveSub": 40,
+          "scored": true,
+          "added": false,
+          "value": 61,
+          "basis": "measured",
+          "basisNote": "Each sampled description is checked for four facts an agent needs — material or composition, primary use case, size or dimension guidance, and one specific factual attribute. A product scores 25 per fact it covers, and the check is the average across 20 products. Graded by keyword detection, which errs in both directions: \"premium materials\" counts as covering material when a reader would not, and a use case phrased outside the matched vocabulary is missed. Treat it as an indicator, not a verdict.",
+          "result": "Descriptions cover 2.4 of the 4 facts on average · 20 of 20 never mention a specific factual attribute",
+          "why": "Built to the v2 spec structure, computed without the LLM call it specifies. Same four questions, keyword detection, so a scan needs no API key and costs nothing. Set GEMINI_API_KEY to grade these with a model instead.",
+          "pointsEarned": 24.4,
+          "pointsLost": 15.6,
+          "costOfTotal": 2.8,
+          "evidence": {
+            "headline": "Facts missing across the 20 sampled descriptions",
+            "items": [
+              {
+                "title": "material or composition",
+                "url": "https://wforwoman.com",
+                "note": "missing on 8 of 20",
+                "pass": false
+              },
+              {
+                "title": "primary use case",
+                "url": "https://wforwoman.com",
+                "note": "missing on 1 of 20",
+                "pass": false
+              },
+              {
+                "title": "size or dimension guidance",
+                "url": "https://wforwoman.com",
+                "note": "missing on 2 of 20",
+                "pass": false
+              },
+              {
+                "title": "a specific factual attribute",
+                "url": "https://wforwoman.com",
+                "note": "missing on 20 of 20",
+                "pass": false
+              }
+            ],
+            "total": 4,
+            "more": 0
+          },
+          "fix": {
+            "headline": "Lead with the facts, then the story",
+            "where": "Product descriptions — Shopify admin → Products, or your PIM",
+            "steps": [
+              "20 of 20 sampled descriptions never mention a specific factual attribute.",
+              "Agents answer shopper questions by quoting your copy. A description that opens with brand storytelling gives them nothing to quote.",
+              "Put material, size and use case in the first two sentences; keep the storytelling after."
+            ],
+            "snippet": null
+          }
+        },
+        {
+          "key": "factualDensity",
+          "spec": "Factual density",
+          "label": "Factual density",
+          "specSub": 30,
+          "effectiveSub": 30,
+          "scored": true,
+          "added": false,
+          "value": 9,
+          "basis": "measured",
+          "basisNote": "Per product: 20 points for each concrete measurement in the description (ml, g, cm, %, and similar) capped at 100, plus 30 for naming a spec term such as material, ingredients, dimensions or warranty. Averaged across the sample.",
+          "result": "0.0 measurements per description on average · 14 of 20 never name a spec term",
+          "why": "",
+          "pointsEarned": 2.7,
+          "pointsLost": 27.3,
+          "costOfTotal": 4.8,
+          "evidence": {
+            "headline": "Products with the least concrete detail",
+            "items": [
+              {
+                "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+                "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+                "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+                "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Orange Floral Printed Straight Kurta",
+                "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Maroon Embroidered Sequin Straight Kurta",
+                "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+                "note": "0 measurements, no spec term"
+              },
+              {
+                "title": "Teal Solid Ankle Length Pants",
+                "url": "https://wforwoman.com/products/teal-solid-ankle-length-pants-wb14532-225692",
+                "note": "0 measurements, no spec term"
+              }
+            ],
+            "total": 20,
+            "more": 12
+          },
+          "fix": {
+            "headline": "Add measurable attributes to thin descriptions",
+            "where": "Product descriptions — Shopify admin → Products",
+            "steps": [
+              "Sampled descriptions average 0.0 concrete measurements.",
+              "Vague marketing copy ranks below a competitor that states grams, millilitres or dimensions.",
+              "One line of specifications per product moves this more than rewriting the prose."
+            ],
+            "snippet": null
+          }
+        },
+        {
+          "key": "entityConsistency",
+          "spec": "Consistent entity naming",
+          "label": "Consistent entity naming",
+          "specSub": 30,
+          "effectiveSub": 30,
+          "scored": true,
+          "added": false,
+          "value": 70,
+          "basis": "state",
+          "basisNote": "One rendered form of the brand name across all sampled pages = 100; several forms that match once case and spacing are normalised = 70; the name missing from some pages entirely = 40. Matching is anchored on \"wforwoman\".",
+          "result": "2 written forms in use: \"WforWoman\", \"wforwoman\"",
+          "why": "Returned 70 on every store tested so far — most brands render their name in more than one form but identically once case and spacing are normalised. Worth the same scrutiny as the other non-differentiating checks before its 30% weight is locked.",
+          "pointsEarned": 21,
+          "pointsLost": 9,
+          "costOfTotal": 1.6,
+          "evidence": {
+            "headline": "Distinct rendered forms of \"wforwoman\" across 20 sampled pages",
+            "items": [
+              {
+                "title": "\"WforWoman\"",
+                "url": "https://wforwoman.com",
+                "note": "in use",
+                "pass": false
+              },
+              {
+                "title": "\"wforwoman\"",
+                "url": "https://wforwoman.com",
+                "note": "in use",
+                "pass": false
+              }
+            ],
+            "total": 2,
+            "more": 0
+          },
+          "fix": {
+            "headline": "Settle on one written form of the brand name",
+            "where": "Product titles, descriptions and theme copy",
+            "steps": [
+              "This store renders the name as \"WforWoman\", \"wforwoman\".",
+              "Agents match a catalogue to a brand entity by name. Aliasing makes that link weaker than it should be.",
+              "Pick the form used in your Organization schema and use it everywhere."
+            ],
+            "snippet": null
+          }
+        },
+        {
+          "key": "descriptionDepth",
+          "spec": "Description length",
+          "label": "Description length",
+          "specSub": null,
+          "effectiveSub": null,
+          "scored": false,
+          "added": true,
+          "value": 51,
+          "basis": "measured",
+          "basisNote": "Not in the spec. Graded per product on word count: 200+ words = 100, 120+ = 90, 60+ = 70, 25+ = 40, under 25 = 15, none = 0. Shown because it explains most of what the scored checks report.",
+          "result": "0 of 20 products have no description at all · 13 have fewer than 60 words",
+          "why": "",
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "Shortest descriptions in the sample",
+            "items": [
+              {
+                "title": "Orange Floral Printed Straight Kurta",
+                "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+                "note": "43 words"
+              },
+              {
+                "title": "Off White Thread Embroidered Chanderi Straight Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/off-white-thread-embroidered-chanderi-straight-kurta-with-pants-and-dupatta-set-ws14236-225612",
+                "note": "47 words"
+              },
+              {
+                "title": "Gold Striped Organza Dupatta",
+                "url": "https://wforwoman.com/products/gold-striped-organza-dupatta-wd14531-226044",
+                "note": "47 words"
+              },
+              {
+                "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+                "note": "48 words"
+              },
+              {
+                "title": "White Floral Printed Pure Cotton Sleeveless Flared Dress",
+                "url": "https://wforwoman.com/products/white-floral-printed-pure-cotton-sleeveless-flared-dress-w13760-127050",
+                "note": "48 words"
+              },
+              {
+                "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+                "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+                "note": "51 words"
+              },
+              {
+                "title": "Black Solid Faux Chanderi Ankle Length Pants",
+                "url": "https://wforwoman.com/products/black-solid-faux-chanderi-ankle-length-pants-wb14530-226042",
+                "note": "51 words"
+              },
+              {
+                "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+                "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+                "note": "52 words"
+              }
+            ],
+            "total": 13,
+            "more": 5
+          },
+          "fix": null
+        },
+        {
+          "key": "uniqueness",
+          "spec": "Description uniqueness",
+          "label": "Description uniqueness",
+          "specSub": null,
+          "effectiveSub": null,
+          "scored": false,
+          "added": true,
+          "value": 100,
+          "basis": "measured",
+          "basisNote": "Not in the spec. The share of sampled products whose opening 200 characters are not reused by another product.",
+          "result": "0 of 20 sampled products reuse another product's description",
+          "why": "",
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "All 20 sampled descriptions are distinct",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        },
+        {
+          "key": "imageCoverage",
+          "spec": "Image coverage",
+          "label": "Image coverage",
+          "specSub": null,
+          "effectiveSub": null,
+          "scored": false,
+          "added": true,
+          "value": 96,
+          "basis": "measured",
+          "basisNote": "Not in the spec. Graded per product on image count: 7+ = 100, 5-6 = 90, 3-4 = 70, 2 = 45, 1 = 20, none = 0.",
+          "result": "0 of 20 products have one image or none",
+          "why": "",
+          "pointsEarned": 0,
+          "pointsLost": 0,
+          "costOfTotal": 0,
+          "evidence": {
+            "headline": "Products with the fewest images",
+            "items": [],
+            "total": 0,
+            "more": 0
+          },
+          "fix": null
+        }
+      ]
+    }
+  },
+  "speed": {
+    "score": 94,
+    "sampleSize": 20,
+    "medianKb": 725,
+    "medianTtfb": 632,
+    "medianTotal": 657,
+    "minTtfb": 557,
+    "maxTtfb": 837,
+    "minKb": 680,
+    "maxKb": 761,
+    "sizePenalty": 6.2,
+    "timePenalty": 0,
+    "verdict": "The pages are heavy. Every store here sits on the same Shopify infrastructure, so this is theme and app payload rather than hosting.",
+    "slowest": [
+      {
+        "title": "Gold Striped Organza Dupatta",
+        "url": "https://wforwoman.com/products/gold-striped-organza-dupatta-wd14531-226044",
+        "note": "837ms · 680KB"
+      },
+      {
+        "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+        "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+        "note": "788ms · 741KB"
+      },
+      {
+        "title": "Pink Floral Printed Pure Cotton Spaghetti Strap Straight Kurta with Pants and Dupatta Set",
+        "url": "https://wforwoman.com/products/pink-floral-printed-pure-cotton-spaghetti-strap-straight-kurta-with-pants-and-dupatta-set-fs12276-911995",
+        "note": "757ms · 722KB"
+      },
+      {
+        "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+        "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+        "note": "736ms · 724KB"
+      },
+      {
+        "title": "White Floral Printed Pure Cotton Sleeveless Flared Dress",
+        "url": "https://wforwoman.com/products/white-floral-printed-pure-cotton-sleeveless-flared-dress-w13760-127050",
+        "note": "689ms · 761KB"
+      }
+    ],
+    "thresholds": "Free below 600KB and 800ms to first byte, then graded.",
+    "caveat": "Time to first byte and HTML payload, measured from this machine — not Core Web Vitals. The spec asks for LCP via PageSpeed Insights, which needs an API key and around 30 seconds per URL."
+  },
+  "llm": {
+    "used": false,
+    "model": null,
+    "graded": 0,
+    "cached": 0,
+    "error": null
+  },
+  "layer2Report": {
+    "name": "Structured Data / Schema",
+    "score": 64,
+    "specWeight": 25,
+    "effectiveWeight": 29,
+    "currency": "INR",
+    "sampleSize": 20,
+    "note": "llms.txt is measured but not scored; its 10% is redistributed across the five scored checks, which is why the effective weights differ from the spec column.",
+    "checks": [
+      {
+        "key": "productSchema",
+        "spec": "Product schema (JSON-LD) coverage",
+        "label": "Product schema (JSON-LD) coverage",
+        "specSub": 35,
+        "effectiveSub": 38.9,
+        "scored": true,
+        "value": 100,
+        "basis": "measured",
+        "basisNote": "20 of 20 sampled products passed all four fields",
+        "result": "20 of 20 products have price + availability + SKU",
+        "why": "Built as specified. Real variance across stores — 0% to 100%.",
+        "added": false,
+        "pointsEarned": 38.9,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "All 20 sampled products publish price, availability and SKU",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "variantSchema",
+        "spec": "Variant data structured",
+        "label": "Variant data structured",
+        "specSub": 20,
+        "effectiveSub": 22.2,
+        "scored": true,
+        "value": 10,
+        "basis": "measured",
+        "basisNote": "18 of 20 sampled products have more than one variant",
+        "result": "18 of 20 multi-variant products expose only one price",
+        "why": "Redefined. Checking whether option names appear in HTML returned 100 everywhere, so it now checks variant-level offers.",
+        "added": false,
+        "pointsEarned": 2.2,
+        "pointsLost": 20,
+        "costOfTotal": 5.9,
+        "evidence": {
+          "headline": "18 products publish one offer for several buyable variants",
+          "items": [
+            {
+              "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+              "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+              "note": "7 variants (Size) · one offer published"
+            },
+            {
+              "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+              "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+              "note": "7 variants (Size) · one offer published"
+            },
+            {
+              "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+              "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+              "note": "7 variants (Size) · one offer published"
+            },
+            {
+              "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+              "note": "7 variants (Size) · one offer published"
+            },
+            {
+              "title": "Orange Floral Printed Straight Kurta",
+              "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+              "note": "7 variants (Size) · one offer published"
+            },
+            {
+              "title": "Maroon Embroidered Sequin Straight Kurta",
+              "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+              "note": "6 variants (Size) · one offer published"
+            },
+            {
+              "title": "Sea Green Shibori Embroidered Cotton Silk Straight Kurta",
+              "url": "https://wforwoman.com/products/sea-green-shibori-embroidered-cotton-silk-straight-kurta-f12322-912184",
+              "note": "6 variants (Size) · one offer published"
+            },
+            {
+              "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+              "note": "7 variants (Size) · one offer published"
+            }
+          ],
+          "total": 18,
+          "more": 10
+        },
+        "fix": {
+          "headline": "ProductGroup markup for Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+          "where": "Theme editor → product template, replacing the single Product block",
+          "steps": [
+            "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set sells 7 variants across Size but publishes one offer.",
+            "An agent asked for a specific size cannot confirm that size exists, so it recommends a competitor that can.",
+            "ProductGroup + hasVariant is the pattern Google and the agent crawlers both read."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"ProductGroup\",\n  \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set\",\n  \"url\": \"https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220\",\n  \"productGroupID\": \"beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220\",\n  \"brand\": {\n    \"@type\": \"Brand\",\n    \"name\": \"wforwoman\"\n  },\n  \"variesBy\": [\n    \"size\"\n  ],\n  \"hasVariant\": [\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set — 16\",\n      \"sku\": \"8905661823611\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"4599.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set — 8\",\n      \"sku\": \"8905661823642\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"4599.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    },\n    {\n      \"@type\": \"Product\",\n      \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set — 10\",\n      \"sku\": \"8905661823581\",\n      \"offers\": {\n        \"@type\": \"Offer\",\n        \"price\": \"4599.00\",\n        \"priceCurrency\": \"INR\",\n        \"availability\": \"https://schema.org/OutOfStock\"\n      }\n    }\n  ]\n}"
+        }
+      },
+      {
+        "key": "orgSchema",
+        "spec": "Organization/entity schema",
+        "label": "Organization/entity schema",
+        "specSub": 15,
+        "effectiveSub": 16.7,
+        "scored": true,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Three graded outcomes: 2+ linked profiles = 100, present but thin = 40, absent = 0",
+        "result": "Present, 4 linked profiles",
+        "why": "Built as specified. Roughly half of tested stores fail on the sameAs requirement.",
+        "added": false,
+        "pointsEarned": 16.7,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "Organization block found on the homepage with 4 usable sameAs links",
+          "items": [
+            {
+              "title": "https://www.facebook.com/WforWoman",
+              "url": "https://www.facebook.com/WforWoman",
+              "note": "linked profile",
+              "pass": true
+            },
+            {
+              "title": "https://x.com/WforWoman",
+              "url": "https://x.com/WforWoman",
+              "note": "linked profile",
+              "pass": true
+            },
+            {
+              "title": "https://www.instagram.com/wforwoman",
+              "url": "https://www.instagram.com/wforwoman",
+              "note": "linked profile",
+              "pass": true
+            },
+            {
+              "title": "https://www.youtube.com/user/WforWoman",
+              "url": "https://www.youtube.com/user/WforWoman",
+              "note": "linked profile",
+              "pass": true
+            }
+          ],
+          "total": 4,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "faqSchema",
+        "spec": "FAQ/HowTo schema",
+        "label": "FAQ/HowTo schema",
+        "specSub": 10,
+        "effectiveSub": 11.1,
+        "scored": true,
+        "value": 30,
+        "basis": "state",
+        "basisNote": "Graded outcomes: FAQ page 100, homepage 80, product pages 70, content but no markup 30",
+        "result": "FAQ page exists (/pages/faqs) but carries no schema",
+        "why": "Widened. The spec looked at product and category pages; FAQ markup almost always lives on a dedicated FAQ page.",
+        "added": false,
+        "pointsEarned": 3.3,
+        "pointsLost": 7.8,
+        "costOfTotal": 2.3,
+        "evidence": {
+          "headline": "FAQ page found at /pages/faqs with no FAQPage schema",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": {
+          "headline": "FAQPage markup for /pages/faqs",
+          "where": "Theme editor → page template for /pages/faqs",
+          "steps": [
+            "The answers are already written — they are just not machine-readable. This is markup around copy you have.",
+            "Reuse your real question-and-answer text verbatim; inventing answers here would misrepresent the store."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"How long does delivery take?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Can I return a wforwoman order?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"REPLACE WITH THE ANSWER ALREADY ON YOUR FAQ PAGE\"\n      }\n    }\n  ]\n}"
+        }
+      },
+      {
+        "key": "llmsTxt",
+        "spec": "llms.txt present",
+        "label": "llms.txt present",
+        "specSub": 10,
+        "effectiveSub": null,
+        "scored": false,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Measured and shown, excluded from the score. Its 10% is redistributed across the other five checks.",
+        "result": "Present, custom",
+        "why": "Dropped from scoring. Shopify auto-generates llms.txt for every store, pointing agents at shop.app. Returned 100 on all 15 stores tested.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "7277 bytes served at /llms.txt",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "reviewSchema",
+        "spec": "Review/rating schema",
+        "label": "Review/rating schema",
+        "specSub": 10,
+        "effectiveSub": 11.1,
+        "scored": true,
+        "value": 25,
+        "basis": "state",
+        "basisNote": "A review app is displaying ratings but none are machine-readable. Scored 25 — reviews exist, agents just cannot read them.",
+        "result": "Judge.me is running but exposes no schema",
+        "why": "Three states instead of pass/fail. Review apps inject ratings via JavaScript, so a store with thousands of reviews scored 0 under the original check.",
+        "added": false,
+        "pointsEarned": 2.8,
+        "pointsLost": 8.3,
+        "costOfTotal": 2.5,
+        "evidence": {
+          "headline": "Review widget detected: Judge.me",
+          "items": [
+            {
+              "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+              "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+              "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+              "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Orange Floral Printed Straight Kurta",
+              "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Maroon Embroidered Sequin Straight Kurta",
+              "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Sea Green Shibori Embroidered Cotton Silk Straight Kurta",
+              "url": "https://wforwoman.com/products/sea-green-shibori-embroidered-cotton-silk-straight-kurta-f12322-912184",
+              "note": "no AggregateRating"
+            },
+            {
+              "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+              "note": "no AggregateRating"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "AggregateRating for Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+          "where": "Judge.me settings → enable rich snippets / SEO schema output",
+          "steps": [
+            "Judge.me renders ratings in JavaScript. Agents fetch the HTML once and never run it, so the ratings your customers see are invisible to them.",
+            "Most review apps have this as a single toggle; it does not need theme code.",
+            "Never publish a rating you cannot substantiate."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Product\",\n  \"name\": \"Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set\",\n  \"aggregateRating\": {\n    \"@type\": \"AggregateRating\",\n    \"ratingValue\": \"YOUR_AVERAGE_RATING\",\n    \"reviewCount\": \"YOUR_REVIEW_COUNT\",\n    \"bestRating\": 5\n  },\n  \"offers\": {\n    \"@type\": \"Offer\",\n    \"price\": \"4599.00\",\n    \"priceCurrency\": \"INR\",\n    \"availability\": \"https://schema.org/OutOfStock\"\n  }\n}"
+        }
+      }
+    ]
+  },
+  "layer3Report": {
+    "name": "India Checkout & UCP Compatibility",
+    "score": 50,
+    "specWeight": 25,
+    "effectiveWeight": 29,
+    "sampleSize": 20,
+    "currency": "INR",
+    "note": "Rebuilt to the v2 spec. The checkout-stack penalty is retired — this store runs GoKwik + Shopflo, shown for context only and not scored. Return/exchange policy and Agentic Storefronts eligibility are held back for the next review, so the spec's 35/20/15 renormalise across the three checks below.",
+    "checks": [
+      {
+        "key": "ucpProfile",
+        "spec": "UCP checkout capability declared",
+        "label": "UCP checkout capability declared",
+        "specSub": 35,
+        "effectiveSub": 50,
+        "scored": true,
+        "value": 100,
+        "basis": "state",
+        "basisNote": "Read from /.well-known/ucp. Checkout capability declared at the profile's current version = 100; declared at an older version only = 40; absent or unreachable = 0.",
+        "result": "Declares dev.ucp.shopping.checkout at 2026-08-25 · 8 capabilities",
+        "why": "Replaces the retired checkout-stack penalty. That check graded a store by how many checkout apps sat over native Shopify; fetching /.well-known/ucp on 13 stores spanning native checkout to four stacked apps returned an identical profile every time, so app count has no relationship to declared capability. Shopify serves this from its platform layer, beneath the storefront the apps modify. This confirms the endpoint DECLARES checkout capability — it does not simulate a live agent-initiated purchase, so app-specific friction during an actual transaction is untested.",
+        "added": false,
+        "pointsEarned": 50,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "UCP 2026-08-25 with 8 capabilities declared",
+          "items": [
+            {
+              "title": "checkout",
+              "url": "https://wforwoman.com/.well-known/ucp",
+              "note": "the scored capability",
+              "pass": true
+            },
+            {
+              "title": "fulfillment",
+              "url": "https://wforwoman.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "discount",
+              "url": "https://wforwoman.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "cart",
+              "url": "https://wforwoman.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "order",
+              "url": "https://wforwoman.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "catalog.search",
+              "url": "https://wforwoman.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "catalog.lookup",
+              "url": "https://wforwoman.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            },
+            {
+              "title": "shopify:catalog",
+              "url": "https://wforwoman.com/.well-known/ucp",
+              "note": "declared",
+              "pass": true
+            }
+          ],
+          "total": 8,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "codPayment",
+        "spec": "COD/prepaid logic exposed cleanly",
+        "label": "COD/prepaid logic exposed cleanly",
+        "specSub": 20,
+        "effectiveSub": 28.6,
+        "scored": true,
+        "value": 0,
+        "basis": "state",
+        "basisNote": "Binary, per the v2 spec: acceptedPaymentMethod declared on the Offer = 100, anything else = 0. Payment options rendered as page text earn no credit — they are shown below as context, not as partial marks.",
+        "result": "No acceptedPaymentMethod anywhere — COD appears only as page text on 20 of 20 products",
+        "why": "Not in the previous build. The spec asks for payment options structured rather than buried in JS widgets, so this separates a parseable field from prose a human reads.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 28.6,
+        "costOfTotal": 8.4,
+        "evidence": {
+          "headline": "COD named in the page text of 20 of 20 products; acceptedPaymentMethod on 0",
+          "items": [
+            {
+              "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+              "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+              "note": "COD in text"
+            },
+            {
+              "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+              "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+              "note": "COD in text"
+            },
+            {
+              "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+              "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+              "note": "COD in text"
+            },
+            {
+              "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+              "note": "COD in text"
+            },
+            {
+              "title": "Orange Floral Printed Straight Kurta",
+              "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+              "note": "COD in text"
+            },
+            {
+              "title": "Maroon Embroidered Sequin Straight Kurta",
+              "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+              "note": "COD in text"
+            },
+            {
+              "title": "Sea Green Shibori Embroidered Cotton Silk Straight Kurta",
+              "url": "https://wforwoman.com/products/sea-green-shibori-embroidered-cotton-silk-straight-kurta-f12322-912184",
+              "note": "COD in text"
+            },
+            {
+              "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+              "note": "COD in text"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "Declare payment methods on the Offer for Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+          "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+          "steps": [
+            "COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.",
+            "This goes inside the Offer you already publish — it is two extra fields, not a new block.",
+            "List only the methods you genuinely accept."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220\",\n  \"price\": \"4599.00\",\n  \"priceCurrency\": \"INR\",\n  \"availability\": \"https://schema.org/OutOfStock\",\n  \"acceptedPaymentMethod\": [\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Cash on Delivery\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"UPI\"\n    },\n    {\n      \"@type\": \"PaymentMethod\",\n      \"name\": \"Credit Card\"\n    }\n  ]\n}"
+        }
+      },
+      {
+        "key": "serviceability",
+        "spec": "Shipping/serviceability data structured",
+        "label": "Shipping/serviceability data structured",
+        "specSub": 15,
+        "effectiveSub": 21.4,
+        "scored": true,
+        "value": 0,
+        "basis": "state",
+        "basisNote": "Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A pincode widget is a JavaScript call to a private API an agent cannot make, so it is reported below as context rather than scored.",
+        "result": "No OfferShippingDetails — a JS-only pincode checker runs on 20 of 20 pages",
+        "why": "Not in the previous build. The old shipping check measured the policy page's text length, which is a different question from pincode-level serviceability. That measurement is kept below as an extra, unscored.",
+        "added": false,
+        "pointsEarned": 0,
+        "pointsLost": 21.4,
+        "costOfTotal": 6.3,
+        "evidence": {
+          "headline": "Pincode or delivery-estimate widget found on 20 of 20 product pages",
+          "items": [
+            {
+              "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+              "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+              "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+              "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Orange Floral Printed Straight Kurta",
+              "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Maroon Embroidered Sequin Straight Kurta",
+              "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Sea Green Shibori Embroidered Cotton Silk Straight Kurta",
+              "url": "https://wforwoman.com/products/sea-green-shibori-embroidered-cotton-silk-straight-kurta-f12322-912184",
+              "note": "pincode checker, JS-only"
+            },
+            {
+              "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+              "note": "pincode checker, JS-only"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "Publish delivery windows as shippingDetails for Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+          "where": "Theme editor → product template, in the existing Product JSON-LD Offer",
+          "steps": [
+            "The pincode widget already knows your delivery windows — this exposes the same answer in a field an agent can read.",
+            "Agents asked \"can you deliver to Pune by Friday\" currently have nothing to work from.",
+            "Publish your real handling and transit times; a wrong promise here is worse than none."
+          ],
+          "snippet": "{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"Offer\",\n  \"url\": \"https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220\",\n  \"shippingDetails\": {\n    \"@type\": \"OfferShippingDetails\",\n    \"shippingDestination\": {\n      \"@type\": \"DefinedRegion\",\n      \"addressCountry\": \"IN\"\n    },\n    \"deliveryTime\": {\n      \"@type\": \"ShippingDeliveryTime\",\n      \"handlingTime\": {\n        \"@type\": \"QuantitativeValue\",\n        \"minValue\": 1,\n        \"maxValue\": 2,\n        \"unitCode\": \"DAY\"\n      },\n      \"transitTime\": {\n        \"@type\": \"QuantitativeValue\",\n        \"minValue\": 2,\n        \"maxValue\": 6,\n        \"unitCode\": \"DAY\"\n      }\n    }\n  }\n}"
+        }
+      }
+    ]
+  },
+  "layer4Report": {
+    "name": "Content Clarity",
+    "score": 48,
+    "specWeight": 15,
+    "effectiveWeight": 18,
+    "sampleSize": 20,
+    "currency": "INR",
+    "note": "The spec computes the first two checks with an LLM call; they are measured here by keyword detection instead, so a scan needs no API key and costs nothing. Description length, uniqueness and image coverage are not in the spec — they are measured and shown, never scored.",
+    "checks": [
+      {
+        "key": "answerFirst",
+        "spec": "Answer-first product descriptions",
+        "label": "Answer-first product descriptions",
+        "specSub": 40,
+        "effectiveSub": 40,
+        "scored": true,
+        "added": false,
+        "value": 61,
+        "basis": "measured",
+        "basisNote": "Each sampled description is checked for four facts an agent needs — material or composition, primary use case, size or dimension guidance, and one specific factual attribute. A product scores 25 per fact it covers, and the check is the average across 20 products. Graded by keyword detection, which errs in both directions: \"premium materials\" counts as covering material when a reader would not, and a use case phrased outside the matched vocabulary is missed. Treat it as an indicator, not a verdict.",
+        "result": "Descriptions cover 2.4 of the 4 facts on average · 20 of 20 never mention a specific factual attribute",
+        "why": "Built to the v2 spec structure, computed without the LLM call it specifies. Same four questions, keyword detection, so a scan needs no API key and costs nothing. Set GEMINI_API_KEY to grade these with a model instead.",
+        "pointsEarned": 24.4,
+        "pointsLost": 15.6,
+        "costOfTotal": 2.8,
+        "evidence": {
+          "headline": "Facts missing across the 20 sampled descriptions",
+          "items": [
+            {
+              "title": "material or composition",
+              "url": "https://wforwoman.com",
+              "note": "missing on 8 of 20",
+              "pass": false
+            },
+            {
+              "title": "primary use case",
+              "url": "https://wforwoman.com",
+              "note": "missing on 1 of 20",
+              "pass": false
+            },
+            {
+              "title": "size or dimension guidance",
+              "url": "https://wforwoman.com",
+              "note": "missing on 2 of 20",
+              "pass": false
+            },
+            {
+              "title": "a specific factual attribute",
+              "url": "https://wforwoman.com",
+              "note": "missing on 20 of 20",
+              "pass": false
+            }
+          ],
+          "total": 4,
+          "more": 0
+        },
+        "fix": {
+          "headline": "Lead with the facts, then the story",
+          "where": "Product descriptions — Shopify admin → Products, or your PIM",
+          "steps": [
+            "20 of 20 sampled descriptions never mention a specific factual attribute.",
+            "Agents answer shopper questions by quoting your copy. A description that opens with brand storytelling gives them nothing to quote.",
+            "Put material, size and use case in the first two sentences; keep the storytelling after."
+          ],
+          "snippet": null
+        }
+      },
+      {
+        "key": "factualDensity",
+        "spec": "Factual density",
+        "label": "Factual density",
+        "specSub": 30,
+        "effectiveSub": 30,
+        "scored": true,
+        "added": false,
+        "value": 9,
+        "basis": "measured",
+        "basisNote": "Per product: 20 points for each concrete measurement in the description (ml, g, cm, %, and similar) capped at 100, plus 30 for naming a spec term such as material, ingredients, dimensions or warranty. Averaged across the sample.",
+        "result": "0.0 measurements per description on average · 14 of 20 never name a spec term",
+        "why": "",
+        "pointsEarned": 2.7,
+        "pointsLost": 27.3,
+        "costOfTotal": 4.8,
+        "evidence": {
+          "headline": "Products with the least concrete detail",
+          "items": [
+            {
+              "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+              "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Peach Floral Printed Rayon Straight Kurta with Pants Co-ord Set",
+              "url": "https://wforwoman.com/products/peach-floral-printed-rayon-straight-kurta-with-pants-co-ord-set-ws14711-128420",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Light Pink Floral Printed Embroidered Sleeveless Chiffon Western Dress",
+              "url": "https://wforwoman.com/products/light-pink-floral-printed-embroidered-sleeveless-chiffon-western-dress-w14270-127025",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Orange Floral Printed Straight Kurta",
+              "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Maroon Embroidered Sequin Straight Kurta",
+              "url": "https://wforwoman.com/products/maroon-embroidered-sequin-straight-kurta-w14630-225696",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+              "note": "0 measurements, no spec term"
+            },
+            {
+              "title": "Teal Solid Ankle Length Pants",
+              "url": "https://wforwoman.com/products/teal-solid-ankle-length-pants-wb14532-225692",
+              "note": "0 measurements, no spec term"
+            }
+          ],
+          "total": 20,
+          "more": 12
+        },
+        "fix": {
+          "headline": "Add measurable attributes to thin descriptions",
+          "where": "Product descriptions — Shopify admin → Products",
+          "steps": [
+            "Sampled descriptions average 0.0 concrete measurements.",
+            "Vague marketing copy ranks below a competitor that states grams, millilitres or dimensions.",
+            "One line of specifications per product moves this more than rewriting the prose."
+          ],
+          "snippet": null
+        }
+      },
+      {
+        "key": "entityConsistency",
+        "spec": "Consistent entity naming",
+        "label": "Consistent entity naming",
+        "specSub": 30,
+        "effectiveSub": 30,
+        "scored": true,
+        "added": false,
+        "value": 70,
+        "basis": "state",
+        "basisNote": "One rendered form of the brand name across all sampled pages = 100; several forms that match once case and spacing are normalised = 70; the name missing from some pages entirely = 40. Matching is anchored on \"wforwoman\".",
+        "result": "2 written forms in use: \"WforWoman\", \"wforwoman\"",
+        "why": "Returned 70 on every store tested so far — most brands render their name in more than one form but identically once case and spacing are normalised. Worth the same scrutiny as the other non-differentiating checks before its 30% weight is locked.",
+        "pointsEarned": 21,
+        "pointsLost": 9,
+        "costOfTotal": 1.6,
+        "evidence": {
+          "headline": "Distinct rendered forms of \"wforwoman\" across 20 sampled pages",
+          "items": [
+            {
+              "title": "\"WforWoman\"",
+              "url": "https://wforwoman.com",
+              "note": "in use",
+              "pass": false
+            },
+            {
+              "title": "\"wforwoman\"",
+              "url": "https://wforwoman.com",
+              "note": "in use",
+              "pass": false
+            }
+          ],
+          "total": 2,
+          "more": 0
+        },
+        "fix": {
+          "headline": "Settle on one written form of the brand name",
+          "where": "Product titles, descriptions and theme copy",
+          "steps": [
+            "This store renders the name as \"WforWoman\", \"wforwoman\".",
+            "Agents match a catalogue to a brand entity by name. Aliasing makes that link weaker than it should be.",
+            "Pick the form used in your Organization schema and use it everywhere."
+          ],
+          "snippet": null
+        }
+      },
+      {
+        "key": "descriptionDepth",
+        "spec": "Description length",
+        "label": "Description length",
+        "specSub": null,
+        "effectiveSub": null,
+        "scored": false,
+        "added": true,
+        "value": 51,
+        "basis": "measured",
+        "basisNote": "Not in the spec. Graded per product on word count: 200+ words = 100, 120+ = 90, 60+ = 70, 25+ = 40, under 25 = 15, none = 0. Shown because it explains most of what the scored checks report.",
+        "result": "0 of 20 products have no description at all · 13 have fewer than 60 words",
+        "why": "",
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "Shortest descriptions in the sample",
+          "items": [
+            {
+              "title": "Orange Floral Printed Straight Kurta",
+              "url": "https://wforwoman.com/products/orange-floral-printed-straight-kurta-w14741-128392",
+              "note": "43 words"
+            },
+            {
+              "title": "Off White Thread Embroidered Chanderi Straight Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/off-white-thread-embroidered-chanderi-straight-kurta-with-pants-and-dupatta-set-ws14236-225612",
+              "note": "47 words"
+            },
+            {
+              "title": "Gold Striped Organza Dupatta",
+              "url": "https://wforwoman.com/products/gold-striped-organza-dupatta-wd14531-226044",
+              "note": "47 words"
+            },
+            {
+              "title": "Yellow Thread Embroidered Flared Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/yellow-thread-embroidered-flared-kurta-with-pants-and-dupatta-set-ws14290-225896",
+              "note": "48 words"
+            },
+            {
+              "title": "White Floral Printed Pure Cotton Sleeveless Flared Dress",
+              "url": "https://wforwoman.com/products/white-floral-printed-pure-cotton-sleeveless-flared-dress-w13760-127050",
+              "note": "48 words"
+            },
+            {
+              "title": "Red Floral Printed Straight Kurta with Pants and Dupatta Set",
+              "url": "https://wforwoman.com/products/red-floral-printed-straight-kurta-with-pants-and-dupatta-set-ws14695-128379",
+              "note": "51 words"
+            },
+            {
+              "title": "Black Solid Faux Chanderi Ankle Length Pants",
+              "url": "https://wforwoman.com/products/black-solid-faux-chanderi-ankle-length-pants-wb14530-226042",
+              "note": "51 words"
+            },
+            {
+              "title": "Beige Thread Embroidered Rayon Flax Straight Kurta with Parallel Pants Set",
+              "url": "https://wforwoman.com/products/beige-thread-embroidered-rayon-flax-straight-kurta-with-parallel-pants-set-ws13769-401220",
+              "note": "52 words"
+            }
+          ],
+          "total": 13,
+          "more": 5
+        },
+        "fix": null
+      },
+      {
+        "key": "uniqueness",
+        "spec": "Description uniqueness",
+        "label": "Description uniqueness",
+        "specSub": null,
+        "effectiveSub": null,
+        "scored": false,
+        "added": true,
+        "value": 100,
+        "basis": "measured",
+        "basisNote": "Not in the spec. The share of sampled products whose opening 200 characters are not reused by another product.",
+        "result": "0 of 20 sampled products reuse another product's description",
+        "why": "",
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "All 20 sampled descriptions are distinct",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      },
+      {
+        "key": "imageCoverage",
+        "spec": "Image coverage",
+        "label": "Image coverage",
+        "specSub": null,
+        "effectiveSub": null,
+        "scored": false,
+        "added": true,
+        "value": 96,
+        "basis": "measured",
+        "basisNote": "Not in the spec. Graded per product on image count: 7+ = 100, 5-6 = 90, 3-4 = 70, 2 = 45, 1 = 20, none = 0.",
+        "result": "0 of 20 products have one image or none",
+        "why": "",
+        "pointsEarned": 0,
+        "pointsLost": 0,
+        "costOfTotal": 0,
+        "evidence": {
+          "headline": "Products with the fewest images",
+          "items": [],
+          "total": 0,
+          "more": 0
+        },
+        "fix": null
+      }
+    ]
+  },
+  "agentView": {
+    "title": "Gold Striped Organza Dupatta",
+    "url": "https://wforwoman.com/products/gold-striped-organza-dupatta-wd14531-226044",
+    "catalogNote": "Weakest of 20 sampled products",
+    "fields": [
+      {
+        "label": "Name",
+        "value": "Gold Striped Organza Dupatta",
+        "visible": true
+      },
+      {
+        "label": "Price",
+        "value": "₹900.00",
+        "visible": true,
+        "action": "Expose price in the product schema"
+      },
+      {
+        "label": "In stock",
+        "value": "No",
+        "visible": true,
+        "action": "Add availability to the offer"
+      },
+      {
+        "label": "SKU",
+        "value": "Present",
+        "visible": true,
+        "action": "Publish the SKU field"
+      },
+      {
+        "label": "Rating",
+        "value": null,
+        "visible": false,
+        "action": "Expose ratings from Judge.me as structured data"
+      },
+      {
+        "label": "Options",
+        "value": "Size",
+        "visible": true,
+        "action": "Expose each variant as its own offer"
+      },
+      {
+        "label": "Images",
+        "value": "5",
+        "visible": true,
+        "action": "Add images — 5 today, 5 or more works better"
+      },
+      {
+        "label": "Description",
+        "value": "Off-white tissue dupatta with woven metallic stripes and zari work, finished in a lightweight sheer drape for festive wear. The gold-accented pattern adds a refined glow over solid suits and kurta sets, making it a desig",
+        "visible": true,
+        "action": "Write 60+ words covering material, size and use case — 47 today"
+      }
+    ],
+    "gapCount": 1
+  }
+}

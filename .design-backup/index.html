@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Readiness Report — Anphonic</title>
+<style>
+:root{
+  --paper:#F3F4F5;
+  --sheet:#FFFFFF;
+  --ink:#14161A;
+  --muted:#6E747D;
+  --rule:#D9DCDF;
+  --block:#14161A;
+  --good:#12694A;
+  --mid:#8A5A12;
+  --bad:#93231C;
+  --link:#2547C4;
+  --sp:8px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:16px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px;margin:0 auto;padding:calc(var(--sp)*6) calc(var(--sp)*3) calc(var(--sp)*12)}
+a{color:var(--link)}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-0.015em}
+
+/* ---------------------------------------------------------------- masthead */
+.masthead{display:flex;align-items:baseline;gap:calc(var(--sp)*1.5);margin-bottom:calc(var(--sp)*7)}
+.mark{width:13px;height:13px;background:var(--block);flex:none}
+.masthead b{font-weight:600;font-size:15px}
+.masthead span{color:var(--muted);font-size:15px}
+
+/* -------------------------------------------------------------------- intro */
+.lede h1{font-size:clamp(30px,4.6vw,46px);line-height:1.08;max-width:16ch}
+.lede p{max-width:56ch;color:var(--muted);margin:calc(var(--sp)*2.5) 0 0;font-size:17px}
+
+/* -------------------------------------------------------------------- input */
+form{display:flex;gap:var(--sp);margin-top:calc(var(--sp)*5);flex-wrap:wrap}
+input[type=text]{
+  flex:1 1 320px;min-width:0;
+  font-family:'IBM Plex Mono',monospace;font-size:16px;
+  padding:14px 15px;border:1px solid var(--rule);background:var(--sheet);
+  color:var(--ink);border-radius:2px;
+}
+input[type=text]::placeholder{color:#A6ABB2}
+input[type=text]:focus-visible,button:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+button{
+  font:inherit;font-weight:500;padding:14px 26px;border:0;border-radius:2px;
+  background:var(--block);color:#fff;cursor:pointer;
+}
+button:hover{background:#2C3038}
+button[disabled]{background:#9AA0A7;cursor:default}
+.err{color:var(--bad);margin-top:calc(var(--sp)*1.5);font-size:15px}
+.recent{margin-top:calc(var(--sp)*3);font-size:14px;color:var(--muted)}
+.recent button{background:none;color:var(--link);padding:0;font-weight:400;text-decoration:underline;font-size:14px}
+.recent button:hover{background:none}
+
+/* ----------------------------------------------------------------- progress */
+.steps{margin-top:calc(var(--sp)*5);border-top:1px solid var(--rule);padding-top:calc(var(--sp)*3)}
+.step{display:flex;align-items:center;gap:calc(var(--sp)*1.5);padding:5px 0;color:var(--muted);font-size:15px}
+.step i{width:9px;height:9px;background:var(--rule);flex:none;display:block}
+.step.on{color:var(--ink)}
+.step.on i{background:var(--block);animation:pulse 1.1s ease-in-out infinite}
+.step.past i{background:var(--block)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.step.on i{animation:none}}
+
+/* ------------------------------------------------------------------ verdict */
+.verdict{display:grid;grid-template-columns:minmax(0,200px) 1fr;gap:calc(var(--sp)*4);align-items:start;
+  margin-top:calc(var(--sp)*4);padding-top:calc(var(--sp)*4);border-top:2px solid var(--block)}
+.scoreblock{background:var(--block);color:#fff;padding:calc(var(--sp)*3)}
+.scoreblock .n{font-size:64px;line-height:.92;font-weight:700;letter-spacing:-0.04em;font-variant-numeric:tabular-nums}
+.scoreblock .d{opacity:.55;font-size:20px;font-weight:500}
+.scoreblock .g{margin-top:calc(var(--sp)*2);font-weight:600;font-size:18px}
+.scoreblock.good{background:var(--good)}
+.scoreblock.mid{background:var(--mid)}
+.scoreblock.bad{background:var(--bad)}
+.verdict h2{font-size:26px;margin-bottom:var(--sp)}
+.verdict .meta{color:var(--muted);font-size:15px}
+.verdict .meta code{font-family:'IBM Plex Mono',monospace;font-size:13px}
+
+/* -------------------------------------------------------- agent view (hero) */
+section{margin-top:calc(var(--sp)*7)}
+.sechead{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp);
+  border-bottom:1px solid var(--rule);padding-bottom:var(--sp);margin-bottom:calc(var(--sp)*3)}
+.sechead h3{font-size:19px}
+.sechead p{margin:0;color:var(--muted);font-size:14px;max-width:44ch;text-align:right}
+.agentcard{background:var(--sheet);border:1px solid var(--rule);padding:calc(var(--sp)*3)}
+.agentcard .pname{font-weight:600;font-size:18px;margin-bottom:calc(var(--sp)*2)}
+.fieldrow{display:grid;grid-template-columns:120px 1fr;gap:calc(var(--sp)*2.5);padding:9px 0;border-top:1px solid #EDEEEF;align-items:start}
+.fieldrow:first-of-type{border-top:0}
+.fieldrow .k{color:var(--muted);font-size:14px}
+.fieldrow .v{font-family:'IBM Plex Mono',monospace;font-size:14px;word-break:break-word}
+.fieldrow .v.todo{color:var(--good);font-family:'IBM Plex Sans',sans-serif}
+
+/* ------------------------------------------------------------------- layers */
+.layer{display:grid;grid-template-columns:1fr 62px;gap:calc(var(--sp)*2);align-items:center;padding:calc(var(--sp)*1.5) 0}
+.layer .lname{font-size:15px}
+.layer .lname small{display:block;color:var(--muted);font-size:13px}
+.bar{height:11px;background:#E3E5E7;margin-top:6px;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--block);display:block}
+.layer .lnum{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:20px}
+.skipped{color:var(--muted);font-size:14px;margin-top:calc(var(--sp)*2);padding-top:calc(var(--sp)*2);border-top:1px solid var(--rule)}
+
+/* --------------------------------------------------------------------- gaps */
+ol.gaps{margin:0;padding-left:1.3em}
+ol.gaps li{margin-bottom:calc(var(--sp)*2);max-width:66ch}
+ol.gaps li b{display:block;font-weight:600;font-size:13px;color:var(--muted);margin-bottom:2px}
+
+/* -------------------------------------------------------------- spec detail */
+.specgroup{margin-bottom:calc(var(--sp)*4)}
+.specgroup > h4{margin:0 0 calc(var(--sp)*1.5);font-size:15px;font-weight:600}
+.specgroup > h4 span{color:var(--muted);font-weight:400}
+.speccheck{display:grid;grid-template-columns:1fr 54px;gap:calc(var(--sp)*2);
+  padding:calc(var(--sp)*1.75) 0;border-top:1px solid var(--rule);align-items:start}
+.speccheck .nm{font-size:15px;font-weight:500}
+.speccheck .nm em{font-style:normal;color:var(--muted);font-weight:400;font-size:13px}
+.speccheck .res{font-family:'IBM Plex Mono',monospace;font-size:13px;margin-top:3px}
+.speccheck .whyline{font-size:13px;color:var(--muted);margin-top:5px;max-width:70ch}
+.speccheck .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:19px}
+.speccheck.off{opacity:.72}
+.speccheck.off .val{color:var(--muted);font-weight:500}
+.tag{display:inline-block;font-size:11px;font-weight:500;letter-spacing:.02em;
+  padding:1px 6px;border-radius:2px;vertical-align:1px;margin-left:6px}
+.tag.dropped{background:#E8E4DA;color:#6B5B36}
+.tag.added{background:#DCEAE2;color:var(--good)}
+.tag.changed{background:#E2E6F2;color:var(--link)}
+
+/* -------------------------------------------------------------------- speed */
+.speedrow{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin-bottom:calc(var(--sp)*2)}
+.stat{background:var(--sheet);padding:calc(var(--sp)*2)}
+.stat b{display:block;font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.05;
+  font-variant-numeric:tabular-nums}
+.stat b i{font-style:normal;font-size:14px;font-weight:500;color:var(--muted);margin-left:3px}
+.stat em{display:block;font-style:normal;font-size:13px;font-weight:500;margin-top:5px}
+.stat span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.stat.good b{color:var(--good)} .stat.mid b{color:var(--mid)} .stat.bad b{color:var(--bad)}
+.speedverdict{font-size:15px;max-width:70ch;margin:0 0 calc(var(--sp)*1.5)}
+.penalty{display:flex;gap:calc(var(--sp)*3);flex-wrap:wrap;font-size:13px;color:var(--muted);
+  margin-bottom:calc(var(--sp)*2)}
+.penalty b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+.speedcaveat{font-size:13px;color:var(--muted);max-width:74ch;border-top:1px solid var(--rule);
+  padding-top:calc(var(--sp)*1.5);margin-top:calc(var(--sp)*2)}
+
+/* --------------------------------------------------------- layer 2, in full */
+.l2top{display:flex;justify-content:space-between;align-items:flex-end;gap:calc(var(--sp)*3);
+  flex-wrap:wrap;margin-bottom:calc(var(--sp)*2.5)}
+.l2score{font-size:40px;font-weight:700;letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums}
+.l2score small{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0}
+.l2note{color:var(--muted);font-size:13px;max-width:54ch}
+
+/* weight bar — segment width is the check's real share of the layer, fill is
+   the score it earned. Reads as "where the 100 points actually sit". */
+.wbar{display:flex;border:1px solid var(--rule);background:var(--sheet);margin-bottom:calc(var(--sp)*1.5)}
+.wseg{position:relative;flex-grow:1;flex-basis:0;min-width:0;border-right:1px solid var(--rule);padding:8px 7px 9px}
+.wseg:last-child{border-right:0}
+.wseg i{position:absolute;left:0;right:0;bottom:0;height:5px;background:#CBCFD4;display:block}
+.wseg i b{position:absolute;inset:0 auto 0 0;background:var(--block);display:block}
+.wseg em{position:relative;display:block;font-style:normal;font-size:11px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wseg strong{position:relative;display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.wlegend{color:var(--muted);font-size:12px;margin-bottom:calc(var(--sp)*3)}
+
+.l2card{border-top:1px solid var(--rule);background:var(--sheet)}
+.l2card[open]{background:var(--sheet)}
+.l2card summary{cursor:pointer;list-style:none;display:grid;
+  grid-template-columns:14px 1fr 54px;gap:calc(var(--sp)*1.5);
+  padding:calc(var(--sp)*2) calc(var(--sp)*2) calc(var(--sp)*2) calc(var(--sp)*1.5);
+  align-items:start;margin:0;color:inherit;font-size:inherit}
+.l2card summary::-webkit-details-marker{display:none}
+.l2card summary:hover{background:#FAFAFB}
+.caret{font-size:11px;color:var(--muted);line-height:1.9;transition:transform .12s}
+.l2card[open] .caret{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){.caret{transition:none}}
+.l2n{display:block;font-size:15px;font-weight:600}
+.l2r{display:block;font-family:'IBM Plex Mono',monospace;font-size:13px;margin-top:4px}
+.l2w{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.l2v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:22px;line-height:1.2}
+.l2card.off{opacity:.72}
+.l2card.off .l2v{color:var(--muted);font-weight:500}
+.tag.measured{background:#E2E6F2;color:var(--link)}
+.tag.state{background:#E8E4DA;color:#6B5B36}
+.tag.baseline{background:#F1DEDC;color:var(--bad)}
+
+.l2body{padding:0 calc(var(--sp)*2) calc(var(--sp)*3) calc(var(--sp)*4.5);
+  border-top:1px dashed var(--rule);max-width:none}
+.l2h{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+  margin:calc(var(--sp)*2.5) 0 var(--sp)}
+.l2p{margin:0;font-size:14px;max-width:72ch}
+ul.ev{list-style:none;margin:var(--sp) 0 0;padding:0;font-size:13px}
+ul.ev li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:calc(var(--sp)*2);
+  padding:5px 0;border-top:1px solid #EDEEEF}
+ul.ev li span{font-family:'IBM Plex Mono',monospace;color:var(--bad);font-size:12px;
+  text-align:right;max-width:38ch}
+ul.ev li a{text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ul.ev li a:hover{text-decoration:underline}
+ul.ev li.pass span{color:var(--good)}
+ul.ev.speedlist li span{color:var(--muted)}
+.evmore{font-size:12px;color:var(--muted);margin-top:6px}
+ol.steps{margin:var(--sp) 0 0;padding-left:1.25em;font-size:14px;max-width:72ch}
+ol.steps li{margin-bottom:5px}
+.where{font-size:13px;color:var(--muted);margin-top:6px}
+.where b{color:var(--ink);font-weight:500}
+.snipwrap{position:relative;margin-top:calc(var(--sp)*1.5)}
+.snip{margin:0;padding:calc(var(--sp)*2);background:#14161A;color:#E8EAED;overflow-x:auto;
+  font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.5;border-radius:2px}
+.copy{position:absolute;top:8px;right:8px;padding:5px 11px;font-size:12px;font-weight:500;
+  background:#2C3038;color:#fff;border:0;border-radius:2px;cursor:pointer}
+.copy:hover{background:#3D434C}
+
+/* -------------------------------------------------------------------- table */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 10px 9px 0;border-bottom:1px solid var(--rule)}
+th{font-weight:500;color:var(--muted);font-size:13px}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;width:62px;padding-right:0}
+tr.warn td.num{color:var(--bad)}
+details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:calc(var(--sp)*2)}
+
+.foot{margin-top:calc(var(--sp)*8);padding-top:calc(var(--sp)*3);border-top:1px solid var(--rule);
+  color:var(--muted);font-size:13px;max-width:70ch}
+.hidden{display:none}
+@media (max-width:640px){
+  .verdict{grid-template-columns:1fr}
+  .sechead{flex-direction:column;align-items:flex-start}
+  .sechead p{text-align:left}
+  .fieldrow{grid-template-columns:1fr}
+  .speedrow{grid-template-columns:repeat(2,1fr)}
+  .wbar{flex-wrap:wrap}
+  .wseg{flex:1 1 33%;border-bottom:1px solid var(--rule)}
+  .l2card summary{grid-template-columns:14px 1fr;padding-right:calc(var(--sp)*1.5)}
+  .l2v{grid-column:2;text-align:left;margin-top:6px}
+  .l2body{padding-left:calc(var(--sp)*2)}
+  ul.ev li{grid-template-columns:1fr;gap:2px}
+}
+</style>
+<link rel="stylesheet" href="/design.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead"><a href="/" aria-label="Anphonic Agent Readiness home"><img src="/assets/anphonic-logo.png" alt="Anphonic" width="213" height="50"></a><span class="edition">AI COMMERCE INTELLIGENCE</span></header>
+
+  <div id="intro" class="lede">
+    <div class="eyebrow">THE AI AGENT READINESS AUDIT</div><h1>Can AI agents discover<br>your next bestseller?</h1>
+    <p>See how accessible your Shopify store’s product data is to AI shopping agents. Get your readiness score, uncover the gaps, and know what to fix first.</p>
+
+    <form id="form">
+      <input type="text" id="url" placeholder="yourstore.com" autocomplete="off" spellcheck="false" aria-label="Shopify store URL">
+      <button id="go" type="submit">Scan store <span aria-hidden="true">↗</span></button>
+    </form>
+    <p class="form-note">Free scan · No account required · Public storefront data only</p><div id="err" class="err hidden" role="alert"></div>
+    <div class="recent" id="recent"></div>
+  </div>
+
+  <div id="progress" class="steps hidden" role="status" aria-live="polite"></div>
+
+  <div id="report" class="hidden"></div>
+
+  <div class="foot">
+    Built by Anphonic. Reads publicly served pages and samples up to 20 products per store rather than the full catalogue.
+    <span id="ver"></span>
+  </div>
+</div>
+
+<script>
+const STEPS = ['Reaching the store','Checking crawler access','Reading robots.txt','Reading store policies','Loading the product catalogue','Inspecting products','Scoring','Comparing competitors'];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function showError(msg){ $('err').textContent = msg; $('err').classList.remove('hidden'); }
+function clearError(){ $('err').classList.add('hidden'); }
+
+function renderSteps(current){
+  const idx = current?.startsWith('Comparing ') ? STEPS.length - 1 : STEPS.findIndex(s => current && current.startsWith(s.slice(0,14)));
+  $('progress').innerHTML = STEPS.map((s,i)=>{
+    const cls = i < idx ? 'past' : i === idx ? 'on' : '';
+    return `<div class="step ${cls}"><i></i>${esc(i===idx&&current?current:s)}</div>`;
+  }).join('');
+}
+
+function gradeClass(score){ return score >= 80 ? 'good' : score >= 60 ? 'mid' : 'bad'; }
+
+// How each sub-score was arrived at. Shown on every row so a 50 is never
+// mistaken for a measurement when it is a deliberate floor.
+const BASIS = {
+  measured: ['measured', 'A percentage of the sampled products — this number moves with the catalogue.'],
+  state:    ['graded state', 'One of a fixed set of outcomes, not a percentage of the sample.'],
+  baseline: ['baseline', 'No fault was found and none is assumed. Scored at a floor by choice, not measured.'],
+};
+const SHORT = { productSchema:'Product', variantSchema:'Variants', orgSchema:'Organization',
+                faqSchema:'FAQ', reviewSchema:'Reviews', llmsTxt:'llms.txt',
+                checkoutStack:'Checkout', ucpProfile:'UCP checkout', codPayment:'COD/prepaid',
+                serviceability:'Delivery', returnPolicy:'Returns', agenticEligibility:'Plan tier',
+                answerFirst:'Answer-first', factualDensity:'Factual density',
+                entityConsistency:'Entity naming', descriptionDepth:'Length',
+                uniqueness:'Uniqueness', imageCoverage:'Images' };
+
+// thresholds mirror pageSpeedScore() in engine.js — free below 600KB / 800ms
+const band = (v, ok, warn) => v <= ok ? 'good' : v <= warn ? 'mid' : 'bad';
+
+function renderSpeed(s){
+  if (!s) return '';
+  const rows = s.slowest.map(p => `
+    <li><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a><span>${esc(p.note)}</span></li>`).join('');
+  return `
+    <div class="speedrow">
+      <div class="stat ${band(s.medianTtfb, 800, 2000)}">
+        <b>${s.medianTtfb}<i>ms</i></b><em>To first byte</em>
+        <span>median · ${s.minTtfb}–${s.maxTtfb}ms across ${s.sampleSize}</span>
+      </div>
+      <div class="stat ${band(s.medianKb, 600, 1000)}">
+        <b>${s.medianKb}<i>KB</i></b><em>HTML payload</em>
+        <span>median · ${s.minKb}–${s.maxKb}KB, before images</span>
+      </div>
+      <div class="stat ${band(s.medianTotal, 1500, 3000)}">
+        <b>${s.medianTotal}<i>ms</i></b><em>Full response</em>
+        <span>median, headers to last byte</span>
+      </div>
+      <div class="stat ${gradeClass(s.score)}">
+        <b>${s.score}</b><em>Page speed score</em>
+        <span>15% of Layer 1 in the spec</span>
+      </div>
+    </div>
+    <p class="speedverdict">${esc(s.verdict)}</p>
+    <div class="penalty">
+      <span>${esc(s.thresholds)}</span>
+      ${s.sizePenalty > 0 ? `<span>Size penalty <b>&minus;${s.sizePenalty}</b></span>` : ''}
+      ${s.timePenalty > 0 ? `<span>Time penalty <b>&minus;${s.timePenalty}</b></span>` : ''}
+    </div>
+    ${rows ? `<div class="l2h">Slowest pages in the sample</div><ul class="ev speedlist">${rows}</ul>` : ''}
+    <p class="speedcaveat">${esc(s.caveat)}</p>`;
+}
+
+// Layers 2 and 3 render identically — same card, same evidence list, same fix
+// block. Only the short labels on the weight bar differ.
+function renderLayer2(L){
+  if (!L) return '';
+  const scored = L.checks.filter(c => c.scored);
+
+  const bar = scored.map(c => `
+    <div class="wseg" title="${esc(c.label)} — ${c.effectiveSub}% of this layer, scored ${c.value}"
+         style="flex-grow:${c.effectiveSub}">
+      <em>${esc(SHORT[c.key] || c.key)} · ${c.effectiveSub}%</em>
+      <strong>${c.value}</strong>
+      <i><b style="width:${c.value}%"></b></i>
+    </div>`).join('');
+
+  const cards = L.checks.map(c => {
+    const b = BASIS[c.basis] || ['', ''];
+    const ev = c.evidence;
+    const evList = ev && ev.items && ev.items.length
+      ? `<ul class="ev">${ev.items.map(it => `
+          <li class="${it.pass ? 'pass' : ''}"><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a><span>${esc(it.note)}</span></li>`).join('')}</ul>`
+        + (ev.more ? `<div class="evmore">and ${ev.more} more in the sample of ${L.sampleSize}.</div>` : '')
+      : '';
+
+    const weightLine = c.scored
+      ? `spec ${c.specSub}% · scored at ${c.effectiveSub}% of this layer · `
+        + (c.pointsLost > 0
+            ? `losing ${c.pointsLost} of the layer's 100, ${c.costOfTotal} off the final score`
+            : 'full marks, costing nothing')
+      : `spec ${c.specSub}% · measured but not scored`;
+
+    const fixBlock = !c.scored
+      ? `<p class="l2p">Excluded from the score, so there is nothing here to fix or gain. Its ${c.specSub}% is spread across the other five checks.</p>`
+      : c.fix
+        ? `<p class="l2p"><b>${esc(c.fix.headline)}</b></p>
+           <ol class="steps">${c.fix.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+           <div class="where">${c.fix.snippet ? 'Where it goes' : 'Where'}: <b>${esc(c.fix.where)}</b></div>
+           ${c.fix.snippet ? `<div class="snipwrap">
+             <button class="copy" type="button" data-copy="${esc(c.fix.snippet)}">Copy</button>
+             <pre class="snip">&lt;script type="application/ld+json"&gt;
+${esc(c.fix.snippet)}
+&lt;/script&gt;</pre>
+           </div>` : ''}`
+        : `<p class="l2p">Nothing to fix — this check is already clean on this store.</p>`;
+
+    return `
+    <details class="l2card ${c.scored ? '' : 'off'}">
+      <summary>
+        <span class="caret">&#9654;</span>
+        <span>
+          <span class="l2n">${esc(c.label)}<span class="tag ${c.basis}">${esc(b[0])}</span></span>
+          <span class="l2r">${esc(c.result)}</span>
+          <span class="l2w">${esc(weightLine)}</span>
+        </span>
+        <span class="l2v">${c.value}</span>
+      </summary>
+      <div class="l2body">
+        <div class="l2h">How this number is made</div>
+        <p class="l2p">${esc(b[1])} ${esc(c.basisNote)}</p>
+
+        <div class="l2h">What we found</div>
+        <p class="l2p">${esc(ev ? ev.headline : '')}</p>
+        ${evList}
+
+        ${c.why ? `<div class="l2h">Against the spec</div>
+        <p class="l2p">${esc(c.why)}</p>` : ''}
+
+        <div class="l2h">The fix for this store</div>
+        ${fixBlock}
+      </div>
+    </details>`;
+  }).join('');
+
+  return `
+    <div class="l2top">
+      <div class="l2score">${L.score}<small> / 100</small></div>
+      <div class="l2note">${esc(L.note)}</div>
+    </div>
+    <div class="wbar">${bar}</div>
+    <div class="wlegend">Segment width is each check's real share of this layer; the underline is what it scored.
+      This layer is ${L.specWeight}% of the spec and ${L.effectiveWeight}% of the score computed here.
+      Values shown in fixes are this store's own, in ${esc(L.currency)}.</div>
+    ${cards}`;
+}
+
+function renderLayer5(L){
+  if (!L) return `<section class="benchmark-note"><div class="sechead"><h3>Layer 5 — Competitive Position</h3><span class="pill">15% · NOT CONFIGURED</span></div><p>No named competitors are configured for this store.</p></section>`;
+  const number = n => Number.isFinite(n) ? Math.round(n * 10) / 10 : '—';
+  const complete = L.status === 'complete';
+  const note = complete ? 'Three or more competitors have comparable scans. The combined audit score includes Layer 5 at 15%.'
+    : L.status === 'provisional' ? `Only ${L.comparedCount} comparable competitor${L.comparedCount === 1 ? '' : 's'}. Add or rescan competitors to reach at least three. This provisional score does not contribute to the overall score.`
+    : `Comparison unavailable. ${L.clientIssue || 'No comparable competitor scans.'} Missing data is not scored as zero.`;
+  return `<section class="benchmark-note layer5" id="layer5">
+    <div class="sechead"><h3>Layer 5 — Competitive Position</h3><span class="pill">15% · ${esc(L.status.toUpperCase())}</span></div>
+    <p>How your storefront compares with your named competitors on the same checklist.</p>
+    <div class="benchmark-stats"><div><b>${number(L.score)}<small>/100</small></b><span>Relative position${complete ? '' : ' · provisional/unavailable'}</span></div><div><b>${L.comparedCount}/${L.namedCount}</b><span>Comparable competitors</span></div><div><b>${number(L.contribution)}<small>/15</small></b><span>Contribution to combined score</span></div><div><b>${number(L.combinedScore)}<small>/100</small></b><span>Combined audit score</span></div></div>
+    <p class="benchmark-status">${esc(note)}</p>
+    <p class="muted">Readiness score (Layers 1–4): ${number(L.readinessScore)}/100. Scanned ${esc(L.scannedAt ? new Date(L.scannedAt).toLocaleString() : 'date unavailable')}. All tied checks produce a relative score of 50.</p>
+    <div class="benchmark-scroll"><table><caption>Named competitor scan coverage</caption><thead><tr><th>Competitor</th><th>Status</th><th>Sampled products</th><th>Scanned</th></tr></thead><tbody>${L.competitors.map(c => `<tr><td>${esc(c.domain)}</td><td>${esc(c.reason || c.status)}</td><td>${c.sampled}</td><td>${esc(c.scannedAt ? new Date(c.scannedAt).toLocaleString() : '—')}</td></tr>`).join('')}</tbody></table></div>
+    ${L.rows.length ? `<h4>Same checks, side by side</h4><p class="muted">Values are checklist scores out of 100, not all percentages of products. Median excludes unavailable scans.</p><div class="benchmark-scroll"><table><thead><tr><th>Check</th><th>Your store</th>${L.competitors.map(c => `<th>${esc(c.domain)}</th>`).join('')}<th>Competitor median</th><th>Gap</th></tr></thead><tbody>${L.rows.map(row => `<tr><th>${esc(row.label)}<small>${esc(row.layer.replace('layer','Layer '))} · ${esc(row.basis)}</small></th><td>${number(row.client)}</td>${L.competitors.map(c => `<td>${number(row.competitors.find(v => v.domain === c.domain)?.value)}</td>`).join('')}<td>${number(row.median)}</td><td class="${row.delta < 0 ? 'behind' : 'ahead'}">${row.delta > 0 ? '+' : ''}${number(row.delta)} · ${row.delta < 0 ? 'Behind' : row.delta > 0 ? 'Ahead' : 'At parity'}</td></tr>`).join('')}</tbody></table></div>
+    <h4>What to fix first</h4>${L.gaps.length ? L.gaps.map(g => `<details class="benchmark-gap"><summary>${esc(g.label)} — ${Math.abs(g.delta)} points behind median</summary><p>${esc(g.evidence?.headline || 'Review the corresponding layer evidence below.')}</p>${g.evidence?.items?.length ? `<ul>${g.evidence.items.slice(0,3).map(e => `<li>${/^https?:\/\//i.test(e.url || '') ? `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title || e.url)}</a>` : esc(e.title || '')} — ${esc(e.note || '')}</li>`).join('')}</ul>` : ''}<p>${esc(g.fix?.headline || 'Inspect the corresponding layer recommendations.')}</p>${g.fix?.where ? `<p>${esc(g.fix.where)}</p>` : ''}${g.fix?.steps?.length ? `<ol>${g.fix.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}</details>`).join('') : '<p>No measured checks below the competitor median. Review absolute readiness gaps as well.</p>'}` : ''}
+    <details><summary>Checkout detection — informational</summary><p>No purchase was attempted. These are public declarations and detected app signals.</p><ul>${L.checkout.map(c => `<li><b>${esc(c.domain)}</b>: ${esc(c.evidence)}. Apps: ${esc(c.detectedApps.join(', ') || 'none detected; checkout type unconfirmed')}.</li>`).join('')}</ul></details>
+    <details><summary>How this is scored</summary><p>${esc(L.methodology)}</p><p>Single check: Score vs. 3–5 named competitors · 100% of Layer 5.</p><ul>${L.limitations.map(t => `<li>${esc(t)}</li>`).join('')}</ul><p class="muted">${esc(L.methodVersion)} · engine ${esc(L.engineVersion)}</p></details>
+  </section>`;
+}
+
+function renderReport(r){
+  if (r.errors && r.errors.length && r.finalScore === null){
+    const first = r.errors[0] || '';
+    const reasons = {
+      NOT_SHOPIFY: "This store isn't running on Shopify, so there's no public product feed to read.",
+      NO_RESPONSE: "The store didn't respond. It may be blocking automated requests entirely.",
+      NO_CATALOG: "The store is on Shopify but its public product feed is closed, so products can't be sampled.",
+    };
+    const msg = first.startsWith('BLOCKED_')
+      ? `The store returned ${first.replace('BLOCKED_','')} to our crawler. It's blocking automated requests — which is also what an AI shopping agent would hit.`
+      : (reasons[first] || r.errors.join(', '));
+    return `<div class="verdict"><div class="scoreblock bad"><div class="n">—</div><div class="g">Can't scan</div></div>
+      <div><h2>${esc(r.domain)}</h2><p class="meta">${esc(msg)}</p></div></div>`;
+  }
+
+  const av = r.agentView;
+  const fieldRows = av ? av.fields.map(f => `
+    <div class="fieldrow">
+      <div class="k">${esc(f.label)}</div>
+      <div class="v ${f.visible ? '' : 'todo'}">${f.visible && f.value
+        ? esc(f.value)
+        : esc(f.action || '')}</div>
+    </div>`).join('') : '';
+
+  const layers = Object.entries(r.layers).map(([k,l]) => `
+    <div class="layer ${gradeClass(l.score)}">
+      <div class="lname">${esc(l.name)}
+        <small>${Math.round(l.weight*100)}% of the score</small>
+        <span class="bar"><i style="width:${l.score}%"></i></span>
+      </div>
+      <div class="lnum">${l.score}</div>
+    </div>`).join('');
+
+  const gaps = r.gaps.slice(0, 3).map(g => `<li><b>${esc(r.layers[g.layer].name)}</b>${esc(g.message)}</li>`).join('');
+
+  const specBlocks = r.specDetail ? Object.values(r.specDetail).map(g => `
+    <div class="specgroup">
+      <h4>${esc(g.name)} <span>— ${g.specWeight}% of the total in the spec</span></h4>
+      ${g.checks.map(c => `
+        <div class="speccheck ${c.scored ? '' : 'off'}">
+          <div>
+            <div class="nm">${esc(c.spec)}${c.specSub ? ` <em>(spec: ${c.specSub}% within layer${
+              c.effectiveSub && c.effectiveSub !== c.specSub ? `, scored at ${c.effectiveSub}%` : ''})</em>` : ''}${
+              !c.scored ? '<span class="tag dropped">not scored</span>'
+              : c.added ? '<span class="tag added">added</span>'
+              : /Redefined|Widened|Three states|Measured as/.test(c.why) ? '<span class="tag changed">changed</span>' : ''}</div>
+            <div class="res">${esc(c.result)}</div>
+            ${c.why ? `<div class="whyline">${esc(c.why)}</div>` : ''}
+          </div>
+          <div class="val">${c.value}</div>
+        </div>`).join('')}
+    </div>`).join('') : '';
+
+  const rows = Object.entries(r.layers).flatMap(([k,l]) =>
+    Object.entries(l.checks).map(([ck,cv]) => `
+      <tr class="${cv < 50 ? 'warn' : ''}">
+        <td>${esc(l.name)}</td>
+        <td>${esc(ck.replace(/([A-Z])/g,' $1').toLowerCase())}</td>
+        <td class="num">${cv}</td>
+      </tr>`)).join('');
+
+  const bots = Object.entries(r.botVerdicts || {}).map(([b,v]) =>
+    `<tr class="${v!=='ok'?'warn':''}"><td>${esc(b)}</td><td>${esc(v)}</td><td class="num"></td></tr>`).join('');
+
+  return `
+  <div class="report-heading"><div><div class="eyebrow">YOUR STOREFRONT, THROUGH AN AGENT’S EYES</div><h2>Agent Readiness Report</h2><p>${esc(r.domain)} · ${esc(r.scannedAt ? new Date(r.scannedAt).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '')}</p></div><span class="pill">SCAN COMPLETE</span></div>
+  <div class="report-tabs" role="group" aria-label="Report view"><button type="button" data-view="free" aria-pressed="true">Free report</button><button type="button" data-view="full" aria-pressed="false">Full audit preview <span aria-hidden="true">↗</span></button></div>
+  <div class="verdict">
+    <div class="scoreblock ${gradeClass(r.finalScore)}">
+      <div class="n">${r.finalScore}<span class="d">/100</span></div>
+      <div class="g">${esc(r.grade)}</div>
+    </div>
+    <div>
+      <span class="eyebrow">${esc(r.brandName || r.domain)}</span><h2>${esc(r.grade)}</h2>
+      <p class="meta">Readiness score · Layers 1–4. ${esc(r.gradeNote)}</p>
+      <p class="meta"><code>${esc(r.domain)}</code> · ${r.catalogCount} products, ${r.sampled} sampled · checkout: ${r.checkoutStack.length ? esc(r.checkoutStack.join(' + ')) : 'native Shopify'}</p>
+    </div>
+  </div>
+
+  <section>
+    <div class="sechead"><h3>Category Readiness Scores</h3><span class="section-caption">SCORED FROM YOUR STOREFRONT</span></div>
+    ${layers}
+    <p class="skipped">Readiness uses Layers 1–4 with their weights rescaled to 100%.</p>
+  </section>
+
+  <section>
+    <div class="sechead"><h3>Top 3 Gaps Identified</h3>
+      <p>Ranked by how much each one is costing the total score.</p></div>
+    <ol class="gaps">${gaps}</ol>
+  </section>
+
+  <section id="paid-preview" class="paid-preview">
+    <div class="sechead"><h3>Go deeper with the full audit</h3><span class="pill">PAID AUDIT</span></div>
+    <div class="preview-grid">
+      <div class="preview-card"><span class="preview-number">01 / PRODUCT VISIBILITY</span><h4>What an agent sees</h4><p>See the product fields your storefront exposes, and the information it leaves out.</p><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i></div></div>
+      <div class="preview-card"><span class="preview-number">02 / ACTIONABLE FINDINGS</span><h4>Per-check detail &amp; fixes</h4><p>Inspect the evidence and store-specific recommendations behind each score.</p><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i></div></div>
+    </div>
+    <div class="upgrade"><span class="eyebrow">FROM FINDINGS TO ACTION</span><h3>The full picture. A clear path forward.</h3><p>The paid audit adds a reviewed India checkout assessment, competitor benchmark, and a prioritized implementation roadmap.</p><button type="button" data-view="full">Preview the Full Agent Readiness Report <span aria-hidden="true">↗</span></button><small>Preview available scan findings below. Paid audit purchase is not connected yet.</small></div>
+  </section>
+  <div id="full-detail" class="hidden">
+    <div class="preview-notice"><b>Full audit preview</b><span>These are your actual automated scan findings. This report includes Layer 5 when competitors are configured for your brand. Manual review is not included.</span></div>
+  ${av ? `<section>
+    <div class="sechead"><h3>What an agent sees</h3>
+      <p>${esc(av.catalogNote)}.</p></div>
+    <div class="agentcard">
+      <div class="pname">${esc(av.title)}</div>
+      ${fieldRows}
+    </div>
+  </section>` : ''}
+
+  ${r.speed ? `<section>
+    <div class="sechead"><h3>Speed, as a crawler sees it</h3>
+      <p>Measured across ${r.speed.sampleSize} product pages fetched for this scan.</p></div>
+    ${renderSpeed(r.speed)}
+  </section>` : ''}
+
+  ${r.layer2Report ? `<section>
+    <div class="sechead"><h3>Layer 2 — structured data, check by check</h3>
+      <p>Open any check to see which products fail it and the exact JSON-LD this store needs.</p></div>
+    ${renderLayer2(r.layer2Report)}
+  </section>` : ''}
+
+  ${r.layer3Report ? `<section>
+    <div class="sechead"><h3>Layer 3 — checkout &amp; UCP, check by check</h3>
+      <p>India-specific. Open any check to see what an agent can and can't read about buying from this store.</p></div>
+    ${renderLayer2(r.layer3Report)}
+  </section>` : ''}
+
+  ${r.layer4Report ? `<section>
+    <div class="sechead"><h3>Layer 4 — content clarity, check by check</h3>
+      <p>What an agent can quote back when a shopper asks about these products.</p></div>
+    ${renderLayer2(r.layer4Report)}
+  </section>` : ''}
+
+  ${r.layer5Report ? renderLayer5(r.layer5Report) : ''}
+
+  <section>
+    <div class="sechead"><h3>Every check in the spec, all four layers</h3>
+      <p>Greyed rows are measured but not scored: they returned the same result on every Shopify store tested, so they can't rank one store against another.</p></div>
+    ${specBlocks}
+  </section>
+
+  <section>
+    <details>
+      <summary>All scored checks and crawler access detail</summary>
+      <table>
+        <thead><tr><th>Layer</th><th>Check</th><th class="num">Score</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <table style="margin-top:24px">
+        <thead><tr><th>Crawler</th><th>Access</th><th class="num"></th></tr></thead>
+        <tbody>${bots}</tbody>
+      </table>
+    </details>
+  </section>
+  <section class="benchmark-note"><div class="sechead"><h3>Reviewed Fix Roadmap</h3><span class="pill">PAID AUDIT</span></div><p>The automated findings identify measured gaps. A reviewed roadmap adds effort, timing, and implementation priorities.</p></section>
+  </div>`;
+}
+
+async function poll(id){
+  try {
+  const res = await fetch('/api/scan/' + id);
+  if (!res.ok) throw new Error('Unable to load the scan. Please try again.');
+  const j = await res.json();
+  if (j.status === 'running'){ renderSteps(j.step); return setTimeout(() => poll(id), 700); }
+  $('progress').classList.add('hidden');
+  if (j.status === 'error'){ resetForm(); return showError(j.error || 'The scan failed. Try again.'); }
+  $('report').innerHTML = renderReport(j.result);
+  $('report').classList.remove('hidden');
+  resetForm();
+  loadRecent();
+  } catch (error) { $('progress').classList.add('hidden'); resetForm(); showError(error.message || 'Unable to load the scan. Please try again.'); }
+}
+
+function resetForm(){ $('go').disabled = false; $('go').textContent = 'Scan store'; }
+
+async function run(url){
+  clearError();
+  $('report').classList.add('hidden');
+  $('go').disabled = true; $('go').textContent = 'Scanning…';
+  $('progress').classList.remove('hidden');
+  renderSteps(STEPS[0]);
+  try {
+  const res = await fetch('/api/scan', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ url })
+  });
+  const j = await res.json();
+  if (!res.ok){ $('progress').classList.add('hidden'); resetForm(); return showError(j.error); }
+  poll(j.id);
+  } catch { $('progress').classList.add('hidden'); resetForm(); showError('Unable to connect. Please try again.'); }
+}
+
+$('report').addEventListener('click', (e) => {
+  const button = e.target.closest('[data-view]');
+  if (!button) return;
+  const full = button.dataset.view === 'full';
+  $('full-detail').classList.toggle('hidden', !full);
+  $('paid-preview').classList.toggle('hidden', full);
+  document.querySelectorAll('.report-tabs [data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === button.dataset.view)));
+  if (button.closest('.upgrade')) {
+    const tab = document.querySelector('.report-tabs [data-view="full"]');
+    tab.focus({preventScroll:true});
+    $('full-detail').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block:'start'});
+  }
+});
+
+// delegated — the report is replaced wholesale on every scan
+$('report').addEventListener('click', async (e) => {
+  const btn = e.target.closest('.copy');
+  if (!btn) return;
+  const block = `<script type="application/ld+json">\n${btn.dataset.copy}\n<\/script>`;
+  try {
+    await navigator.clipboard.writeText(block);
+    btn.textContent = 'Copied';
+  } catch {
+    // clipboard is blocked outside a secure context — select it instead so
+    // ctrl-C still works rather than leaving a button that silently does nothing
+    const pre = btn.parentElement.querySelector('.snip');
+    const sel = window.getSelection(); const range = document.createRange();
+    range.selectNodeContents(pre); sel.removeAllRanges(); sel.addRange(range);
+    btn.textContent = 'Selected — press ⌘C';
+  }
+  setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+});
+
+$('form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const v = $('url').value.trim();
+  if (!v) return showError('Enter a store URL to scan.');
+  run(v);
+});
+
+async function loadRecent(){
+  try{
+    const { history } = await (await fetch('/api/history')).json();
+    if (!history.length) return;
+    $('recent').innerHTML = 'Recently scanned: ' + history.slice(0,6).map(h =>
+      `<button type="button" data-u="${esc(h.domain)}">${esc(h.domain.replace(/^https?:\/\/(www\.)?/,''))}</button> ${h.score}`
+    ).join(' · ');
+    $('recent').querySelectorAll('button').forEach(b =>
+      b.addEventListener('click', () => { $('url').value = b.dataset.u; run(b.dataset.u); }));
+  }catch{}
+}
+loadRecent();
+fetch('/api/version').then(r=>r.json()).then(j=>{$('ver').textContent=' · engine v'+j.version;}).catch(()=>{});
+</script>
+</body>
+</html>
