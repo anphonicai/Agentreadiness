@@ -438,12 +438,37 @@ function renderSpeed(s){
 
 // Layers 2 and 3 render identically — same card, same evidence list, same fix
 // block. Only the short labels on the weight bar differ.
+// Human-readable report copy; code snippets and product names remain unchanged.
+function reportText(value) {
+  const names = {acceptedPaymentMethod:'accepted payment methods', OfferShippingDetails:'shipping details', MerchantReturnPolicy:'merchant return policy', hasMerchantReturnPolicy:'return policy reference', merchantReturnLink:'return policy link', AggregateRating:'aggregate rating', FAQPage:'FAQ page', HowTo:'How-to', sameAs:'linked social profiles'};
+  return esc(String(value ?? '').replace(/\b(acceptedPaymentMethod|OfferShippingDetails|MerchantReturnPolicy|hasMerchantReturnPolicy|merchantReturnLink|AggregateRating|FAQPage|HowTo|sameAs)\b/g, word => names[word]).replace(/FAQ\/How-to/g, 'FAQ / How-to'));
+}
+function reportFix(c) {
+  if (c.fix) return c.fix;
+  if (!Number.isFinite(c.value) || c.value >= 100) return null;
+  const guidance = {
+    imageCoverage: ['Add useful product images', 'Shopify admin → Products → Select product → Media', 'Start with the products listed above. Add a clear main image, alternate angles, close-up details and a scale or in-use view where relevant. Use genuine images of the product and connect variant images to the matching variants.', 'Add concise, descriptive alternative text. Confirm the images load on the public product page, then run another scan. Image count is informational and does not change the weighted score.'],
+    descriptionDepth: ['Complete short or missing descriptions', 'Shopify admin → Products → Description', 'Start with the products listed above. Explain what the product is, who it is for, and its verified material, size, contents and care or usage instructions.', 'Write useful product-specific copy rather than padding the word count. Save and rescan to confirm the public page exposes the updated description.'],
+    uniqueness: ['Make each product description distinct', 'Shopify admin → Products → Description', 'Replace reused introductions with facts specific to each product, such as its material, size, flavour, fit or intended use. Keep shared policy text separate.', 'Publish the changes and rescan. Do not invent differences between products.'],
+  };
+  const technical = {
+    'robots.txt allows AI crawlers': ['Review crawler access rules', 'Storefront robots.txt and CDN settings', 'Review the blocked user agents in this report. Remove unintended disallow rules for public product pages, while keeping private routes protected. Fetch the affected pages again to confirm access.'],
+    'JS-independent content render': ['Expose product facts in the initial HTML', 'Shopify theme → Product template', 'Render product title, price and availability in the server-rendered page. Check the page source without JavaScript and confirm those fields are present.'],
+    'Page load speed': ['Reduce page payload and response time', 'Shopify theme and app embeds', 'Start with the slowest pages listed in the speed evidence. Remove unused app embeds and duplicate scripts, simplify expensive template logic, then measure the same pages again.'],
+    'Sitemap present & current': ['Restore the public sitemap', 'Storefront /sitemap.xml and domain settings', 'Check that the sitemap returns a successful response with valid product URLs. Fix broken domain redirects or access rules and verify the listed product pages can be fetched.'],
+    'AI crawler access by user-agent': ['Investigate blocked crawler requests', 'CDN or firewall settings', 'Compare the affected crawler responses with a normal request. Review security logs for the blocking rule and adjust only the rule affecting public product pages. Retest each affected crawler.'],
+    'Product feed & indexability': ['Restore catalogue discovery and indexing', 'Shopify publishing settings, theme and public product feed', 'Review the reported feed status, noindex directives and canonical links. Publish intended products, remove unintended noindex directives, and use the correct public product URL as the canonical. Rescan to confirm.'],
+  };
+  const entry = guidance[c.key] || technical[c.spec];
+  return entry ? {headline:entry[0], where:entry[1], steps:entry.slice(2), snippet:null} : null;
+}
+
 function renderLayer2(L){
   if (!L) return '';
   const scored = L.checks.filter(c => c.scored);
 
   const bar = scored.map(c => `
-    <div class="wseg" title="${esc(c.label)} — ${c.effectiveSub}% of this layer, scored ${c.value}"
+    <div class="wseg" title="${reportText(c.label)} — ${c.effectiveSub}% of this layer, scored ${c.value}"
          style="flex-grow:${c.effectiveSub}">
       <em>${esc(SHORT[c.key] || c.key)} · ${c.effectiveSub}%</em>
       <strong>${c.value}</strong>
@@ -453,9 +478,11 @@ function renderLayer2(L){
   const cards = L.checks.map(c => {
     const b = BASIS[c.basis] || ['', ''];
     const ev = c.evidence;
+    const fix = reportFix(c);
+    const needsAttention = Number.isFinite(c.value) && c.value < 100 && c.basis !== 'baseline';
     const evList = ev && ev.items && ev.items.length
       ? `<ul class="ev">${ev.items.map(it => `
-          <li class="${it.pass ? 'pass' : ''}"><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a><span>${esc(it.note)}</span></li>`).join('')}</ul>`
+          <li class="${it.pass === true ? 'pass' : it.pass === false || needsAttention ? 'missing' : ''}"><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a><span>${reportText(it.note)}</span></li>`).join('')}</ul>`
         + (ev.more ? `<div class="evmore">and ${ev.more} more in the sample of ${L.sampleSize}.</div>` : '')
       : '';
 
@@ -464,43 +491,38 @@ function renderLayer2(L){
         + (c.pointsLost > 0
             ? `losing ${c.pointsLost} of the layer's 100, ${c.costOfTotal} off the final score`
             : 'full marks, costing nothing')
-      : `spec ${c.specSub}% · measured but not scored`;
+      : `${c.specSub == null ? 'Additional check' : `Spec ${c.specSub}%`} · measured, not scored`;
 
-    const fixBlock = !c.scored
-      ? `<p class="l2p">Excluded from the score, so there is nothing here to fix or gain. Its ${c.specSub}% is spread across the other five checks.</p>`
-      : c.fix
-        ? `<p class="l2p"><b>${esc(c.fix.headline)}</b></p>
-           <ol class="steps">${c.fix.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
-           <div class="where">${c.fix.snippet ? 'Where it goes' : 'Where'}: <b>${esc(c.fix.where)}</b></div>
-           ${c.fix.snippet ? `<div class="snipwrap">
-             <button class="copy" type="button" data-copy="${esc(c.fix.snippet)}">Copy</button>
-             <pre class="snip">&lt;script type="application/ld+json"&gt;
-${esc(c.fix.snippet)}
-&lt;/script&gt;</pre>
-           </div>` : ''}`
-        : `<p class="l2p">Nothing to fix — this check is already clean on this store.</p>`;
+    const fixBlock = fix
+      ? `<p class="l2p"><b>${reportText(fix.headline)}</b></p>
+         <ol class="fix-steps">${fix.steps.map(step => `<li>${reportText(step)}</li>`).join('')}</ol>
+         <div class="where">${fix.snippet ? 'Where it goes' : 'Where'}: <b>${reportText(fix.where)}</b></div>
+         ${fix.snippet ? `<div class="snipwrap"><button class="copy" type="button" data-copy="${esc(fix.snippet)}">Copy</button><pre class="snip">&lt;script type="application/ld+json"&gt;
+${esc(fix.snippet)}
+&lt;/script&gt;</pre></div>` : ''}`
+      : `<p class="l2p">${needsAttention ? 'Review the evidence above with your developer to confirm the cause and the appropriate change. Rescan after publishing the fix.' : c.basis === 'baseline' ? 'No existing content was found to mark up. This is a neutral baseline, not a confirmed implementation fault.' : 'No action is needed for this check based on the sampled pages.'}</p>`;
 
     return `
-    <details class="l2card ${c.scored ? '' : 'off'}">
+    <details class="l2card ${needsAttention ? 'needs-attention' : ''} ${c.scored ? '' : 'off'}">
       <summary>
         <span class="caret">&#9654;</span>
         <span>
-          <span class="l2n">${esc(c.label)}<span class="tag ${c.basis}">${esc(b[0])}</span></span>
-          <span class="l2r">${esc(c.result)}</span>
+          <span class="l2n">${reportText(c.label)}<span class="tag ${c.basis}">${esc(b[0])}</span></span>
+          <span class="l2r">${needsAttention ? '<span class="finding-status">Needs attention</span> ' : ''}${reportText(c.result)}</span>
           <span class="l2w">${esc(weightLine)}</span>
         </span>
         <span class="l2v">${c.value}</span>
       </summary>
       <div class="l2body">
         <div class="l2h">How this number is made</div>
-        <p class="l2p">${esc(b[1])} ${esc(c.basisNote)}</p>
+        <p class="l2p">${esc(b[1])} ${reportText(c.basisNote)}</p>
 
         <div class="l2h">What we found</div>
-        <p class="l2p">${esc(ev ? ev.headline : '')}</p>
+        <p class="l2p">${reportText(ev ? ev.headline : '')}</p>
         ${evList}
 
         ${c.why ? `<div class="l2h">Against the spec</div>
-        <p class="l2p">${esc(c.why)}</p>` : ''}
+        <p class="l2p">${reportText(c.why)}</p>` : ''}
 
         <div class="l2h">The fix for this store</div>
         ${fixBlock}
@@ -511,7 +533,7 @@ ${esc(c.fix.snippet)}
   return `
     <div class="l2top">
       <div class="l2score">${L.score}<small> / 100</small></div>
-      <div class="l2note">${esc(L.note)}</div>
+      <div class="l2note">${reportText(L.note)}</div>
     </div>
     <div class="wbar">${bar}</div>
     <div class="wlegend">Segment width is each check's real share of this layer; the underline is what it scored.
@@ -581,15 +603,16 @@ function renderDetailedReport(r){
     <div class="specgroup">
       <h4>${esc(g.name)} <span>— ${g.specWeight}% of the total in the spec</span></h4>
       ${g.checks.map(c => `
-        <div class="speccheck ${c.scored ? '' : 'off'}">
+        <div class="speccheck ${Number.isFinite(c.value) && c.value < 100 && c.basis !== 'baseline' ? 'needs-attention' : ''} ${c.scored ? '' : 'off'}">
           <div>
-            <div class="nm">${esc(c.spec)}${c.specSub ? ` <em>(spec: ${c.specSub}% within layer${
+            <div class="nm">${reportText(c.spec || c.label)}${c.specSub ? ` <em>(spec: ${c.specSub}% within layer${
               c.effectiveSub && c.effectiveSub !== c.specSub ? `, scored at ${c.effectiveSub}%` : ''})</em>` : ''}${
               !c.scored ? '<span class="tag dropped">not scored</span>'
               : c.added ? '<span class="tag added">added</span>'
               : /Redefined|Widened|Three states|Measured as/.test(c.why) ? '<span class="tag changed">changed</span>' : ''}</div>
-            <div class="res">${esc(c.result)}</div>
-            ${c.why ? `<div class="whyline">${esc(c.why)}</div>` : ''}
+            <div class="res">${reportText(c.result)}</div>
+            ${c.why ? `<div class="whyline">${reportText(c.why)}</div>` : ''}
+            ${!c.key && reportFix(c) ? `<div class="technical-fix"><b>Recommended fix: ${reportText(reportFix(c).headline)}</b><ol class="fix-steps">${reportFix(c).steps.map(step => `<li>${reportText(step)}</li>`).join('')}</ol><p>Where: ${reportText(reportFix(c).where)}</p></div>` : ''}
           </div>
           <div class="val">${c.value}</div>
         </div>`).join('')}
@@ -649,19 +672,19 @@ function renderDetailedReport(r){
   </section>` : ''}
 
   ${r.layer2Report ? `<section>
-    <div class="sechead"><h3>Layer 2 — structured data, check by check</h3>
+    <div class="sechead"><h3>Layer 2 — Structured data</h3>
       <p>Open any check to see which products fail it and the exact JSON-LD this store needs.</p></div>
     ${renderLayer2(r.layer2Report)}
   </section>` : ''}
 
   ${r.layer3Report ? `<section>
-    <div class="sechead"><h3>Layer 3 — checkout &amp; UCP, check by check</h3>
+    <div class="sechead"><h3>Layer 3 — Checkout &amp; UCP</h3>
       <p>India-specific. Open any check to see what an agent can and can't read about buying from this store.</p></div>
     ${renderLayer2(r.layer3Report)}
   </section>` : ''}
 
   ${r.layer4Report ? `<section>
-    <div class="sechead"><h3>Layer 4 — content clarity, check by check</h3>
+    <div class="sechead"><h3>Layer 4 — Content clarity</h3>
       <p>What an agent can quote back when a shopper asks about these products.</p></div>
     ${renderLayer2(r.layer4Report)}
   </section>` : ''}
@@ -670,7 +693,7 @@ function renderDetailedReport(r){
 
   <section>
     <div class="sechead"><h3>Every check in the spec, all four layers</h3>
-      <p>Greyed rows are measured but not scored: they returned the same result on every Shopify store tested, so they can't rank one store against another.</p></div>
+      <p>Checks marked “not scored” are informational. Their findings can still need attention and include recommended fixes.</p></div>
     ${specBlocks}
   </section>
 

@@ -58,3 +58,13 @@ body[data-screen=report] .masthead{display:none}.free-report>.eyebrow{font:11px 
 #coupon-status:empty{margin:0;min-height:0}
 
 .scan-help{max-width:760px;margin:40px 0;padding:32px;background:#f5f8f8;border:1px solid #d9e5e5;border-radius:12px}.scan-help h2{font-size:28px;margin:16px 0}.scan-help p{color:#607070;line-height:1.6}.scan-contact{display:inline-block;padding:14px 24px;border-radius:6px;background:#4ad3d3;color:#080a0a;font-weight:600;text-decoration:none;margin:12px 20px 12px 0}.scan-retry{color:#177b7b}.scan-help .scan-help-note{font-size:13px;margin-bottom:0}.scan-contact:focus-visible,.scan-retry:focus-visible{outline:3px solid #177b7b;outline-offset:3px}
+
+/* Paid report findings: readable prose, clear status and untouched code. */
+.report-document .fieldrow .v.todo,.report-document .needs-attention .l2r,.report-document .needs-attention .l2v,.report-document .needs-attention .res,.report-document .needs-attention .val,.report-document .ev li.missing span{color:#b42318}
+.report-document .l2card.off,.report-document .speccheck.off{opacity:1}
+.report-document .l2n{display:block;font-size:15px;line-height:1.6;text-transform:none;letter-spacing:normal}
+.report-document .l2r,.report-document .speccheck .res{display:block;font-family:FlowInter,Arial,sans-serif;font-size:14px;line-height:1.7;margin-top:8px;overflow-wrap:anywhere}
+.report-document .l2p,.report-document .l2note,.report-document .ev,.report-document .where,.report-document .technical-fix{font-family:FlowInter,Arial,sans-serif;font-size:14px;line-height:1.75}
+.report-document .l2h{font-size:12px;margin:24px 0 10px;letter-spacing:.025em}.report-document .tag{margin-left:10px;vertical-align:middle}.report-document .finding-status{display:inline-block;font-size:11px;font-weight:600;border:1px solid #f0b4af;border-radius:4px;padding:1px 6px;margin-right:6px;background:#fff1f0}
+.report-document .fix-steps{display:block;margin:14px 0 20px;padding-left:24px;font:14px/1.8 FlowInter,Arial,sans-serif}.report-document .fix-steps li{display:list-item;margin:8px 0;padding-left:4px}.report-document .where{margin:16px 0}.report-document .technical-fix{margin-top:18px}.report-document .snip{line-height:1.7;tab-size:2}.report-document .l2body{padding-top:4px;padding-bottom:28px}
+@media print{.report-document .finding-status,.report-document .needs-attention,.report-document .fieldrow .v.todo{print-color-adjust:exact;-webkit-print-color-adjust:exact}}

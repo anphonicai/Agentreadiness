@@ -70,3 +70,23 @@ test('free UI never renders the hidden paid report; authorized view renders save
   assert.ok(full.includes('id="full-detail"'));
   assert.ok(full.includes('Private report · Commerce.Anphonic.ai'));
 });
+
+test('paid report shows informational fixes, readable schema labels and intact JSON-LD', () => {
+  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+  const context={document:{getElementById:()=>({addEventListener(){}})},fetch:async()=>{throw new Error('offline');}};
+  runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],context);
+  const layer={checks:[{key:'imageCoverage',label:'Image coverage',value:20,scored:false,basis:'measured',result:'One image',evidence:{items:[]},fix:null}],score:50,sampleSize:1};
+  const image=context.renderLayer2(layer);
+  assert.match(image,/Add useful product images/);
+  assert.match(image,/needs-attention/);
+  assert.ok(!image.includes('nothing here to fix'));
+  assert.ok(!image.includes('spec null'));
+  assert.equal(context.reportText('FAQ/HowTo schema'), 'FAQ / How-to schema');
+  const snippet='{"acceptedPaymentMethod":"Cash"}';
+  layer.checks=[{key:'codPayment',label:'acceptedPaymentMethod',value:0,scored:true,basis:'state',fix:{headline:'Add acceptedPaymentMethod',where:'Offer',steps:['Declare acceptedPaymentMethod'],snippet}}];
+  const payment=context.renderLayer2(layer);
+  assert.match(payment,/accepted payment methods/);
+  assert.match(payment,/&quot;acceptedPaymentMethod&quot;/);
+  layer.checks=[{key:'faqSchema',label:'FAQ',value:50,scored:true,basis:'baseline'}];
+  assert.ok(!context.renderLayer2(layer).includes('needs-attention'));
+});

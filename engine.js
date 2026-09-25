@@ -1796,7 +1796,7 @@ export function score(raw) {
           ...cap(live.slice().sort((a, b) => a.descWords - b.descWords).filter((p) => p.descWords < 60)
             .map((p) => ({ title: p.title, url: p.url, note: p.descWords === 0 ? 'no description' : `${p.descWords} words` }))),
         },
-        fix: null,
+        fix: l4.descriptionDepth < 100 ? {"headline": "Complete short or missing descriptions", "where": "Shopify admin → Products → Description", "steps": ["Start with the products listed in the evidence. Explain what each product is, who it is for, and its verified materials, dimensions, contents and usage instructions.", "Write useful product-specific copy without padding the word count. Publish the changes and rescan. This check is informational and does not change the weighted score."], "snippet": null} : null,
       }),
       build('uniqueness', {
         value: l4.uniqueness,
@@ -1810,7 +1810,7 @@ export function score(raw) {
             : `All ${n} sampled descriptions are distinct`,
           items: [], total: 0, more: 0,
         },
-        fix: null,
+        fix: l4.uniqueness < 100 ? {"headline": "Make each product description distinct", "where": "Shopify admin → Products → Description", "steps": ["Replace repeated introductions with verified facts specific to each product. Keep shared policy text separate from product descriptions.", "Check the opening paragraphs across similar products, publish the changes and rescan. Do not invent product differences."], "snippet": null} : null,
       }),
       build('imageCoverage', {
         value: l4.imageCoverage,
@@ -1823,7 +1823,7 @@ export function score(raw) {
           ...cap(live.slice().sort((a, b) => a.imageCount - b.imageCount).filter((p) => p.imageCount <= 2)
             .map((p) => ({ title: p.title, url: p.url, note: `${p.imageCount} image${p.imageCount === 1 ? '' : 's'}` }))),
         },
-        fix: null,
+        fix: l4.imageCoverage < 100 ? {"headline": "Add useful product images", "where": "Shopify admin → Products → Select product → Media", "steps": ["Start with the products listed in the evidence. Add a clear main image, alternate angles, close-up details and a scale or in-use view where relevant. Use genuine product images and match variant images to the right variants.", "Add concise alternative text describing each image. Confirm that images load on the public product page, then rescan. Image count is informational and does not change the weighted score."], "snippet": null} : null,
       }),
     ];
 
