@@ -55,3 +55,8 @@ body[data-screen=analysis] .foot{padding:20px 0 0;margin-top:24px}
 .journey-notice{background:#f0fafa;border-left:3px solid #4ad3d3;padding:14px}.journey-order{border:1px solid #d9e5e5;border-radius:6px;padding:20px;margin:24px 0}.journey-order ul{padding-left:20px;font-size:14px;color:#607070;line-height:1.8}
 #verification-code{font-family:FlowMono,monospace;font-size:24px;letter-spacing:.4em;text-align:center}#demo-payment{width:100%}.journey-card .err{color:#93231c}
 @media(max-width:700px){.journey-card{margin:32px 20px;padding:24px}.journey-card h1{font-size:26px}}
+
+body[data-screen=home] .lede>p.hero-promise{max-width:800px;color:#080A0A;font-weight:500;margin-top:28px}
+body[data-screen=home] .lede>p.hero-description{max-width:800px;font-size:18px;line-height:1.6;margin-top:16px}
+body[data-screen=home] .hero-scan-count{font-size:13px;color:#607070;margin-top:24px}
+@media(max-width:700px){body[data-screen=home] .lede>p.hero-description{font-size:16px}}

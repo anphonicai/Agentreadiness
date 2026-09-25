@@ -256,15 +256,16 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
   <header class="masthead"><a href="/" aria-label="Anphonic Agent Readiness home"><img src="/assets/anphonic-logo.png" alt="Anphonic" width="213" height="50"></a><span class="edition">AI COMMERCE INTELLIGENCE</span></header>
 
   <div id="intro" class="lede">
-    <div class="eyebrow">AI COMMERCE INTELLIGENCE</div><h1>See your store through the eyes of AI.</h1>
-    <p>Measure how discoverable and understandable your storefront is to the next generation of shopping agents.</p>
+    <div class="eyebrow">AI COMMERCE INTELLIGENCE</div><h1>See your store through the<br>eyes of AI.</h1>
+    <p class="hero-promise">See what matters. Not everything that could be wrong.</p>
+    <p class="hero-description">Enter a Shopify store URL. We read the catalogue exactly as ChatGPT, Copilot, Gemini or Perplexity would, then show you the product data they can't see.</p>
 
     <form id="form">
-      <input type="text" id="url" placeholder="Enter store name or URL" autocomplete="url" spellcheck="false" aria-label="Store name or website URL" aria-describedby="err" maxlength="2048" required>
+      <input type="text" id="url" placeholder="Store name or URL" autocomplete="url" spellcheck="false" aria-label="Store name or website URL" aria-describedby="err" maxlength="2048" required>
       <button id="go" type="submit">Analyse store →</button>
     </form>
     <p class="form-note">Free scan · Public storefront data only</p><div id="err" class="err hidden" role="alert"></div>
-    <div class="recent" id="recent"></div>
+    <div class="recent hero-scan-count">1,200+ stores scanned this month</div>
     <div class="flow-signals"><span>● &nbsp; AI readiness score</span><span>● &nbsp; Page-level intelligence</span><span>● &nbsp; Actionable findings</span></div>
   </div>
 
@@ -706,7 +707,6 @@ async function poll(id){
   $('report').focus({preventScroll:true});
   window.scrollTo(0, 0);
   resetForm();
-  loadRecent();
   } catch (error) { $('progress').classList.add('hidden'); resetForm(); showError(error.message || 'Unable to load the scan. Please try again.'); }
 }
 
@@ -774,18 +774,6 @@ $('form').addEventListener('submit', (e) => {
   beginJourney(v);
 });
 
-async function loadRecent(){
-  try{
-    const { history } = await (await fetch('/api/history')).json();
-    if (!history.length) return;
-    $('recent').innerHTML = 'Recently scanned: ' + history.slice(0,6).map(h =>
-      `<button type="button" data-u="${esc(h.domain)}">${esc(h.domain.replace(/^https?:\/\/(www\.)?/,''))}</button> ${h.score}`
-    ).join(' · ');
-    $('recent').querySelectorAll('button').forEach(b =>
-      b.addEventListener('click', () => { $('url').value = b.dataset.u; beginJourney(b.dataset.u); }));
-  }catch{}
-}
-loadRecent();
 $('methodology-open').addEventListener('click', () => $('flow-methodology').showModal());
 $('methodology-close').addEventListener('click', () => $('flow-methodology').close());
 </script>
