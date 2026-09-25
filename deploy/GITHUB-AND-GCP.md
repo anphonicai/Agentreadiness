@@ -3,6 +3,7 @@
 ## Current deployment
 
 - Workspace: `/Users/akshita/Downloads/agentnew`
+- GitHub: https://github.com/anphonicai/Agentreadiness
 - GCP project: `anphonic-commerce`
 - VM: `commerce-app`, zone `asia-south1-a`
 - Site: https://commerce.anphonic.ai
@@ -24,8 +25,8 @@ gh auth status
 gh auth login
 
 git remote -v
-# One-time setup: replace OWNER and REPOSITORY with your real destination.
-git remote add origin https://github.com/OWNER/REPOSITORY.git
+# One-time setup, only if origin is missing.
+git remote add origin https://github.com/anphonicai/Agentreadiness.git
 # If origin already exists and needs correcting, use git remote set-url origin URL.
 
 git status --short
