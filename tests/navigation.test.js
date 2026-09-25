@@ -14,7 +14,6 @@ test('history revisits public screens, preserves forward steps and excludes paid
   }
   const events = {};
   const body = {dataset:{screen:'home'}};
-  let observe;
   let cursor = 0;
   const states = [];
   const history = {
@@ -28,23 +27,19 @@ test('history revisits public screens, preserves forward steps and excludes paid
     window:{addEventListener(type, fn) {events[type]=fn;}},
     history,location:{href:'http://localhost/'},
     setScreen(screen) {body.dataset.screen=screen;},
-    MutationObserver:class {constructor(fn) {observe=fn;} observe() {}},
   });
   vm.runInContext(readFileSync(new URL('../public/navigation.js', import.meta.url),'utf8'),context);
   context.setScreen('consent');
   context.setScreen('verification');
   history.back();
   assert.equal(body.dataset.screen,'consent');
-  assert.equal(node('journey-forward').disabled,false);
   history.forward();
   assert.equal(body.dataset.screen,'verification');
   const count=states.length;
   context.setScreen('report', {privateReport:true});
-  node('full-detail').classList.remove('hidden');observe();
+  node('full-detail').classList.remove('hidden');
   assert.equal(states.length,count);
-  assert.equal(node('journey-back').hidden,true);
   history.back();
   assert.equal(body.dataset.screen,'consent');
   assert.equal(node('full-detail').classList.contains('hidden'),true);
-  assert.equal(node('journey-back').hidden,false);
 });

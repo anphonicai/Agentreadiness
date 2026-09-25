@@ -43,11 +43,3 @@ document.getElementById('review-form').addEventListener('submit', async event =>
     button.textContent = 'Send enquiry →';
   }
 });
-
-// Cross-page navigation uses the browser history, preserving the scanner when
-// restored from the back/forward cache. Direct visits have a scanner fallback.
-document.getElementById('contact-back').addEventListener('click', () => {
-  if (history.length > 1) history.back();
-  else location.assign('/');
-});
-document.getElementById('contact-forward').addEventListener('click', () => history.forward());
