@@ -60,3 +60,5 @@ body[data-screen=home] .lede>p.hero-promise{max-width:800px;color:#080A0A;font-w
 body[data-screen=home] .lede>p.hero-description{max-width:800px;font-size:18px;line-height:1.6;margin-top:16px}
 body[data-screen=home] .hero-scan-count{font-size:13px;color:#607070;margin-top:24px}
 @media(max-width:700px){body[data-screen=home] .lede>p.hero-description{font-size:16px}}
+
+body[data-screen=home] .lede h1 .hero-ending{white-space:nowrap}
