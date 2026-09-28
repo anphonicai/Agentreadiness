@@ -19,7 +19,7 @@ test('server fixes price, denies unpaid/mismatched sessions, retries email and f
  const env={PUBLIC_APP_URL:'https://commerce.anphonic.ai',STRIPE_SECRET_KEY:'test',STRIPE_WEBHOOK_SECRET:'test',RESEND_API_KEY:'test',REPORT_EMAIL_FROM:'reports@example.com'};
  let session={id:'cs_test_123',url:'https://checkout.stripe.com/test',client_reference_id:'scan',mode:'payment',amount_subtotal:24900,amount_subtotal:24900,amount_total:24900,currency:'usd',payment_status:'unpaid',status:'open'};
  const options={env,fetchImpl:async(url,request)=>{
-   if(request.method==='POST') {const form=new URLSearchParams(request.body);assert.equal(form.get('line_items[0][price_data][unit_amount]'),'24900');assert.equal(form.get('customer_email'),'buyer@example.com');assert.equal(form.get('allow_promotion_codes'),'true');assert.equal(form.get('payment_method_collection'),'if_required');}
+   if(request.method==='POST') {const form=new URLSearchParams(request.body);assert.equal(form.get('line_items[0][price_data][unit_amount]'),'24900');assert.equal(form.get('customer_email'),'buyer@example.com');assert.equal(form.get('allow_promotion_codes'),'true');assert.equal(form.get('mode'),'payment');assert.equal(form.has('payment_method_collection'),false,'One-time checkout must omit subscription-only parameters');}
    return {ok:true,json:async()=>({...session})};
  },send:async()=>{sent++;if(fail) throw new Error('offline');return 'email-id';}};
  try {

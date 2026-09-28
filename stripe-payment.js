@@ -44,7 +44,7 @@ export function createPayments(store, {env=process.env, fetchImpl=fetch, send=se
         if(!created.id) throw new Error('Unable to apply that code.');
         discount={'discounts[0][coupon]':created.id};
       }
-      const session=await stripe('/checkout/sessions',{mode:'payment',client_reference_id:id,customer_email:report.email,payment_method_collection:'if_required',
+      const session=await stripe('/checkout/sessions',{mode:'payment',client_reference_id:id,customer_email:report.email,
         'payment_method_types[0]':'card','line_items[0][quantity]':'1',
         'line_items[0][price_data][currency]':'usd','line_items[0][price_data][unit_amount]':String(PRICE_CENTS),
         'line_items[0][price_data][product_data][name]':'Commerce.Anphonic.ai — Full report',
