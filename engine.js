@@ -465,6 +465,47 @@ async function mapLimit(items, limit, fn) {
   return out;
 }
 
+// Shopify ranks its own collection pages by real order volume, so the store's
+// bestsellers are public without buying demand data. Only the HTML route honours
+// sort_by -- /collections/all/products.json ignores it and returns alphabetical.
+function bestSellingHandles(html) {
+  const out = [];
+  const seen = new Set();
+  const re = /\/products\/([a-z0-9][a-z0-9-]*)/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const handle = m[1].toLowerCase();
+    if (!seen.has(handle)) { seen.add(handle); out.push(handle); }
+  }
+  return out;
+}
+
+// Returns the catalogue's bestsellers in order, or null when the store's
+// collection page cannot be read (JS-rendered themes, blocked, or empty).
+async function bestSellerSample(origin, products, size, fetchPage) {
+  const byHandle = new Map(products.filter(p => typeof p.handle === 'string').map(p => [p.handle.toLowerCase(), p]));
+  if (!byHandle.size) return null;
+  const ranked = [];
+  const taken = new Set();
+  for (let page = 1; page <= 2 && ranked.length < size; page += 1) {
+    const res = await fetchPage(`${origin}/collections/all?sort_by=best-selling${page > 1 ? `&page=${page}` : ''}`);
+    if (!res.ok || !res.body) break;
+    const handles = bestSellingHandles(res.body);
+    if (!handles.length) break;
+    for (const handle of handles) {
+      const product = byHandle.get(handle);
+      if (!product || taken.has(handle)) continue;
+      taken.add(handle);
+      ranked.push(product);
+      if (ranked.length >= size) break;
+    }
+    // A page that adds nothing new means pagination has run out.
+    if (!handles.some(h => byHandle.has(h))) break;
+  }
+  // Too few matches means the page was not a usable product listing.
+  return ranked.length >= Math.min(size, 5, byHandle.size) ? ranked : null;
+}
+
 function spreadSample(arr, n) {
   if (arr.length <= n) return arr.slice();
   const step = arr.length / n;
@@ -651,7 +692,13 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
   };
 
   onProgress(`Inspecting ${Math.min(SAMPLE_SIZE, products.length)} products`);
-  const sample = spreadSample(products, SAMPLE_SIZE);
+  // Audit what the store actually sells. Falls back to an even spread across the
+  // catalogue when the bestseller listing is unreadable; the basis is recorded
+  // either way so the two can be told apart afterwards.
+  const ranked = await bestSellerSample(origin, products, SAMPLE_SIZE, get);
+  raw.samplingBasis = ranked ? 'best-selling' : 'catalogue-spread';
+  raw.samplingRanked = ranked ? ranked.length : 0;
+  const sample = ranked || spreadSample(products, SAMPLE_SIZE);
   raw.products = await mapLimit(sample, CONCURRENCY, async (p) => {
     const url = `${origin}/products/${p.handle}`;
     const r = await get(url);
@@ -1937,6 +1984,8 @@ export function score(raw) {
     scannedAt: raw.scannedAt,
     catalogCount: raw.catalogCount,
     sampled: live.length,
+    samplingBasis: raw.samplingBasis || 'catalogue-spread',
+    samplingRanked: raw.samplingRanked || 0,
     sampleAttempted: (raw.products || []).length,
     homeStatus: raw.homeStatus,
     checkoutStack: raw.checkoutStack || [],
