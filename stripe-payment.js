@@ -30,6 +30,7 @@ export function createPayments(store, {env=process.env, fetchImpl=fetch, send=se
   return {ready,
     async checkout(id, code) {
       if(!ready) throw new Error('Payments are not configured yet.');
+      store.assertCompetitorsReady(id);
       const report=store.get(id);
       if(!report?.email || !Number.isFinite(report.result.finalScore)) throw new Error('Complete a scan with your email before payment.');
       // A supplied code is validated here, then minted as a single-use Stripe
@@ -44,6 +45,7 @@ export function createPayments(store, {env=process.env, fetchImpl=fetch, send=se
         if(!created.id) throw new Error('Unable to apply that code.');
         discount={'discounts[0][coupon]':created.id};
       }
+      store.lockCompetitors(id);
       const session=await stripe('/checkout/sessions',{mode:'payment',client_reference_id:id,customer_email:report.email,
         'payment_method_types[0]':'card','line_items[0][quantity]':'1',
         'line_items[0][price_data][currency]':'usd','line_items[0][price_data][unit_amount]':String(PRICE_CENTS),

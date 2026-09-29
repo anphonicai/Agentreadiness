@@ -133,6 +133,12 @@ document.querySelectorAll('[data-back]').forEach(button => button.addEventListen
 }));
 
 function openPayment() {
+  const competitorForm = document.getElementById('competitor-form');
+  if (competitorForm && [...competitorForm.querySelectorAll('input')].some(input=>input.value.trim())) {
+    const selected = JSON.parse(competitorForm.dataset.selected || '[]');
+    if (!selected.length) { document.getElementById('competitor-status').textContent='Save your competitors before continuing, or clear the fields to purchase without a comparison.'; competitorForm.scrollIntoView({block:'center'}); return; }
+  }
+  if (competitorBusy) { document.getElementById('competitor-status')?.scrollIntoView({block:'center'}); return; }
   const company = $('paid-preview')?.dataset.company || pendingStore || 'your store';
   document.querySelectorAll('.journey-company').forEach(node => { node.textContent = company; });
   $('checkout-open').disabled = false;

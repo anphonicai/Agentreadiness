@@ -1,0 +1,43 @@
+/* Shared type hierarchy. Local fonts keep the core typography independent of a CDN. */
+@font-face{font-family:'Anphonic Display';src:url('/assets/fonts/Manrope-Variable.ttf') format('truetype');font-style:normal;font-weight:200 800;font-display:swap}
+@font-face{font-family:'Anphonic Text';src:url('/assets/fonts/Inter-Variable.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:swap}
+:root{--font-display:'Anphonic Display',Arial,sans-serif;--font-text:'Anphonic Text',Arial,sans-serif;--type-title:clamp(32px,4vw,52px);--type-section:clamp(22px,2.2vw,28px)}
+body{font-family:var(--font-text);font-size:16px;line-height:1.6;font-optical-sizing:auto}
+.flow-nav,.journey-card,.report-document,.site-footer,#flow-methodology,body[data-screen=home] .lede,body[data-screen=analysis]>.wrap{font-family:var(--font-text)}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:700;letter-spacing:-.025em;line-height:1.2;text-wrap:balance}
+body[data-screen=home] .lede h1{font-family:var(--font-display);font-weight:700;font-size:clamp(38px,5.6vw,80px);line-height:1.08;letter-spacing:-.035em;max-width:1080px;text-wrap:balance}
+body[data-screen=home] .lede h1 .hero-ending{white-space:normal}
+body[data-screen=home] .lede>p.hero-promise{font-size:clamp(19px,2vw,24px);font-weight:500;line-height:1.4;letter-spacing:-.015em;max-width:44ch;margin-top:28px;color:#182828}
+body[data-screen=home] .lede>p.hero-description{font-size:18px;line-height:1.7;max-width:64ch;margin-top:12px;color:#526365}
+body[data-screen=home] #url,body[data-screen=home] #go{font-family:var(--font-text);font-size:16px}
+body[data-screen=home] #go{font-weight:600}
+.flow-nav button,.flow-nav>a:last-child{font-family:var(--font-text);font-size:14px;font-weight:500}
+.journey-card h1,#verification-screen h1,.checkout-copy h1,.contact-copy h1,.free-report>h1{font-family:var(--font-display);font-size:var(--type-title);font-weight:700;line-height:1.12;letter-spacing:-.035em}
+.upgrade-copy h1{font-family:var(--font-display);font-size:clamp(36px,5vw,64px);font-weight:700;line-height:1.08;letter-spacing:-.035em}
+#analysis-heading h1{font-family:var(--font-display);font-weight:700;line-height:1.15}
+.journey-card>p,.contact-copy p,.contact-card>p{font-size:16px;line-height:1.7}
+.journey-form input,.journey-form textarea,.contact-card input,.contact-card textarea,.competitor-fields input[type=text]{font-family:var(--font-text);font-size:16px}
+.journey-form>label:not(.journey-checkbox),.contact-card label{font-family:var(--font-text);font-size:14px;font-weight:500;letter-spacing:0;text-transform:none}
+.journey-card button,.price-card button,.payment-card button,.competitor-actions button,.contact-card button{font-family:var(--font-text);font-weight:600}
+.payment-card h2,.contact-card h2,.free-gaps>h2,.free-report-context h2,.free-upgrade h2,.competitor-card h2,.scan-help h2,.report-document .sechead h3{font-family:var(--font-display);font-size:var(--type-section);font-weight:700;line-height:1.25;letter-spacing:-.025em}
+.free-category h3,.free-verdict h2,.report-document .l2n{font-family:var(--font-text);font-weight:600}
+.report-document .report-heading h2{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,3.5vw,40px);line-height:1.15}
+.competitor-card p,.report-document .l2r,.report-document .speccheck .res,.report-document .l2p,.report-document .l2note,.report-document .ev,.report-document .where,.report-document .technical-fix,.report-document .fix-steps{font-family:var(--font-text);font-size:15px;line-height:1.75}
+.price,.free-verdict strong{font-family:var(--font-display);font-weight:700;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.site-footer .footer-nav button{font-family:var(--font-text);font-weight:500}
+@media(max-width:700px){
+  body[data-screen=home] .lede>p.hero-description{font-size:16px;line-height:1.65}
+  body[data-screen=home] .lede>p.hero-promise{margin-top:24px}
+  .journey-card h1,#verification-screen h1{font-size:30px}
+  .site-footer .footer-nav button{font-size:12px}
+}
+@media print{
+  .report-document .report-heading h2{font-size:28px}
+  .report-document .sechead h3{font-size:20px}
+  .report-document .l2p,.report-document .l2r,.report-document .fix-steps{font-size:12px}
+}
+
+/* Space section labels apart from navigation controls. */
+.journey-card>.journey-back{display:block;margin-bottom:24px}
+.journey-card>.journey-kicker{display:block;line-height:1.5;margin-bottom:16px}
+.journey-card h1{margin-top:0}

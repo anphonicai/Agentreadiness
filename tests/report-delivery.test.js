@@ -17,6 +17,21 @@ test('free response excludes paid details at every level and ignores future fiel
   assert.ok(result.gaps.every(g=>Object.keys(g).sort().join(',')==='layer,message'));
 });
 
+test('free value preview exposes observed fields and a headline but protects paid instructions', () => {
+  const result=freeReport({...fixture,agentView:{title:'Sample product',fields:[
+    {label:'Price',visible:true,value:'₹100',secret:'private'},
+    {label:'Rating',visible:false,value:'private'},
+    {label:'Private evidence',visible:true,value:'private'}
+  ]},layer2Report:{checks:[{value:0,fix:{headline:'Improve product data',steps:['paid steps'],snippet:'paid code'}}]},layer3Report:null,layer4Report:null});
+  assert.equal(result.preview.recommendationCount,1);
+  assert.equal(result.preview.recommendationTitle,'Improve product data');
+  assert.deepEqual(result.preview.product.fields,[{label:'Price',visible:true,value:'₹100'},{label:'Rating',visible:false,value:null}]);
+  assert.ok(!JSON.stringify(result.preview).includes('private'));
+  assert.ok(!JSON.stringify(result.preview).includes('paid steps'));
+  assert.ok(!JSON.stringify(result.preview).includes('paid code'));
+  assert.equal(freeReport({...fixture,agentView:null}).preview.product,null);
+});
+
 test('private links survive restart, enforce preview isolation, expiry and revocation', () => {
   const dir=mkdtempSync(join(tmpdir(),'report-delivery-'));
   let store;
@@ -89,4 +104,16 @@ test('paid report shows informational fixes, readable schema labels and intact J
   assert.match(payment,/&quot;acceptedPaymentMethod&quot;/);
   layer.checks=[{key:'faqSchema',label:'FAQ',value:50,scored:true,basis:'baseline'}];
   assert.ok(!context.renderLayer2(layer).includes('needs-attention'));
+});
+
+test('competitor entry belongs to free reports and never exposes benchmark results',()=>{
+  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+  const context={document:{getElementById:()=>({addEventListener(){}})},fetch:async()=>{throw new Error('offline');}};
+  runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],context);
+  runInNewContext(readFileSync(new URL('../public/report.js',import.meta.url),'utf8'),context);
+  const free=context.renderReport(freeReport(fixture));
+  assert.match(free,/id="competitor-form"/);
+  assert.match(free,/Results unlock after payment/);
+  assert.ok(!free.includes('class="benchmark-stats"'));
+  assert.ok(!context.renderReport(fixture,{full:true}).includes('id="competitor-form"'));
 });

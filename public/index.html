@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Commerce.Anphonic.ai — Agent Readiness</title>
+<title>Commerce.Anphonic.ai: Agent Readiness</title>
 <meta name="referrer" content="no-referrer">
 <style>
 :root{
@@ -157,7 +157,7 @@ ol.gaps li b{display:block;font-weight:600;font-size:13px;color:var(--muted);mar
 .l2score small{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0}
 .l2note{color:var(--muted);font-size:13px;max-width:54ch}
 
-/* weight bar — segment width is the check's real share of the layer, fill is
+/* weight bar: segment width is the check's real share of the layer, fill is
    the score it earned. Reads as "where the 100 points actually sit". */
 .wbar{display:flex;border:1px solid var(--rule);background:var(--sheet);margin-bottom:calc(var(--sp)*1.5)}
 .wseg{position:relative;flex-grow:1;flex-basis:0;min-width:0;border-right:1px solid var(--rule);padding:8px 7px 9px}
@@ -245,6 +245,8 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
 <link rel="stylesheet" href="/flow.css">
 <link rel="stylesheet" href="/refinement.css">
 <link rel="stylesheet" href="/footer.css">
+<link rel="stylesheet" href="/typography.css">
+<link rel="stylesheet" href="/free-report.css">
 </head>
 <body data-screen="home">
 <nav class="flow-nav" aria-label="Main navigation">
@@ -275,7 +277,7 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
 
   <section id="consent-screen" class="journey-card hidden" aria-labelledby="consent-title">
     <button type="button" class="journey-back" data-back="home">← Back</button>
-    <span class="journey-kicker">01 / SECURE ANALYSIS</span>
+    <span class="journey-kicker">Secure analysis</span>
     <h1 id="consent-title" tabindex="-1">Get your store intelligence score</h1>
     <p class="journey-store"></p>
     <p>Analyse your public storefront and get your readiness report. We save your name, email and store URL with your audit request.</p>
@@ -290,7 +292,7 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
 
   <section id="verification-screen" class="journey-card hidden" aria-labelledby="verification-title">
     <button type="button" class="journey-back" data-back="consent">← Change details</button>
-    <span class="journey-kicker">02 / EMAIL VERIFICATION</span>
+    <span class="journey-kicker">Email verification</span>
     <h1 id="verification-title" tabindex="-1">Enter the verification code<br>to verify your email</h1>
     <p>Continue with <span id="verification-email"></span></p>
     <p class="journey-notice">We sent a six-digit code to your email. It expires in 5 minutes. Check your spam folder if needed.</p>
@@ -305,7 +307,7 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
   </section>
 
   <section id="upgrade-screen" class="upgrade-screen hidden" aria-labelledby="upgrade-title">
-    <div class="upgrade-copy"><button type="button" class="journey-back" data-back="report">← Back to free report</button><span class="journey-kicker">PREMIUM REPORT</span><h1 id="upgrade-title" tabindex="-1">See what matters.<br>Unlock exactly how to<br>fix it.</h1><p>Every locked finding for <span class="journey-company">your store</span> — store-specific JSON-LD, a ranked fix roadmap, and a competitor benchmark when available — becomes available the moment you unlock the full report.</p></div>
+    <div class="upgrade-copy"><button type="button" class="journey-back" data-back="report">← Back to free report</button><span class="journey-kicker">PREMIUM REPORT</span><h1 id="upgrade-title" tabindex="-1">See what matters.<br>Unlock exactly how to<br>fix it.</h1><p>Unlock findings for <span class="journey-company">your store</span>, including store-specific JSON-LD, a ranked fix roadmap, and a competitor benchmark when available.</p></div>
     <div class="price-card"><span class="journey-kicker">ONE-TIME STORE AUDIT</span><div class="price">$249</div><p>USD · per store · one-time</p><ul><li>Full diagnostics for sampled product pages</li><li>Named competitor benchmark, when available</li><li>Store-specific JSON-LD fixes</li><li>Downloadable PDF report</li></ul><button id="checkout-open" type="button">Unlock full report →</button><small>Preview checkout · No charge</small></div>
   </section>
   <section id="payment-screen" class="checkout-screen hidden" aria-labelledby="payment-title">
@@ -328,7 +330,7 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
       <div class="footer-brand">
         <a href="https://www.anphonic.ai/" aria-label="Anphonic"><img src="/assets/flow/logo.png" alt="Anphonic" width="136" height="32"></a>
         <p class="footer-tagline">AI Commerce Intelligence</p>
-        <nav class="footer-nav" aria-label="Footer navigation">
+        <nav class="footer-nav" id="footer-navigation" aria-label="Footer navigation">
           <a href="https://www.anphonic.ai/">Platform</a>
           <button type="button" id="footer-methodology">Methodology</button>
           <button type="button" id="footer-pricing">Pricing</button>
@@ -339,9 +341,9 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
         <div class="footer-social" aria-label="Social channels"><span class="footer-social-placeholder" role="img" aria-label="Facebook" title="Facebook link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></span><span class="footer-social-placeholder" role="img" aria-label="LinkedIn" title="LinkedIn link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></span><span class="footer-social-placeholder" role="img" aria-label="X" title="X link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span><span class="footer-social-placeholder" role="img" aria-label="Instagram" title="Instagram link coming soon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg></span></div>
       </div>
     </div>
-    <div class="footer-bottom">
-      <div class="footer-legal"><span title="Link coming soon">Terms of Service</span><span title="Link coming soon">Privacy Policy</span><span title="Link coming soon">Cookie Settings</span></div>
-      <p>© <span id="footer-year">2026</span> Anphonic. All rights reserved.</p>
+    <div class="footer-bottom" id="footer-details">
+      <div class="footer-legal"><span title="Link coming soon"><span class="footer-desktop-label">Terms of Service</span><span class="footer-mobile-label">Terms</span></span><span title="Link coming soon"><span class="footer-desktop-label">Privacy Policy</span><span class="footer-mobile-label">Privacy</span></span><span title="Link coming soon">Cookie Settings</span></div>
+      <p>© <span id="footer-year">2026</span> Anphonic<span class="footer-copyright-extra">. All rights reserved.</span></p>
     </div>
   </div>
 </footer>
@@ -388,7 +390,7 @@ function gradeClass(score){ return score >= 80 ? 'good' : score >= 60 ? 'mid' : 
 // How each sub-score was arrived at. Shown on every row so a 50 is never
 // mistaken for a measurement when it is a deliberate floor.
 const BASIS = {
-  measured: ['measured', 'A percentage of the sampled products — this number moves with the catalogue.'],
+  measured: ['measured', 'A percentage of the sampled products: this number moves with the catalogue.'],
   state:    ['graded state', 'One of a fixed set of outcomes, not a percentage of the sample.'],
   baseline: ['baseline', 'No fault was found and none is assumed. Scored at a floor by choice, not measured.'],
 };
@@ -400,7 +402,7 @@ const SHORT = { productSchema:'Product', variantSchema:'Variants', orgSchema:'Or
                 entityConsistency:'Entity naming', descriptionDepth:'Length',
                 uniqueness:'Uniqueness', imageCoverage:'Images' };
 
-// thresholds mirror pageSpeedScore() in engine.js — free below 600KB / 800ms
+// thresholds mirror pageSpeedScore() in engine.js: free below 600KB / 800ms
 const band = (v, ok, warn) => v <= ok ? 'good' : v <= warn ? 'mid' : 'bad';
 
 function renderSpeed(s){
@@ -436,12 +438,12 @@ function renderSpeed(s){
     <p class="speedcaveat">${esc(s.caveat)}</p>`;
 }
 
-// Layers 2 and 3 render identically — same card, same evidence list, same fix
+// Layers 2 and 3 render identically: same card, same evidence list, same fix
 // block. Only the short labels on the weight bar differ.
 // Human-readable report copy; code snippets and product names remain unchanged.
 function reportText(value) {
   const names = {acceptedPaymentMethod:'Accepted Payment Method', OfferShippingDetails:'Offer Shipping Details', MerchantReturnPolicy:'Merchant Return Policy', hasMerchantReturnPolicy:'Has Merchant Return Policy', merchantReturnLink:'Merchant Return Link', AggregateRating:'Aggregate Rating', FAQPage:'FAQ Page', HowTo:'How To', sameAs:'Same As'};
-  return esc(String(value ?? '').replace(/\b(acceptedPaymentMethod|OfferShippingDetails|MerchantReturnPolicy|hasMerchantReturnPolicy|merchantReturnLink|AggregateRating|FAQPage|HowTo|sameAs)\b/g, word => names[word]).replace(/FAQ\/How To schema/g, 'FAQ / How To Schema'));
+  return esc(String(value ?? '').replace(/;(?=\s|$)/g, '.').replace(/\s+[—]\s+/g, ': ').replace(/\b(acceptedPaymentMethod|OfferShippingDetails|MerchantReturnPolicy|hasMerchantReturnPolicy|merchantReturnLink|AggregateRating|FAQPage|HowTo|sameAs)\b/g, word => names[word]).replace(/FAQ\/How To schema/g, 'FAQ / How To Schema'));
 }
 function reportFix(c) {
   if (c.fix) return c.fix;
@@ -468,7 +470,7 @@ function renderLayer2(L){
   const scored = L.checks.filter(c => c.scored);
 
   const bar = scored.map(c => `
-    <div class="wseg" title="${reportText(c.label)} — ${c.effectiveSub}% of this layer, scored ${c.value}"
+    <div class="wseg" title="${reportText(c.label)}: ${c.effectiveSub}% of this layer, scored ${c.value}"
          style="flex-grow:${c.effectiveSub}">
       <em>${esc(SHORT[c.key] || c.key)} · ${c.effectiveSub}%</em>
       <strong>${c.value}</strong>
@@ -536,29 +538,29 @@ ${esc(fix.snippet)}
       <div class="l2note">${reportText(L.note)}</div>
     </div>
     <div class="wbar">${bar}</div>
-    <div class="wlegend">Segment width is each check's real share of this layer; the underline is what it scored.
+    <div class="wlegend">Segment width is each check's real share of this layer. The underline is what it scored.
       This layer is ${L.specWeight}% of the spec and ${L.effectiveWeight}% of the score computed here.
       Values shown in fixes are this store's own, in ${esc(L.currency)}.</div>
     ${cards}`;
 }
 
 function renderLayer5(L){
-  if (!L) return `<section class="benchmark-note"><div class="sechead"><h3>Layer 5 — Competitive Position</h3><span class="pill">15% · NOT CONFIGURED</span></div><p>No named competitors are configured for this store.</p></section>`;
+  if (!L) return `<section class="benchmark-note"><div class="sechead"><h3>Layer 5: Competitive Position</h3><span class="pill">15% · NOT CONFIGURED</span></div><p>No named competitors are configured for this store.</p></section>`;
   const number = n => Number.isFinite(n) ? Math.round(n * 10) / 10 : '—';
   const complete = L.status === 'complete';
   const note = complete ? 'Three or more competitors have comparable scans. The combined audit score includes Layer 5 at 15%.'
     : L.status === 'provisional' ? `Only ${L.comparedCount} comparable competitor${L.comparedCount === 1 ? '' : 's'}. Add or rescan competitors to reach at least three. This provisional score does not contribute to the overall score.`
     : `Comparison unavailable. ${L.clientIssue || 'No comparable competitor scans.'} Missing data is not scored as zero.`;
   return `<section class="benchmark-note layer5" id="layer5">
-    <div class="sechead"><h3>Layer 5 — Competitive Position</h3><span class="pill">15% · ${esc(L.status.toUpperCase())}</span></div>
+    <div class="sechead"><h3>Layer 5: Competitive Position</h3><span class="pill">15% · ${esc(L.status.toUpperCase())}</span></div>
     <p>How your storefront compares with your named competitors on the same checklist.</p>
     <div class="benchmark-stats"><div><b>${number(L.score)}<small>/100</small></b><span>Relative position${complete ? '' : ' · provisional/unavailable'}</span></div><div><b>${L.comparedCount}/${L.namedCount}</b><span>Comparable competitors</span></div><div><b>${number(L.contribution)}<small>/15</small></b><span>Contribution to combined score</span></div><div><b>${number(L.combinedScore)}<small>/100</small></b><span>Combined audit score</span></div></div>
     <p class="benchmark-status">${esc(note)}</p>
     <p class="muted">Readiness score (Layers 1–4): ${number(L.readinessScore)}/100. Scanned ${esc(L.scannedAt ? new Date(L.scannedAt).toLocaleString() : 'date unavailable')}. All tied checks produce a relative score of 50.</p>
     <div class="benchmark-scroll"><table><caption>Named competitor scan coverage</caption><thead><tr><th>Competitor</th><th>Status</th><th>Sampled products</th><th>Scanned</th></tr></thead><tbody>${L.competitors.map(c => `<tr><td>${esc(c.domain)}</td><td>${esc(c.reason || c.status)}</td><td>${c.sampled}</td><td>${esc(c.scannedAt ? new Date(c.scannedAt).toLocaleString() : '—')}</td></tr>`).join('')}</tbody></table></div>
     ${L.rows.length ? `<h4>Same checks, side by side</h4><p class="muted">Values are checklist scores out of 100, not all percentages of products. Median excludes unavailable scans.</p><div class="benchmark-scroll"><table><thead><tr><th>Check</th><th>Your store</th>${L.competitors.map(c => `<th>${esc(c.domain)}</th>`).join('')}<th>Competitor median</th><th>Gap</th></tr></thead><tbody>${L.rows.map(row => `<tr><th>${esc(row.label)}<small>${esc(row.layer.replace('layer','Layer '))} · ${esc(row.basis)}</small></th><td>${number(row.client)}</td>${L.competitors.map(c => `<td>${number(row.competitors.find(v => v.domain === c.domain)?.value)}</td>`).join('')}<td>${number(row.median)}</td><td class="${row.delta < 0 ? 'behind' : 'ahead'}">${row.delta > 0 ? '+' : ''}${number(row.delta)} · ${row.delta < 0 ? 'Behind' : row.delta > 0 ? 'Ahead' : 'At parity'}</td></tr>`).join('')}</tbody></table></div>
-    <h4>What to fix first</h4>${L.gaps.length ? L.gaps.map(g => `<details class="benchmark-gap"><summary>${esc(g.label)} — ${Math.abs(g.delta)} points behind median</summary><p>${esc(g.evidence?.headline || 'Review the corresponding layer evidence below.')}</p>${g.evidence?.items?.length ? `<ul>${g.evidence.items.slice(0,3).map(e => `<li>${/^https?:\/\//i.test(e.url || '') ? `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title || e.url)}</a>` : esc(e.title || '')} — ${esc(e.note || '')}</li>`).join('')}</ul>` : ''}<p>${esc(g.fix?.headline || 'Inspect the corresponding layer recommendations.')}</p>${g.fix?.where ? `<p>${esc(g.fix.where)}</p>` : ''}${g.fix?.steps?.length ? `<ol>${g.fix.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}</details>`).join('') : '<p>No measured checks below the competitor median. Review absolute readiness gaps as well.</p>'}` : ''}
-    <details><summary>Checkout detection — informational</summary><p>No purchase was attempted. These are public declarations and detected app signals.</p><ul>${L.checkout.map(c => `<li><b>${esc(c.domain)}</b>: ${esc(c.evidence)}. Apps: ${esc(c.detectedApps.join(', ') || 'none detected; checkout type unconfirmed')}.</li>`).join('')}</ul></details>
+    <h4>What to fix first</h4>${L.gaps.length ? L.gaps.map(g => `<details class="benchmark-gap"><summary>${esc(g.label)}: ${Math.abs(g.delta)} points behind median</summary><p>${esc(g.evidence?.headline || 'Review the corresponding layer evidence below.')}</p>${g.evidence?.items?.length ? `<ul>${g.evidence.items.slice(0,3).map(e => `<li>${/^https?:\/\//i.test(e.url || '') ? `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title || e.url)}</a>` : esc(e.title || '')}: ${esc(e.note || '')}</li>`).join('')}</ul>` : ''}<p>${esc(g.fix?.headline || 'Inspect the corresponding layer recommendations.')}</p>${g.fix?.where ? `<p>${esc(g.fix.where)}</p>` : ''}${g.fix?.steps?.length ? `<ol>${g.fix.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}</details>`).join('') : '<p>No measured checks below the competitor median. Review absolute readiness gaps as well.</p>'}` : ''}
+    <details><summary>Checkout detection: informational</summary><p>No purchase was attempted. These are public declarations and detected app signals.</p><ul>${L.checkout.map(c => `<li><b>${esc(c.domain)}</b>: ${esc(c.evidence)}. Apps: ${esc(c.detectedApps.join(', ') || 'none detected. Checkout type unconfirmed')}.</li>`).join('')}</ul></details>
     <details><summary>How this is scored</summary><p>${esc(L.methodology)}</p><p>Single check: Score vs. 3–5 named competitors · 100% of Layer 5.</p><ul>${L.limitations.map(t => `<li>${esc(t)}</li>`).join('')}</ul><p class="muted">${esc(L.methodVersion)} · engine ${esc(L.engineVersion)}</p></details>
   </section>`;
 }
@@ -572,7 +574,7 @@ function renderDetailedReport(r){
       NO_CATALOG: "The store is on Shopify but its public product feed is closed, so products can't be sampled.",
     };
     const msg = first.startsWith('BLOCKED_')
-      ? `The store returned ${first.replace('BLOCKED_','')} to our crawler. We couldn’t access it with this scan; other crawlers may receive different responses.`
+      ? `The store returned ${first.replace('BLOCKED_','')} to our crawler. We couldn’t access it with this scan. Other crawlers may receive different responses.`
       : (reasons[first] || r.errors.join(', '));
     return `<div class="verdict"><div class="scoreblock bad"><div class="n">—</div><div class="g">Scan unavailable</div></div>
       <div><h2>${esc(r.domain)}</h2><p class="meta">${esc(msg)}</p></div></div>
@@ -630,11 +632,11 @@ function renderDetailedReport(r){
     `<tr class="${v!=='ok'?'warn':''}"><td>${esc(b)}</td><td>${esc(v)}</td><td class="num"></td></tr>`).join('');
 
   return `
-  <div class="document-brand"><img src="/assets/flow/logo.png" width="120" height="32" alt="Anphonic"><span>AI COMMERCE INTELLIGENCE</span></div><div class="report-heading"><div><h2>Agent Readiness Report</h2><p>AI AGENT INDEXING DIRECTIVE // ${esc(r.domain)} · ${esc(r.scannedAt ? new Date(r.scannedAt).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '')}</p></div><span class="pill">SCAN COMPLETE</span></div>
+  <div class="document-brand"><img src="/assets/flow/logo.png" width="120" height="32" alt="Anphonic"><span>AI COMMERCE INTELLIGENCE</span></div><div class="report-heading"><div><h2>Agent Readiness Report</h2><p>Store audit: ${esc(r.domain)} · ${esc(r.scannedAt ? new Date(r.scannedAt).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '')}</p></div><span class="pill">SCAN COMPLETE</span></div>
   <div class="verdict">
     <div class="scoreblock ${gradeClass(r.finalScore)}">
       <div class="n">${r.finalScore}</div>
-      <div class="g">SCORE / 100</div>
+      <div class="g">Score out of 100</div>
     </div>
     <div>
       <span class="eyebrow">${esc(r.brandName || r.domain)}</span><h2>${esc(r.grade)}</h2>
@@ -672,19 +674,19 @@ function renderDetailedReport(r){
   </section>` : ''}
 
   ${r.layer2Report ? `<section>
-    <div class="sechead"><h3>Layer 2 — Structured data</h3>
+    <div class="sechead"><h3>Layer 2: Structured data</h3>
       <p>Open any check to see which products fail it and the exact JSON-LD this store needs.</p></div>
     ${renderLayer2(r.layer2Report)}
   </section>` : ''}
 
   ${r.layer3Report ? `<section>
-    <div class="sechead"><h3>Layer 3 — Checkout &amp; UCP</h3>
+    <div class="sechead"><h3>Layer 3: Checkout &amp; UCP</h3>
       <p>India-specific. Open any check to see what an agent can and can't read about buying from this store.</p></div>
     ${renderLayer2(r.layer3Report)}
   </section>` : ''}
 
   ${r.layer4Report ? `<section>
-    <div class="sechead"><h3>Layer 4 — Content clarity</h3>
+    <div class="sechead"><h3>Layer 4: Content clarity</h3>
       <p>What an agent can quote back when a shopper asks about these products.</p></div>
     ${renderLayer2(r.layer4Report)}
   </section>` : ''}
@@ -726,6 +728,7 @@ async function poll(id){
       couponsAvailable = j.couponsAvailable === true;
       reportPreviewAvailable = j.reportPreviewAvailable === true;
   $('report').innerHTML = renderReport(j.result);
+  restoreCompetitorSelection();
   $('report').classList.remove('hidden');
   setScreen('report');
   $('report').setAttribute('tabindex', '-1');
@@ -756,6 +759,7 @@ async function run(url){
   });
   const j = await res.json();
   if (!res.ok){ $('progress').classList.add('hidden'); resetForm(); return showError(j.error); }
+  saveScanOwner(j.id, j.ownerToken);
   poll(j.id);
   } catch { $('progress').classList.add('hidden'); resetForm(); showError('Unable to connect. Please try again.'); }
 }
@@ -773,7 +777,7 @@ $('report').addEventListener('click', (e) => {
   window.scrollTo(0, 0);
 });
 
-// delegated — the report is replaced wholesale on every scan
+// delegated: the report is replaced wholesale on every scan
 $('report').addEventListener('click', async (e) => {
   const btn = e.target.closest('.copy');
   if (!btn) return;
@@ -782,12 +786,12 @@ $('report').addEventListener('click', async (e) => {
     await navigator.clipboard.writeText(block);
     btn.textContent = 'Copied';
   } catch {
-    // clipboard is blocked outside a secure context — select it instead so
+    // clipboard is blocked outside a secure context: select it instead so
     // ctrl-C still works rather than leaving a button that silently does nothing
     const pre = btn.parentElement.querySelector('.snip');
     const sel = window.getSelection(); const range = document.createRange();
     range.selectNodeContents(pre); sel.removeAllRanges(); sel.addRange(range);
-    btn.textContent = 'Selected — press ⌘C';
+    btn.textContent = 'Selected: press ⌘C';
   }
   setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
 });
@@ -804,6 +808,7 @@ $('methodology-close').addEventListener('click', () => $('flow-methodology').clo
 </script>
 <script src="/report.js"></script>
 <script src="/journey.js"></script>
+<script src="/competitors.js"></script>
 <script src="/navigation.js"></script>
 <script src="/report-delivery.js"></script>
 <script src="/vendor/gsap/gsap.min.js"></script>

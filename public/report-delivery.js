@@ -64,7 +64,7 @@ $('coupon-apply').addEventListener('click', async () => {
     }
     reportLinkToken = data.token;
     try { sessionStorage.setItem('commerce-report-link', reportLinkToken); } catch {}
-    $('coupon-status').textContent = 'Code accepted — opening your full report…';
+    $('coupon-status').textContent = 'Code accepted: opening your full report…';
     history.replaceState(null, '', '/?saved-report=1');
     await openReportLink();
   } catch (error) {
@@ -90,7 +90,7 @@ async function openReportLink() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Unable to open this report.');
     showFullReport(data.result, data.preview);
-    document.title = `${data.result.brandName || 'Your store'} — Commerce.Anphonic.ai`;
+    document.title = `${data.result.brandName || 'Your store'}: Commerce.Anphonic.ai`;
   } catch (error) {
     $('report-link-track').classList.add('hidden');
     $('report-link-status').textContent = error.name === 'TimeoutError' ? 'Loading took too long. Please try again.' : error.message;

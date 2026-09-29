@@ -25,8 +25,9 @@ import {createCoupons} from './coupons.js';
 import { reportEmail } from './report-email.js';
 import { openLeadStore, handleLeadRequest, handleEnquiryRequest, validateLead } from './leads.js';
 import { normalizeStoreUrl, handleStoreRequest } from './store-url.js';
-import { VERSION } from './engine.js';
-import { scanWithCompetitors, COMPETITORS } from './competitive.js';
+import { VERSION, scanStore } from './engine.js';
+import {validateCompetitors, createCompetitorWorker, queueConfiguredCompetitors} from './competitor-selection.js';
+import { COMPETITORS } from './competitive.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3100;
@@ -40,6 +41,8 @@ const payments = createPayments(reportStore, {coupons});
 const demoAllowed = req => process.env.NODE_ENV !== 'production' && ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
 const previewAllowed = req => demoAllowed(req) && process.env.REPORT_EMAIL_PREVIEW === '1';
 const jobs = new Map();
+const runCompetitors = createCompetitorWorker(reportStore);
+void runCompetitors();
 const history = [];
 
 // crude per-IP rate limit — a public scanner pointed at arbitrary domains
@@ -69,9 +72,11 @@ function startScan(url, contact) {
   const job = { id, url, status: 'running', step: 'Starting', startedAt: Date.now(), result: null, error: null };
   jobs.set(id, job);
 
-  scanWithCompetitors(url, (step) => { job.step = step; })
+  const ownerToken=reportStore.createOwner(id);
+  scanStore(url, (step) => { job.step = step; }, {contentMethod:'heuristic'})
     .then((result) => {
       reportStore.save(id, result, contact);
+      if (Number.isFinite(result.finalScore) && queueConfiguredCompetitors(reportStore,id,result.domain || url)) void runCompetitors();
       job.result = result;
       job.status = 'done';
       job.step = 'Complete';
@@ -81,12 +86,34 @@ function startScan(url, contact) {
     })
     .catch((err) => { job.status = 'error'; job.error = err.message; });
 
-  return id;
+  return {id, ownerToken};
 }
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const ip = clientIp(req);
+
+  if (req.method === 'POST' && ['/api/competitors', '/api/competitors/status'].includes(url.pathname)) {
+    if (url.pathname==='/api/competitors' && rateLimited('competitors:' + ip)) return json(res,429,{error:'Too many requests. Please try again later.'});
+    if (!req.headers['content-type']?.startsWith('application/json')) return json(res,415,{error:'JSON required.'});
+    try {
+      let raw='';
+      for await (const chunk of req) {raw+=chunk;if(Buffer.byteLength(raw)>16384)return json(res,413,{error:'Request too large.'});}
+      const body=JSON.parse(raw);
+      if(!reportStore.owns(body.scanId,body.ownerToken)) return json(res,403,{error:'Return to the browser where you started this scan, or start a new scan.'});
+      const saved=reportStore.get(body.scanId);
+      if(!saved || !Number.isFinite(saved.result.finalScore)) return json(res,409,{error:'Complete a successful scan first.'});
+      if(url.pathname==='/api/competitors') {
+        const domains=validateCompetitors(body.competitors,saved.result.domain);
+        if(Date.now()-Date.parse(saved.result.scannedAt)>23*60*60*1000) return json(res,409,{error:'Run a fresh store scan before selecting competitors so the comparison uses recent data.'});
+        reportStore.queueCompetitors(body.scanId,domains);
+        void runCompetitors();
+      }
+      const request=reportStore.competitors(body.scanId);
+      const benchmark=request?.status==='ready' ? reportStore.get(body.scanId).result.layer5Report : null;
+      return json(res,200,{status:request?.status || 'none',competitors:request?.domains || [],comparisonStatus:benchmark?.status,comparedCount:benchmark?.comparedCount});
+    } catch(error) {return json(res,400,{error:error instanceof SyntaxError?'Invalid JSON.':error.message});}
+  }
 
   if (req.method === 'POST' && ['/api/checkout','/api/checkout/status','/api/stripe/webhook'].includes(url.pathname)) {
     const webhook = url.pathname === '/api/stripe/webhook';
@@ -168,7 +195,7 @@ const server = createServer(async (req, res) => {
       let contact;
       try { contact = emailOtp.consume(parsed.verificationToken,target); }
       catch(error) { return json(res,403,{error:error.message}); }
-      return json(res, 202, { id: startScan(target, contact), domain: target });
+      return json(res, 202, { ...startScan(target, contact), domain: target });
     });
     return;
   }
@@ -178,6 +205,7 @@ const server = createServer(async (req, res) => {
     if (req.headers['content-type'] !== 'application/json') return json(res, 415, {error:'JSON required.'});
     const saved = reportStore.get(url.pathname.split('/')[3]);
     if (!saved || !Number.isFinite(saved.result.finalScore)) return json(res, 409, {error:'Complete a successful scan before previewing the report.'});
+    try {reportStore.assertCompetitorsReady(saved.id);} catch(error) {return json(res,409,{error:error.message});}
     return json(res, 200, {result:saved.result, preview:true});
   }
 

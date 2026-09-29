@@ -6,12 +6,24 @@ agents, and shows what an agent can't read.
 ## Run it
 
 ```
-node server.js
+npm run start:local
 ```
 
 Then open http://localhost:3100 and enter a store URL.
 
-Node 18 or higher. No dependencies, no install step, no API keys.
+Node 22.13 or higher (Node 24 matches the documented live runtime). No dependency install is required.
+
+`npm run start:local` loads your ignored `.env`, uses the production verification and
+paid-access gates, disables report previews, and stores data under `data/local/`.
+Email verification requires `RESEND_API_KEY` and `REPORT_EMAIL_FROM`. These are
+real provider calls; use your own test inbox. Payment testing needs Stripe test
+credentials and matching test webhook configuration. Never copy live databases
+or payment secrets into the workspace.
+
+`npm start` also loads `.env`, but retains development-mode report previews unless
+`NODE_ENV=production` is set. Stop the existing server before switching commands.
+The live service continues to load `/etc/commerce.env` and run `server.js` directly.
+Local files do not replace live environment settings or databases during deployment.
 
 **Terminal only, no browser:**
 
@@ -562,3 +574,21 @@ token valid for 30 minutes. The scan API rejects unverified requests and uses
 the verified contact rather than caller-supplied contact details. OTPs and scan
 grants are held in memory and expire on restart; deploy one Node process or
 move this state and rate limits into a shared store before scaling horizontally.
+
+
+### Customer-selected competitors
+
+New web scans inspect only the requested store, using deterministic content grading.
+On the free report, users can optionally submit 2–5 competitor URLs before checkout.
+The selection is saved once and queued in `competitor_requests` in the report database.
+A private, per-scan owner token authorizes changes; report IDs alone cannot select competitors.
+The browser keeps that token in session storage. Scans made before this feature require a new
+scan to choose competitors. The existing CLI benchmark mappings remain available.
+
+The single-process worker scans competitors sequentially and resumes queued/running work on
+restart. Checkout waits for completion. Results are written into the saved full report and
+excluded from the free API. Two comparable competitors produce a provisional comparison;
+three or more are required for Layer 5 to contribute to the combined score. Unavailable
+comparisons are disclosed before purchase. Selection locks after submission, and cannot be
+added after checkout begins; start a new scan to change competitors. The existing paid report
+email links to the full report containing the comparison; no separate free benchmark email is sent.

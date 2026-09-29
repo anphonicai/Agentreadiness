@@ -68,3 +68,39 @@ body[data-screen=report] .masthead{display:none}.free-report>.eyebrow{font:11px 
 .report-document .l2h{font-size:12px;margin:24px 0 10px;letter-spacing:.025em}.report-document .tag{margin-left:10px;vertical-align:middle}.report-document .finding-status{display:inline-block;font-size:11px;font-weight:600;border:1px solid #f0b4af;border-radius:4px;padding:1px 6px;margin-right:6px;background:#fff1f0}
 .report-document .fix-steps{display:block;margin:14px 0 20px;padding-left:24px;font:14px/1.8 FlowInter,Arial,sans-serif}.report-document .fix-steps li{display:list-item;margin:8px 0;padding-left:4px}.report-document .where{margin:16px 0}.report-document .technical-fix{margin-top:18px}.report-document .snip{line-height:1.7;tab-size:2}.report-document .l2body{padding-top:4px;padding-bottom:28px}
 @media print{.report-document .finding-status,.report-document .needs-attention,.report-document .fieldrow .v.todo{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+/* Match the free report's bordered cards, restrained headings and teal actions. */
+.competitor-card{margin:32px 0 0;padding:28px;background:#fff;border:1px solid #d9e5e5;border-radius:12px;color:var(--ink)}
+.competitor-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.competitor-card h2{font:400 20px/1.4 FlowInter,Arial,sans-serif;letter-spacing:normal;margin:0}
+.competitor-badge{flex-shrink:0;font:10px/1.5 FlowMono,monospace;letter-spacing:.025em;color:var(--link);background:#e9fafa;border-radius:4px;padding:6px 9px}
+.competitor-card p{color:var(--muted);font:13px/1.7 FlowInter,Arial,sans-serif;margin:12px 0 0}
+.competitor-card .competitor-intro{max-width:760px}.competitor-intro strong{font-weight:500;color:var(--ink)}
+.competitor-card form{display:block;margin-top:24px}
+.competitor-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 16px}
+.competitor-fields label{display:block;min-width:0;font:11px/1.6 FlowMono,monospace;color:#607070}
+.competitor-fields input[type=text]{display:block;width:100%;box-sizing:border-box;min-width:0;height:48px;margin-top:8px;padding:12px 14px;border:1px solid #d9e5e5;border-radius:6px;background:#fff;color:var(--ink);font:14px/1.5 FlowInter,Arial,sans-serif;transition:border-color .15s,box-shadow .15s}
+.competitor-fields input::placeholder{color:#879292;opacity:1}.competitor-fields input:focus-visible{outline:2px solid var(--link);outline-offset:3px;border-color:var(--link)}
+.competitor-fields input:disabled{background:#f8fafa;color:#607070;opacity:1}
+.competitor-actions{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:24px}
+.competitor-actions button{min-height:44px;border-radius:5px;font:400 14px/1.5 FlowInter,Arial,sans-serif;padding:12px 20px;cursor:pointer}
+.competitor-actions button[type=submit]{margin-left:auto;background:#4ad3d3;color:#080a0a}.competitor-actions button[type=submit]:hover:not(:disabled){background:#38c3c3}
+.competitor-actions button[type=button]{background:transparent;color:var(--link);padding-left:0}.competitor-actions button[type=button]:hover{color:#125f5f;text-decoration:underline;text-underline-offset:4px}
+.competitor-card .competitor-note{font-size:12px;line-height:1.7;border-top:1px solid #e5eded;padding-top:16px;margin-top:24px}
+.competitor-card button:disabled{opacity:.6;cursor:default}.competitor-card [hidden]{display:none}
+#competitor-status:empty{display:none}#competitor-status{background:#e9fafa;color:#245c5c;border-radius:6px;padding:12px 16px;overflow-wrap:anywhere}
+@media(max-width:900px){.competitor-heading{align-items:flex-start;flex-direction:column;gap:10px}}
+@media(max-width:700px){.competitor-card{padding:24px}.competitor-fields{grid-template-columns:1fr;gap:16px}.competitor-actions{flex-direction:column;align-items:stretch;gap:12px}.competitor-actions button[type=submit]{margin-left:0;width:100%}.competitor-actions button[type=button]{text-align:left}.competitor-badge{font-size:9px}}
+@media print{.competitor-card{display:none}}
+/* Comparison uses the same type hierarchy and restrained teal as the report. */
+.competitor-card{padding:32px;border-color:#cbdede;background:linear-gradient(135deg,#f0fbfa 0%,#fff 65%);box-shadow:0 8px 28px #143e3e08}
+.competitor-eyebrow{font:600 11px/1.5 var(--font-text);letter-spacing:.1em;text-transform:uppercase;color:#177777;margin-bottom:12px}
+.competitor-heading{align-items:center}.competitor-badge{font-family:var(--font-text);font-size:10px;font-weight:600;letter-spacing:.03em;padding:7px 10px;border:1px solid #cde9e7;background:#fff;border-radius:100px;white-space:normal}
+.competitor-benefits{display:flex;flex-wrap:wrap;gap:12px 24px;margin-top:20px;color:#345657;font:500 12px/1.6 var(--font-text)}
+.competitor-benefits span:before{content:'✓';color:#198e91;margin-right:8px}
+.competitor-fields label{padding:16px;border:1px solid #d9e5e5;border-radius:8px;background:#fff;font-family:var(--font-text);font-size:12px}
+.competitor-field-label{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#405859;font-weight:500;min-height:24px}
+.competitor-number{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#edf6f6;border-radius:50%;color:#177777;font-size:10px;font-variant-numeric:tabular-nums}
+.competitor-fields input[type=text]{padding:12px;margin-top:12px;background:#fafcfc}
+.competitor-actions{gap:16px}.competitor-actions button{white-space:normal}
+#competitor-status{line-height:1.65}
+@media(max-width:700px){.competitor-card{padding:24px 20px}.competitor-heading{align-items:flex-start}.competitor-benefits{gap:8px 16px}.competitor-fields{gap:12px}.competitor-fields label{padding:14px}.competitor-actions button{min-height:48px}}
