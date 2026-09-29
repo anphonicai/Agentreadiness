@@ -11,51 +11,86 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 // field -- an illustration of the consequence, not a recorded model response.
 const AGENT_ASKS = {
   codPayment: {
-    ask: title => `Does the ${title} accept Cash on Delivery?`,
-    reply: "I don't have that information for this product. You may want to check the retailer's website directly.",
     missing: 'acceptedPaymentMethod',
+    variants: [
+      {ask: t => `Does the ${t} accept Cash on Delivery?`, reply: "I don't have that information for this product. You may want to check the retailer's website directly."},
+      {ask: t => `Can I pay cash when the ${t} is delivered?`, reply: "The store doesn't publish the payment methods it accepts in a form I can read, so I can't confirm that."},
+      {ask: t => `Is the ${t} prepaid only, or is COD available?`, reply: "I can't tell which payment methods this product supports. You'd need to check the store directly."},
+    ],
   },
   serviceability: {
-    ask: title => `Can you deliver the ${title} to 560001?`,
-    reply: "I can't confirm delivery for this product. The store doesn't publish shipping details I can read.",
     missing: 'OfferShippingDetails',
+    variants: [
+      {ask: t => `Can you deliver the ${t} to 560001?`, reply: "I can't confirm delivery to that pincode. The store doesn't publish shipping details I can read."},
+      {ask: t => `How long would the ${t} take to reach me?`, reply: "There's no delivery estimate published for this product, so I can't say."},
+      {ask: t => `Do they ship the ${t} to my city?`, reply: "This product doesn't expose serviceability data, so I can't check that for you."},
+    ],
   },
   factualDensity: {
-    ask: title => `What is the ${title} made of, and what size is it?`,
-    reply: "The product description doesn't state the material or dimensions, so I can't say.",
     missing: 'material and size in the description',
+    variants: [
+      {ask: t => `What is the ${t} made of, and what size is it?`, reply: "The product description doesn't state the material or dimensions, so I can't say."},
+      {ask: t => `What are the exact dimensions of the ${t}?`, reply: "The description doesn't give measurements I can quote back to you."},
+      {ask: t => `What's the ${t} actually made from?`, reply: "The description doesn't mention the material, so I'd only be guessing."},
+    ],
   },
   productSchema: {
-    ask: title => `What's the current price and stock status of the ${title}?`,
-    reply: "I can't read structured pricing or availability for this product, so I'd be guessing.",
     missing: 'complete Product schema',
+    variants: [
+      {ask: t => `What's the current price and stock status of the ${t}?`, reply: "I can't read structured pricing or availability for this product, so I'd be guessing."},
+      {ask: t => `Is the ${t} in stock right now?`, reply: "There's no machine-readable availability on this product, so I can't confirm it."},
+      {ask: t => `How much does the ${t} cost?`, reply: "The price isn't published in a format I can read reliably, so I can't quote it."},
+    ],
   },
   orgSchema: {
-    ask: title => `Who sells the ${title}, and can I trust the store?`,
-    reply: "I can't identify the seller from this store's structured data, so I'd rather suggest a retailer I can verify.",
     missing: 'Organization schema',
+    variants: [
+      {ask: t => `Who sells the ${t}, and can I trust the store?`, reply: "I can't identify the seller from this store's structured data, so I'd rather suggest a retailer I can verify."},
+      {ask: t => `Is this a legitimate retailer for the ${t}?`, reply: "The store doesn't publish organisation details I can verify, so I can't vouch for it."},
+      {ask: t => `Who is behind the store selling the ${t}?`, reply: "There's no seller identity I can read on this store, so I can't tell you."},
+    ],
   },
   answerFirst: {
-    ask: title => `Is the ${title} right for what I need?`,
-    reply: "The page doesn't answer that directly, so I can't recommend it with confidence.",
     missing: 'a direct answer in the page content',
+    variants: [
+      {ask: t => `Is the ${t} right for what I need?`, reply: "The page doesn't answer that directly, so I can't recommend it with confidence."},
+      {ask: t => `Why should I choose the ${t} over similar products?`, reply: "The page doesn't make that case in a way I can quote back to you."},
+      {ask: t => `What problem does the ${t} actually solve?`, reply: "The description doesn't answer that directly, so I can't summarise it."},
+    ],
   },
 };
 
+// Stable per store, different between stores: the same domain always sees the
+// same question, while two clients with the same top gap do not read identical
+// copy. Not security-sensitive -- only picks a phrasing.
+function variantIndex(seed, length) {
+  if (!length) return 0;
+  const text = String(seed ?? '');
+  // FNV-1a, then a murmur3 finalizer. A plain *31 hash collapses badly against a
+  // small modulus and sent most stores to the same phrasing.
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = Math.imul(hash ^ text.charCodeAt(i), 16777619);
+  }
+  hash ^= hash >>> 16; hash = Math.imul(hash, 2246822507);
+  hash ^= hash >>> 13; hash = Math.imul(hash, 3266489909);
+  hash = (hash ^ (hash >>> 16)) >>> 0;
+  return hash % length;
+}
+
 function agentAsk(r) {
-  const title = typeof r.agentView?.title === 'string' ? r.agentView.title : null;
+  const title = typeof r.agentView?.title === 'string' ? r.agentView.title.trim() : '';
   if (!title) return null;
-  const gap = (r.gaps || [])[0];
-  const template = AGENT_ASKS[gap?.check] || AGENT_ASKS.productSchema;
-  // Name the fields the scanner genuinely could not read on this product.
-  const unreadable = (r.agentView.fields || []).filter(field => field.visible !== true)
-    .map(field => field.label).filter(label => typeof label === 'string').slice(0, 3);
-  return {
-    question: template.ask(title),
-    answer: template.reply,
-    missing: template.missing,
-    unreadable,
-  };
+  const template = AGENT_ASKS[(r.gaps || [])[0]?.check] || AGENT_ASKS.productSchema;
+  const variant = template.variants[variantIndex(r.domain || title, template.variants.length)];
+  if (!variant) return null;
+  // Name only fields the scanner genuinely could not read on this product, and
+  // only ones the free report already lists, so the note matches the evidence.
+  const shown = new Set(['Price','In stock','SKU','Rating','Options']);
+  const unreadable = (r.agentView.fields || [])
+    .filter(field => field.visible !== true && shown.has(field.label))
+    .map(field => field.label).slice(0, 3);
+  return {question: variant.ask(title), answer: variant.reply, missing: template.missing, unreadable};
 }
 export function freeReport(r) {
   if (!r) return null;

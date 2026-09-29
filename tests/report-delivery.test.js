@@ -117,3 +117,37 @@ test('competitor entry belongs to free reports and never exposes benchmark resul
   assert.ok(!free.includes('class="benchmark-stats"'));
   assert.ok(!context.renderReport(fixture,{full:true}).includes('id="competitor-form"'));
 });
+
+test('agent question is built from the scan, stays stable per store and varies between stores', () => {
+  const scan = (domain, check, title = 'Detan and Soothe') => ({
+    domain, finalScore: 60, layers: {}, gaps: [{layer: 'layer3', check}],
+    agentView: {title, fields: [
+      {label: 'Price', visible: true}, {label: 'SKU', visible: false},
+      {label: 'Rating', visible: false}, {label: 'Images', visible: false},
+    ]},
+  });
+  const ask = (domain, check) => freeReport(scan(domain, check)).preview.agentAsk;
+
+  // The product name comes from the scan, never a fixture.
+  assert.match(ask('https://a.com', 'codPayment').question, /Detan and Soothe/);
+
+  // Same store always reads the same question.
+  assert.equal(ask('https://a.com', 'codPayment').question, ask('https://a.com', 'codPayment').question);
+
+  // Different stores with the same gap do not all read identical copy.
+  const domains = ['a.com','b.com','c.com','d.com','e.com','f.com','g.com','h.com','i.com','j.com','k.com','l.com'];
+  const asked = new Set(domains.map(d => ask(`https://${d}`, 'codPayment').question));
+  assert.ok(asked.size >= 2, `expected varied phrasing, got ${asked.size}`);
+
+  // Each gap type asks about its own failure, and unknown keys fall back safely.
+  assert.match(ask('https://a.com', 'serviceability').question, /deliver|reach|ship/i);
+  assert.match(ask('https://a.com', 'factualDensity').question, /made of|dimensions|made from/i);
+  assert.equal(ask('https://a.com', 'nonexistentCheck').missing, 'complete Product schema');
+  assert.equal(freeReport({...scan('https://a.com','codPayment'), gaps: []}).preview.agentAsk.missing, 'complete Product schema');
+
+  // The note may only name fields the free evidence table also lists.
+  assert.deepEqual(ask('https://a.com', 'codPayment').unreadable, ['SKU', 'Rating']);
+
+  // No sampled product means no fabricated conversation.
+  assert.equal(freeReport({domain: 'https://a.com', finalScore: 60, layers: {}, gaps: []}).preview.agentAsk, null);
+});
