@@ -92,22 +92,14 @@ function agentAsk(r) {
     .map(field => field.label).slice(0, 3);
   return {question: variant.ask(title), answer: variant.reply, missing: template.missing, unreadable};
 }
-export function freeReport(r) {
-  if (!r) return null;
-  const result = {};
-  for (const key of ['domain','brandName','scannedAt','finalScore','grade','gradeNote','catalogCount','sampled']) result[key] = r[key];
-  result.checkoutStack = (r.checkoutStack || []).filter(v => typeof v === 'string');
-  result.errors = (r.errors || []).filter(v => typeof v === 'string');
-  result.layers = Object.fromEntries(['layer1','layer2','layer3','layer4'].filter(key => r.layers?.[key]).map(key => {
-    const {name, score, weight} = r.layers[key];
-    return [key, {name, score, weight}];
-  }));
-  result.gaps = (r.gaps || []).slice(0,3).map(({layer,message}) => ({layer,message}));
+// The summary block behind the free report's evidence sections. Paid views
+// render the same summary above the detail, so both paths build it here.
+export function reportPreview(r) {
   const checks = [r.layer2Report, r.layer3Report, r.layer4Report].flatMap(layer => layer?.checks || []);
   const recommendations = checks.filter(check => Number.isFinite(check.value) && check.value < 100 && typeof check.fix?.headline === 'string');
   const primary = recommendations.find(check => check.key === r.gaps?.[0]?.check) || recommendations[0];
   const allowedFields = new Set(['Name','Price','In stock','SKU','Rating','Options']);
-  result.preview = {
+  return {
     recommendationCount: recommendations.length,
     recommendationTitle: primary?.fix.headline || null,
     product: typeof r.agentView?.title === 'string' ? {
@@ -120,6 +112,19 @@ export function freeReport(r) {
     } : null,
     agentAsk: agentAsk(r),
   };
+}
+export function freeReport(r) {
+  if (!r) return null;
+  const result = {};
+  for (const key of ['domain','brandName','scannedAt','finalScore','grade','gradeNote','catalogCount','sampled']) result[key] = r[key];
+  result.checkoutStack = (r.checkoutStack || []).filter(v => typeof v === 'string');
+  result.errors = (r.errors || []).filter(v => typeof v === 'string');
+  result.layers = Object.fromEntries(['layer1','layer2','layer3','layer4'].filter(key => r.layers?.[key]).map(key => {
+    const {name, score, weight} = r.layers[key];
+    return [key, {name, score, weight}];
+  }));
+  result.gaps = (r.gaps || []).slice(0,3).map(({layer,message}) => ({layer,message}));
+  result.preview = reportPreview(r);
   return result;
 }
 

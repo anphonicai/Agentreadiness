@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runInNewContext } from 'node:vm';
-import { openReportStore, freeReport } from '../report-access.js';
+import { openReportStore, freeReport, reportPreview } from '../report-access.js';
 import { reportEmail, sendReportEmail } from '../report-email.js';
 const fixture = JSON.parse(readFileSync(new URL('../reports/layer5/superyou.in.json',import.meta.url)));
 
@@ -84,6 +84,25 @@ test('free UI never renders the hidden paid report; authorized view renders save
   const full=context.renderReport(fixture,{full:true});
   assert.ok(full.includes('id="full-detail"'));
   assert.ok(full.includes('Private report · Commerce.Anphonic.ai'));
+});
+
+test('paid summary keeps the free report sections and stops selling the report', () => {
+  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+  const context={document:{getElementById:()=>({addEventListener(){}})},fetch:async()=>{throw new Error('offline');}};
+  runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],context);
+  runInNewContext(readFileSync(new URL('../public/report.js',import.meta.url),'utf8'),context);
+  const free=context.renderReport(freeReport(fixture));
+  // The paid view carries the same summary block the free report renders from.
+  const paid=context.renderReport({...fixture,preview:reportPreview(fixture)},{full:true});
+  for(const section of ['report-product-preview','agent-gap','agent-thread']) {
+    assert.ok(free.includes(section),`free report is missing ${section}`);
+    assert.ok(paid.includes(section),`paid summary is missing ${section}`);
+  }
+  assert.match(free,/\$249/);
+  assert.ok(!paid.includes('$249'));
+  assert.ok(!paid.includes('report-deliverables'));
+  assert.ok(!paid.includes('class="agent-fix"'));
+  assert.match(paid,/Open full report/);
 });
 
 test('paid report shows informational fixes, readable schema labels and intact JSON-LD', () => {
