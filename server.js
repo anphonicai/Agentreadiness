@@ -19,7 +19,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { freeReport, openReportStore } from './report-access.js';
+import { freeReport, reportPreview, openReportStore } from './report-access.js';
 import {createPayments, verifyStripeEvent} from './stripe-payment.js';
 import {createCoupons} from './coupons.js';
 import { reportEmail } from './report-email.js';
@@ -206,7 +206,7 @@ const server = createServer(async (req, res) => {
     const saved = reportStore.get(url.pathname.split('/')[3]);
     if (!saved || !Number.isFinite(saved.result.finalScore)) return json(res, 409, {error:'Complete a successful scan before previewing the report.'});
     try {reportStore.assertCompetitorsReady(saved.id);} catch(error) {return json(res,409,{error:error.message});}
-    return json(res, 200, {result:saved.result, preview:true});
+    return json(res, 200, {result:{...saved.result, preview:reportPreview(saved.result)}, preview:true});
   }
 
   if (req.method === 'POST' && /^\/api\/scan\/[^/]+\/email-preview$/.test(url.pathname)) {
@@ -236,7 +236,7 @@ const server = createServer(async (req, res) => {
       const {token} = JSON.parse(body);
       const report = reportStore.resolve(token, {allowPreview:previewAllowed(req)});
       if (!report) return json(res, 403, {error:'This report link is invalid, expired or no longer available. Please contact the team for a new link.'});
-      return json(res, 200, report);
+      return json(res, 200, {...report, result:{...report.result, preview:reportPreview(report.result)}});
     } catch { return json(res, 400, {error:'Unable to open this report link.'}); }
   }
 

@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runInNewContext } from 'node:vm';
-import { openReportStore, freeReport } from '../report-access.js';
+import { openReportStore, freeReport, reportPreview } from '../report-access.js';
 import { reportEmail, sendReportEmail } from '../report-email.js';
 const fixture = JSON.parse(readFileSync(new URL('../reports/layer5/superyou.in.json',import.meta.url)));
 
@@ -86,6 +86,25 @@ test('free UI never renders the hidden paid report; authorized view renders save
   assert.ok(full.includes('Private report · Commerce.Anphonic.ai'));
 });
 
+test('paid summary keeps the free report sections and stops selling the report', () => {
+  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+  const context={document:{getElementById:()=>({addEventListener(){}})},fetch:async()=>{throw new Error('offline');}};
+  runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],context);
+  runInNewContext(readFileSync(new URL('../public/report.js',import.meta.url),'utf8'),context);
+  const free=context.renderReport(freeReport(fixture));
+  // The paid view carries the same summary block the free report renders from.
+  const paid=context.renderReport({...fixture,preview:reportPreview(fixture)},{full:true});
+  for(const section of ['report-product-preview','agent-gap','agent-thread']) {
+    assert.ok(free.includes(section),`free report is missing ${section}`);
+    assert.ok(paid.includes(section),`paid summary is missing ${section}`);
+  }
+  assert.match(free,/\$249/);
+  assert.ok(!paid.includes('$249'));
+  assert.ok(!paid.includes('report-deliverables'));
+  assert.ok(!paid.includes('class="agent-fix"'));
+  assert.match(paid,/Open full report/);
+});
+
 test('paid report shows informational fixes, readable schema labels and intact JSON-LD', () => {
   const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
   const context={document:{getElementById:()=>({addEventListener(){}})},fetch:async()=>{throw new Error('offline');}};
@@ -150,4 +169,24 @@ test('agent question is built from the scan, stays stable per store and varies b
 
   // No sampled product means no fabricated conversation.
   assert.equal(freeReport({domain: 'https://a.com', finalScore: 60, layers: {}, gaps: []}).preview.agentAsk, null);
+});
+
+test('the sampled product links back only to the scanned store', () => {
+  const scan = url => reportPreview({
+    domain: 'https://shop.example', gaps: [], layer2Report: {checks: []},
+    agentView: {title: 'A product', url, fields: [{label: 'Price', value: '10', visible: true}]},
+  }).product;
+
+  // A real product page on the scanned store is linked.
+  assert.equal(scan('https://shop.example/products/thing').url, 'https://shop.example/products/thing');
+  // www is the same store.
+  assert.equal(scan('https://www.shop.example/products/thing').url, 'https://www.shop.example/products/thing');
+
+  // Anything pointing elsewhere, or not a web URL, is dropped rather than rendered.
+  for (const bad of ['https://evil.example/products/x', 'javascript:alert(1)', 'data:text/html,<script>', 'not a url', '', null, undefined]) {
+    assert.equal(scan(bad).url, null, `expected ${String(bad)} to be rejected`);
+  }
+
+  // The title still renders when no usable link exists.
+  assert.equal(scan(null).title, 'A product');
 });

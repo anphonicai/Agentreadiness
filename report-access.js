@@ -92,6 +92,40 @@ function agentAsk(r) {
     .map(field => field.label).slice(0, 3);
   return {question: variant.ask(title), answer: variant.reply, missing: template.missing, unreadable};
 }
+// The summary block behind the free report's evidence sections. Paid views
+// render the same summary above the detail, so both paths build it here.
+// Only ever link back to a product page on the store that was scanned: the URL
+// travels into the report's HTML, and a scan is of a third-party storefront.
+function sameStoreUrl(value, domain) {
+  try {
+    const url = new URL(value);
+    const store = new URL(domain);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+    if (url.hostname.replace(/^www\./, '') !== store.hostname.replace(/^www\./, '')) return null;
+    return url.href;
+  } catch { return null; }
+}
+
+export function reportPreview(r) {
+  const checks = [r.layer2Report, r.layer3Report, r.layer4Report].flatMap(layer => layer?.checks || []);
+  const recommendations = checks.filter(check => Number.isFinite(check.value) && check.value < 100 && typeof check.fix?.headline === 'string');
+  const primary = recommendations.find(check => check.key === r.gaps?.[0]?.check) || recommendations[0];
+  const allowedFields = new Set(['Name','Price','In stock','SKU','Rating','Options']);
+  return {
+    recommendationCount: recommendations.length,
+    recommendationTitle: primary?.fix.headline || null,
+    product: typeof r.agentView?.title === 'string' ? {
+      title: r.agentView.title,
+      url: sameStoreUrl(r.agentView.url, r.domain),
+      fields: (r.agentView.fields || []).filter(field => allowedFields.has(field.label)).slice(0,6).map(field => ({
+        label: field.label,
+        visible: field.visible === true,
+        value: field.visible === true && ['string','number','boolean'].includes(typeof field.value) ? String(field.value) : null,
+      })),
+    } : null,
+    agentAsk: agentAsk(r),
+  };
+}
 export function freeReport(r) {
   if (!r) return null;
   const result = {};
@@ -103,23 +137,7 @@ export function freeReport(r) {
     return [key, {name, score, weight}];
   }));
   result.gaps = (r.gaps || []).slice(0,3).map(({layer,message}) => ({layer,message}));
-  const checks = [r.layer2Report, r.layer3Report, r.layer4Report].flatMap(layer => layer?.checks || []);
-  const recommendations = checks.filter(check => Number.isFinite(check.value) && check.value < 100 && typeof check.fix?.headline === 'string');
-  const primary = recommendations.find(check => check.key === r.gaps?.[0]?.check) || recommendations[0];
-  const allowedFields = new Set(['Name','Price','In stock','SKU','Rating','Options']);
-  result.preview = {
-    recommendationCount: recommendations.length,
-    recommendationTitle: primary?.fix.headline || null,
-    product: typeof r.agentView?.title === 'string' ? {
-      title: r.agentView.title,
-      fields: (r.agentView.fields || []).filter(field => allowedFields.has(field.label)).slice(0,6).map(field => ({
-        label: field.label,
-        visible: field.visible === true,
-        value: field.visible === true && ['string','number','boolean'].includes(typeof field.value) ? String(field.value) : null,
-      })),
-    } : null,
-    agentAsk: agentAsk(r),
-  };
+  result.preview = reportPreview(r);
   return result;
 }
 
