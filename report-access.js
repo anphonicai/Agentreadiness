@@ -10,8 +10,15 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 // a fixture, and the answer is the documented failure mode for that missing
 // field -- an illustration of the consequence, not a recorded model response.
 const AGENT_ASKS = {
+  // Indian storefronts get the COD framing; everywhere else the same missing
+  // field is asked about in terms a shopper there would actually use.
   codPayment: {
     missing: 'acceptedPaymentMethod',
+    variantsIntl: [
+      {ask: t => `What payment methods can I use for the ${t}?`, reply: "I don't have that information for this product. You may want to check the retailer's website directly."},
+      {ask: t => `Can I pay for the ${t} with my card?`, reply: "The store doesn't publish the payment methods it accepts in a form I can read, so I can't confirm that."},
+      {ask: t => `How do I pay for the ${t}?`, reply: "I can't tell which payment methods this product supports. You'd need to check the store directly."},
+    ],
     variants: [
       {ask: t => `Does the ${t} accept Cash on Delivery?`, reply: "I don't have that information for this product. You may want to check the retailer's website directly."},
       {ask: t => `Can I pay cash when the ${t} is delivered?`, reply: "The store doesn't publish the payment methods it accepts in a form I can read, so I can't confirm that."},
@@ -82,7 +89,9 @@ function agentAsk(r) {
   const title = typeof r.agentView?.title === 'string' ? r.agentView.title.trim() : '';
   if (!title) return null;
   const template = AGENT_ASKS[(r.gaps || [])[0]?.check] || AGENT_ASKS.productSchema;
-  const variant = template.variants[variantIndex(r.domain || title, template.variants.length)];
+  const indian = r.country === 'IN' || r.currency === 'INR';
+  const variants = (!indian && template.variantsIntl) || template.variants;
+  const variant = variants[variantIndex(r.domain || title, variants.length)];
   if (!variant) return null;
   // Name only fields the scanner genuinely could not read on this product, and
   // only ones the free report already lists, so the note matches the evidence.

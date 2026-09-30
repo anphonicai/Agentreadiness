@@ -481,7 +481,13 @@ function renderLayer2(L){
     const b = BASIS[c.basis] || ['', ''];
     const ev = c.evidence;
     const fix = reportFix(c);
-    const needsAttention = Number.isFinite(c.value) && c.value < 100 && c.basis !== 'baseline';
+    // A score under 100 is not by itself a problem: partial-credit checks can
+    // sit at 98 with zero failing products. Badge on evidence that actually
+    // failed, and fall back to the score only when the check exposes none.
+    const failing = ev && ev.items && ev.items.length
+      ? ev.items.some(it => it.pass === false)
+      : Number.isFinite(c.value) && c.value < 100;
+    const needsAttention = Number.isFinite(c.value) && c.value < 100 && c.basis !== 'baseline' && failing;
     const evList = ev && ev.items && ev.items.length
       ? `<ul class="ev">${ev.items.map(it => `
           <li class="${it.pass === true ? 'pass' : it.pass === false || needsAttention ? 'missing' : ''}"><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a><span>${reportText(it.note)}</span></li>`).join('')}</ul>`
@@ -605,7 +611,7 @@ function renderDetailedReport(r){
     <div class="specgroup">
       <h4>${esc(g.name)} <span>— ${g.specWeight}% of the total in the spec</span></h4>
       ${g.checks.map(c => `
-        <div class="speccheck ${Number.isFinite(c.value) && c.value < 100 && c.basis !== 'baseline' ? 'needs-attention' : ''} ${c.scored ? '' : 'off'}">
+        <div class="speccheck ${Number.isFinite(c.value) && c.value < 100 && c.basis !== 'baseline' && (c.evidence?.items?.length ? c.evidence.items.some(it => it.pass === false) : true) ? 'needs-attention' : ''} ${c.scored ? '' : 'off'}">
           <div>
             <div class="nm">${reportText(c.spec || c.label)}${c.specSub ? ` <em>(spec: ${c.specSub}% within layer${
               c.effectiveSub && c.effectiveSub !== c.specSub ? `, scored at ${c.effectiveSub}%` : ''})</em>` : ''}${

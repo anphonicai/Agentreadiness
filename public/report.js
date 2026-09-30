@@ -7,7 +7,9 @@ function renderReport(r, {full = false, preview = false} = {}) {
   const fixes = [r.layer2Report, r.layer3Report, r.layer4Report]
     .flatMap(layer => layer?.checks || [])
     .map(check => ({...check, fix:reportFix(check)}))
-    .filter(check => check.fix?.headline && check.value < 100);
+    .filter(check => check.fix?.headline && check.value < 100)
+    // Most urgent first: a 0 is a broken capability, a 95 is a polish item.
+    .sort((a, b) => a.value - b.value);
   return `<div id="paid-preview" class="free-report conversion-report" data-company="${esc(r.brandName || r.domain || 'your store')}">
     <header class="report-intro"><div><div class="eyebrow">${esc(r.brandName || r.domain)} · Free report</div><h1>Your store through<br>the eyes of AI.</h1><p class="report-intro-note">Your readiness snapshot is here. See what works, what needs attention, and where to go next.</p></div><div class="report-scan-meta"><span>Storefront audit</span><strong>${esc(r.domain)}</strong><span>${r.sampled} product pages sampled${r.scannedAt ? ` · ${esc(new Date(r.scannedAt).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}))}` : ''}</span></div></header>
     <div class="free-verdict"><div><strong>${r.finalScore}</strong><small>Readiness out of 100</small></div><div><span class="verdict-eyebrow">Your starting point</span><h2>${esc(r.grade)}</h2><p>${reportText(r.gradeNote)}</p><small>Based on crawler access, structured data, checkout declarations, and content clarity.</small></div></div>

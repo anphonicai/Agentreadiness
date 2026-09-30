@@ -173,15 +173,23 @@ const AGENTS = {
 
 const AI_BOTS = ['GPTBot', 'ClaudeBot', 'PerplexityBot', 'Google-Extended', 'OAI-SearchBot', 'CCBot'];
 
+// Anchored to the asset a live integration must actually load. Bare brand names
+// also appear in theme config that switches the app OFF -- cleolifestyle.com
+// carried "enable_shopflo_checkout":false and twobrothersfood.com carried
+// goKwik:false, and both were reported as the store's checkout.
 const CHECKOUT_STACKS = [
-  { key: 'GoKwik',        re: /gokwik|kwikpass|gk-checkout/i },
-  { key: 'Shopflo',       re: /shopflo/i },
-  { key: 'RazorpayMagic', re: /magic-?checkout|magicx/i },
-  { key: 'Simpl',         re: /getsimpl|simpl\.js/i },
-  { key: 'Snapmint',      re: /snapmint/i },
-  { key: 'Fastrr',        re: /fastrr|pickrr/i },
-  { key: 'Shiprocket',    re: /shiprocket.*checkout/i },
+  { key: 'GoKwik',        re: /gokwik\.co|kwikpass\.[a-z]{2,}|pdp-widget\.gokwik/i },
+  { key: 'Shopflo',       re: /shopflo\.(?:com|in)\b/i },
+  { key: 'RazorpayMagic', re: /magic-?checkout\.razorpay|checkout\.razorpay\.com/i },
+  { key: 'Simpl',         re: /getsimpl\.com|simpl\.js/i },
+  { key: 'Snapmint',      re: /snapmint\.com/i },
+  { key: 'Fastrr',        re: /fastrr\.(?:com|in)|pickrr\.com/i },
+  { key: 'Shiprocket',    re: /shiprocket\.(?:in|com)/i },
 ];
+
+// A config key that names an app while disabling it is not an installation.
+const DISABLED_FLAG = /["']?[\w.$-]*(gokwik|shopflo|simpl|snapmint|fastrr|pickrr|shiprocket|magic-?checkout)[\w.$-]*["']?\s*[:=]\s*(false|0|"false"|'false'|null)/gi;
+const withoutDisabledFlags = html => String(html || '').replace(DISABLED_FLAG, '');
 
 const REVIEW_APPS = [
   { key: 'Judge.me',        re: /judge\.me|judgeme|jdgm-/i },
@@ -553,7 +561,8 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
   if (!raw.isShopify && home.status === 200) { raw.errors.push('NOT_SHOPIFY'); return raw; }
   if (home.status >= 400) { raw.errors.push(`BLOCKED_${home.status}`); }
 
-  raw.checkoutStack = CHECKOUT_STACKS.filter((c) => c.re.test(home.body)).map((c) => c.key);
+  const checkoutHtml = withoutDisabledFlags(home.body);
+  raw.checkoutStack = CHECKOUT_STACKS.filter((c) => c.re.test(checkoutHtml)).map((c) => c.key);
   // Some themes and embedded apps leak the shop's plan into the homepage HTML.
   // Present is proof absent proves nothing, so this is never scored.
   raw.planName = (home.body.match(/"planName"\s*:\s*"([^"]+)"/i) || [])[1] || null;
@@ -569,6 +578,11 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
   // currency for the fix snippets — the product pages are the reliable source,
   // this is only the fallback when none of them carry an offer
   raw.currency = (home.body.match(/Shopify\.currency\s*=\s*\{[^}]*"active"\s*:\s*"([A-Z]{3})"/) || [])[1] || null;
+  // Where the store actually sells. COD framing is meaningful in India and
+  // misleading in the US, so the copy below branches on this rather than
+  // assuming every storefront is Indian.
+  raw.country = (home.body.match(/Shopify\.country\s*=\s*"([A-Z]{2})"/) || [])[1]
+    || (home.body.match(/"countryCode"\s*:\s*"([A-Z]{2})"/) || [])[1] || null;
   // How the brand name is rendered, for Layer 4's entity-consistency check.
   // Tokenised so "SuperYou", "Super You" and "Super-You" all match, and we can
   // tell which literal form each page actually used.
@@ -1133,11 +1147,18 @@ export function score(raw) {
       : `Nothing parseable is served at /.well-known/ucp (${(raw.ucp || {}).status || 'no response'}), so agents have no machine-readable declaration that this store supports checkout.`,
     codPayment: () => {
       const inText = cnt((p) => p.codInText || p.prepaidInText);
-      return `No product declares acceptedPaymentMethod in its Offer${inText ? `, though ${inText} of ${n} name payment options in page text a shopper can read and an agent cannot` : ''}. COD versus prepaid is the biggest purchase-path question in Indian ecommerce and it is invisible to agents.`;
+      // Only say COD where COD is a real purchase path. Elsewhere the finding is
+      // the same -- no machine-readable payment method -- without the framing.
+      const closing = raw.country === 'IN' || raw.currency === 'INR'
+        ? ' COD versus prepaid is the biggest purchase-path question in Indian ecommerce and it is invisible to agents.'
+        : ' An agent cannot tell a shopper how to pay for this product.';
+      return `No product declares acceptedPaymentMethod in its Offer${inText ? `, though ${inText} of ${n} name payment options in page text a shopper can read and an agent cannot` : ''}.${closing}`;
     },
     serviceability: () => {
       const widget = cnt((p) => p.pincodeWidget);
-      return `No product publishes OfferShippingDetails${widget ? `, and the pincode checker on ${widget} of ${n} pages calls a private API from JavaScript` : ''}. An agent asked whether you deliver to a given pincode has nothing to read.`;
+      // "pincode" is Indian usage; say postcode elsewhere.
+      const area = raw.country === 'IN' || raw.currency === 'INR' ? 'pincode' : 'postcode';
+      return `No product publishes OfferShippingDetails${widget ? `, and the ${area} checker on ${widget} of ${n} pages calls a private API from JavaScript` : ''}. An agent asked whether you deliver to a given ${area} has nothing to read.`;
     },
     returnPolicy: (v) => v === 0
       ? 'No return policy page was found at any standard URL, so an agent asked "can I return this?" has nothing to quote.'
@@ -1809,7 +1830,7 @@ export function score(raw) {
           : allForms.length <= 1
             ? `One consistent form across all ${n} pages: "${allForms[0] || raw.brandName}"`
             : `${allForms.length} written forms in use: ${allForms.slice(0, 4).map((f) => `"${f}"`).join(', ')}${allForms.length > 4 ? '…' : ''}`,
-        why: 'Returned 70 on every store tested so far — most brands render their name in more than one form but identically once case and spacing are normalised. Worth the same scrutiny as the other non-differentiating checks before its 30% weight is locked.',
+        why: 'Most brands render their name in more than one form but identically once case and spacing are normalised. Scores vary across stores, so this check is still under review before its 30% weight is locked.',
         evidence: {
           headline: noBrand.length
             ? `${noBrand.length} sampled pages carry no recognisable form of the brand name`
@@ -1989,6 +2010,8 @@ export function score(raw) {
     sampleAttempted: (raw.products || []).length,
     homeStatus: raw.homeStatus,
     checkoutStack: raw.checkoutStack || [],
+    country: raw.country || null,
+    currency: raw.currency || null,
     botVerdicts,
     behindCloudflare: !!raw.behindCloudflare,
     errors: raw.errors,
