@@ -191,21 +191,24 @@ const CHECKOUT_STACKS = [
 const DISABLED_FLAG = /["']?[\w.$-]*(gokwik|shopflo|simpl|snapmint|fastrr|pickrr|shiprocket|magic-?checkout)[\w.$-]*["']?\s*[:=]\s*(false|0|"false"|'false'|null)/gi;
 const withoutDisabledFlags = html => String(html || '').replace(DISABLED_FLAG, '');
 
+// Anchored like the checkout stacks: a brand name in prose, a blog link or a
+// disabled config flag is not an installed app, and the detected name is quoted
+// back to the merchant in their recommendations.
 const REVIEW_APPS = [
-  { key: 'Judge.me',        re: /judge\.me|judgeme|jdgm-/i },
-  { key: 'Yotpo',           re: /yotpo/i },
+  { key: 'Judge.me',        re: /judge\.me\b|judgeme\.(?:com|net)|jdgm-|cdn\.judge\.me/i },
+  { key: 'Yotpo',           re: /yotpo\.com|staticw2\.yotpo/i },
   { key: 'Loox',            re: /loox\.io/i },
   { key: 'Stamped',         re: /stamped\.io/i },
-  { key: 'Okendo',          re: /okendo|okeReviews/i },
-  { key: 'Ryviu',           re: /ryviu/i },
-  { key: 'Junip',           re: /junip/i },
+  { key: 'Okendo',          re: /okendo\.io|okeReviews/i },
+  { key: 'Ryviu',           re: /ryviu\.(?:com|io)/i },
+  { key: 'Junip',           re: /junip\.co/i },
   { key: 'Fera',            re: /fera\.ai|feraapp/i },
-  { key: 'Growave',         re: /growave/i },
+  { key: 'Growave',         re: /growave\.io/i },
   { key: 'Reviews.io',      re: /reviews\.io|reviewsio/i },
-  { key: 'Opinew',          re: /opinew/i },
-  { key: 'Rivyo',           re: /rivyo/i },
-  { key: 'Shopper Approved',re: /shopperapproved/i },
-  { key: 'Trustpilot',      re: /trustpilot/i },
+  { key: 'Opinew',          re: /opinew\.com/i },
+  { key: 'Rivyo',           re: /rivyo\.(?:com|io)|thimatic/i },
+  { key: 'Shopper Approved',re: /shopperapproved\.com/i },
+  { key: 'Trustpilot',      re: /trustpilot\.com/i },
   { key: 'Vitals',          re: /vitals\.co|appvitals/i },
 ];
 
@@ -645,7 +648,7 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
     }
   }
 
-  raw.reviewApps = REVIEW_APPS.filter((a) => a.re.test(home.body)).map((a) => a.key);
+  raw.reviewApps = REVIEW_APPS.filter((a) => a.re.test(withoutDisabledFlags(home.body))).map((a) => a.key);
 
   onProgress('Loading the product catalogue');
   const cat = await get(`${origin}/products.json?limit=250`);
@@ -895,6 +898,8 @@ function pctOf(list, fn) { return list.length ? clamp((list.filter(fn).length / 
 
 export function score(raw) {
   const live = (raw.products || []).filter((p) => p.pageOk);
+  // Recorded so a thin sample is visible rather than silently scored as failure.
+  raw.productPages = {attempted: (raw.products || []).length, readable: live.length};
   const hasProducts = live.length > 0;
 
   // ---------------------------------------------------------------- Layer 1
@@ -2010,6 +2015,7 @@ export function score(raw) {
     sampleAttempted: (raw.products || []).length,
     homeStatus: raw.homeStatus,
     checkoutStack: raw.checkoutStack || [],
+    productPages: raw.productPages || null,
     country: raw.country || null,
     currency: raw.currency || null,
     botVerdicts,
@@ -2033,10 +2039,31 @@ export function score(raw) {
   };
 }
 
+// Conditions under which a store cannot be scored at all. Returning a score
+// anyway would publish zeros that were never measured: every schema check reads
+// a product page, and pctOf() over an empty sample is 0, indistinguishable from
+// a store that genuinely publishes nothing.
+const FATAL = new Set(['NO_RESPONSE', 'NOT_SHOPIFY', 'NO_CATALOG', 'NO_PRODUCT_PAGES']);
+
+// True when the scan cannot honestly produce a score. Exported so the rule is
+// testable without a network round trip.
+export function unscannable(raw) {
+  const products = Array.isArray(raw.products) ? raw.products : null;
+  const errors = raw.errors || [];
+  if (products && products.length && !products.some((p) => p.pageOk)) return 'NO_PRODUCT_PAGES';
+  return errors.find((e) => FATAL.has(e)) || (errors.length && !products ? errors[0] : null);
+}
+
 export async function scanStore(domain, onProgress, options = {}) {
   const raw = await collect(domain, onProgress, options);
-  if (raw.errors.length && !raw.products) {
-    return { domain: raw.domain, errors: raw.errors, finalScore: null, grade: null };
+  // Product pages can 404 or be blocked even when the catalogue feed is fine --
+  // shop.truvani.com serves 78 products from products.json and 404s every
+  // /products/<handle> page.
+  const fatal = unscannable(raw);
+  if (fatal === 'NO_PRODUCT_PAGES' && !raw.errors.includes(fatal)) raw.errors.push(fatal);
+  if (fatal) {
+    return { domain: raw.domain, errors: raw.errors, finalScore: null, grade: null,
+      productPages: {attempted: (raw.products || []).length, readable: 0} };
   }
   if (onProgress) onProgress('Scoring');
   return score(raw);
