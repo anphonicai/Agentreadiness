@@ -1384,7 +1384,7 @@ export function score(raw) {
           : 'The pages are heavy. Every store here sits on the same Shopify infrastructure, so this is theme and app payload rather than hosting.',
       slowest,
       thresholds: 'Free below 600KB and 800ms to first byte, then graded.',
-      caveat: 'Time to first byte and HTML payload, measured from this machine, not Core Web Vitals. The spec asks for LCP via PageSpeed Insights, which needs an API key and around 30 seconds per URL.',
+      caveat: 'Time to first byte and HTML payload, measured from one location at scan time, not Core Web Vitals. The spec asks for LCP, which reflects rendering in a real browser; this is the server response a crawler receives, so treat it as a floor rather than a full page-speed assessment.',
     };
   })() : null;
 
@@ -1936,12 +1936,12 @@ export function score(raw) {
         basisNote: `Each sampled description is checked for four facts an agent needs, material or composition, primary use case, size or dimension guidance, and one specific factual attribute. A product scores 25 per fact it covers, and the check is the average across ${n} products. ${
           llmUsed
             ? `Graded by ${(raw.llm || {}).model}, which reads the text and judges whether each fact is actually stated, vague copy like "premium materials" is marked as not covering material.`
-            : `Graded by keyword detection${(raw.llm || {}).error ? ` (${raw.llm.error})` : ''}, which errs in both directions: "premium materials" counts as covering material when a reader would not, and a use case phrased outside the matched vocabulary is missed. Treat it as an indicator, not a verdict.`
+            : `Graded by keyword detection, which errs in both directions: "premium materials" counts as covering material when a reader would not, and a use case phrased outside the matched vocabulary is missed. Treat it as an indicator, not a verdict.`
         }`,
         result: `Descriptions cover ${(l4.answerFirst / 25).toFixed(1)} of the 4 facts on average · ${worstProbe[1]} of ${n} never mention ${worstProbe[0]}`,
         why: llmUsed
-          ? `Built to the v2 spec structure. The spec names Claude Haiku; this runs on ${(raw.llm || {}).model} via the free Gemini tier, one request per scan with all descriptions batched. Verdicts are cached by description hash and graded at temperature 0, but model versions, cache lifetime and sampling can still change the result.`
-          : 'Built to the v2 spec structure, computed without the LLM call it specifies. Same four questions, keyword detection, so a scan needs no API key and costs nothing. Set GEMINI_API_KEY to grade these with a model instead.',
+          ? 'Built to the v2 spec structure. Each sampled description is graded by a language model against the same four questions, at a fixed setting, with verdicts cached so a repeat scan of unchanged copy returns the same result. Grading can shift between model versions, so treat a small movement between scans as noise rather than change on the store.'
+          : 'Built to the v2 spec structure. The spec grades these four questions with a language model; this scan answers them by deterministic keyword detection instead, so the same description always produces the same result. It reads what the text states plainly and will miss a fact expressed in an unusual way, which makes this check conservative rather than generous.',
         evidence: {
           headline: probeMisses.every(([, c]) => c === 0)
             ? `All ${n} sampled descriptions cover all four facts`
@@ -2074,7 +2074,7 @@ export function score(raw) {
       effectiveWeight: Math.round(layerShare * 100),
       sampleSize: n,
       currency: reportCurrency(live, raw.currency),
-      note: `${llmUsed ? `Answer-first is graded by ${(raw.llm || {}).model}; factual density and entity naming stay deterministic, because counting and string matching do not need a model.` : `The spec computes the first two checks with an LLM call; they are measured here by keyword detection instead, so a scan needs no API key and costs nothing.`} Description length, uniqueness and image coverage are not in the spec, they are measured and shown, never scored.`,
+      note: `${llmUsed ? `Answer-first is graded by ${(raw.llm || {}).model}; factual density and entity naming stay deterministic, because counting and string matching do not need a model.` : `The spec computes the first two checks with a language model; they are measured here by deterministic keyword detection instead, so repeat scans of unchanged copy give identical results.`} Description length, uniqueness and image coverage are not in the spec, they are measured and shown, never scored.`,
       checks: shown,
     };
   })();
@@ -2096,7 +2096,7 @@ export function score(raw) {
         { spec: 'Page load speed', specSub: 15, scored: true,
           result: hasProducts ? `${Math.round(median(live.map((p) => p.htmlBytes)) / 1024)}KB, ${median(live.map((p) => p.ttfb || 0))}ms to first byte` : 'no pages loaded',
           value: l1.pageWeight,
-          why: 'Measured as response time and payload size rather than PageSpeed Insights, no API key, no 30s wait per scan.' },
+          why: 'Measured as server response time and HTML payload size, which is what a crawler receives, rather than browser rendering metrics such as LCP.' },
         { spec: 'Sitemap present & current', specSub: 20, scored: false,
           result: raw.sitemapOk ? `Present, ${raw.sitemapProductCount || 0} product URLs` : 'Missing',
           value: raw.sitemapOk ? 100 : 0,
@@ -2211,8 +2211,11 @@ export function score(raw) {
     gaps,
     specDetail,
     speed,
+    // Only how the content checks were graded. The provider's key state and
+    // raw error text are operational detail and do not belong in a client's
+    // stored report.
     llm: raw.llm
-      ? { used: !!raw.llm.used, model: raw.llm.model, graded: raw.llm.graded, cached: raw.llm.cached, error: raw.llm.error }
+      ? { used: !!raw.llm.used, model: raw.llm.used ? raw.llm.model : null, graded: raw.llm.graded, cached: raw.llm.cached }
       : null,
     layer2Report,
     layer3Report,
