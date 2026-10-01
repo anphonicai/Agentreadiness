@@ -41,3 +41,28 @@ body[data-screen=home] #go{font-weight:600}
 .journey-card>.journey-back{display:block;margin-bottom:24px}
 .journey-card>.journey-kicker{display:block;line-height:1.5;margin-bottom:16px}
 .journey-card h1{margin-top:0}
+
+/* Explanatory copy follows the heading and score in normal reading order. */
+.report-document .section-intro {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.report-document .section-intro p {
+  max-width: 76ch;
+  margin: 0;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.report-document .l2top {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.report-document .l2note {
+  max-width: 76ch;
+  text-align: left;
+}

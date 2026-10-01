@@ -659,13 +659,13 @@ function renderDetailedReport(r){
   </section>
 
   <section>
-    <div class="sechead"><h3>Top 3 Gaps Identified</h3>
+    <div class="sechead section-intro"><h3>Top 3 Gaps Identified</h3>
       <p>Ranked by how much each one is costing the total score.</p></div>
     <ol class="gaps">${gaps}</ol>
   </section>
 
   ${av ? `<section>
-    <div class="sechead"><h3>What an agent sees</h3>
+    <div class="sechead section-intro"><h3>What an agent sees</h3>
       <p>${esc(av.catalogNote)}.</p></div>
     <div class="agentcard">
       <div class="pname">${esc(av.title)}</div>
@@ -674,25 +674,25 @@ function renderDetailedReport(r){
   </section>` : ''}
 
   ${r.speed ? `<section>
-    <div class="sechead"><h3>Speed, as a crawler sees it</h3>
+    <div class="sechead section-intro"><h3>Speed, as a crawler sees it</h3>
       <p>Measured across ${r.speed.sampleSize} product pages fetched for this scan.</p></div>
     ${renderSpeed(r.speed)}
   </section>` : ''}
 
   ${r.layer2Report ? `<section>
-    <div class="sechead"><h3>Layer 2: Structured data</h3>
+    <div class="sechead section-intro"><h3>Layer 2: Structured data</h3>
       <p>Open any check to see which products fail it and the exact JSON-LD this store needs.</p></div>
     ${renderLayer2(r.layer2Report)}
   </section>` : ''}
 
   ${r.layer3Report ? `<section>
-    <div class="sechead"><h3>Layer 3: Checkout &amp; UCP</h3>
-      <p>India-specific. Open any check to see what an agent can and can't read about buying from this store.</p></div>
+    <div class="sechead section-intro"><h3>Layer 3: Checkout &amp; UCP</h3>
+      <p>Open any check to see what an agent can and can't read about buying from this store.</p></div>
     ${renderLayer2(r.layer3Report)}
   </section>` : ''}
 
   ${r.layer4Report ? `<section>
-    <div class="sechead"><h3>Layer 4: Content clarity</h3>
+    <div class="sechead section-intro"><h3>Layer 4: Content clarity</h3>
       <p>What an agent can quote back when a shopper asks about these products.</p></div>
     ${renderLayer2(r.layer4Report)}
   </section>` : ''}
@@ -700,7 +700,7 @@ function renderDetailedReport(r){
   ${r.layer5Report ? renderLayer5(r.layer5Report) : ''}
 
   <section>
-    <div class="sechead"><h3>Every check in the spec, all four layers</h3>
+    <div class="sechead section-intro"><h3>Every check in the spec, all four layers</h3>
       <p>Checks marked “not scored” are informational. Their findings can still need attention and include recommended fixes.</p></div>
     ${specBlocks}
   </section>
