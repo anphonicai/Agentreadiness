@@ -443,7 +443,20 @@ function renderSpeed(s){
 // Human-readable report copy; code snippets and product names remain unchanged.
 function reportText(value) {
   const names = {acceptedPaymentMethod:'Accepted Payment Method', OfferShippingDetails:'Offer Shipping Details', MerchantReturnPolicy:'Merchant Return Policy', hasMerchantReturnPolicy:'Has Merchant Return Policy', merchantReturnLink:'Merchant Return Link', AggregateRating:'Aggregate Rating', FAQPage:'FAQ Page', HowTo:'How To', sameAs:'Same As'};
-  return esc(String(value ?? '').replace(/;(?=\s|$)/g, '.').replace(/\s+[—]\s+/g, ': ').replace(/\b(acceptedPaymentMethod|OfferShippingDetails|MerchantReturnPolicy|hasMerchantReturnPolicy|merchantReturnLink|AggregateRating|FAQPage|HowTo|sameAs)\b/g, word => names[word]).replace(/FAQ\/How To schema/g, 'FAQ / How To Schema'));
+  const ABBREV = /\b(e\.g|i\.e|etc|vs|approx|no|fig)\.$/i;
+  return esc(String(value ?? '')
+    .replace(/;(?=\s|$)/g, '.')
+    // Dashes reach the report through merchant product titles and copy. A spaced
+    // dash reads as a colon, a numeric range keeps a plain hyphen, anything else
+    // becomes a comma.
+    .replace(/\s+[—–]\s+/g, ': ')
+    .replace(/\s+--\s+/g, ': ')
+    .replace(/(\d)\s*[—–]\s*(\d)/g, '$1-$2')
+    .replace(/\s*[—–]\s*/g, ', ')
+    .replace(/\s*--\s*/g, ', ')
+    // A new sentence starts with a capital.
+    .replace(/([.!?])(\s+)([a-z])/g, (match, stop, gap, letter, offset, text) =>
+      ABBREV.test(text.slice(Math.max(0, offset - 5), offset + 1)) ? match : stop + gap + letter.toUpperCase()).replace(/\b(acceptedPaymentMethod|OfferShippingDetails|MerchantReturnPolicy|hasMerchantReturnPolicy|merchantReturnLink|AggregateRating|FAQPage|HowTo|sameAs)\b/g, word => names[word]).replace(/FAQ\/How To schema/g, 'FAQ / How To Schema'));
 }
 function reportProblemCount(c) {
   if (Number.isFinite(c.problemCount)) return c.problemCount;
@@ -539,7 +552,7 @@ ${esc(fix.snippet)}
           <span class="l2r">${needsAttention ? '<span class="finding-status">Needs attention</span> ' : ''}${reportText(c.result)}</span>
           <span class="l2w">${esc(weightLine)}</span>
         </span>
-        <span class="l2v">${Number.isFinite(c.value) ? c.value : '—'}</span>
+        <span class="l2v">${Number.isFinite(c.value) ? c.value : 'N/A'}</span>
       </summary>
       <div class="l2body">
         <div class="l2h">How this number is made</div>
@@ -572,7 +585,7 @@ ${esc(fix.snippet)}
 
 function renderLayer5(L){
   if (!L) return `<section class="benchmark-note"><div class="sechead"><h3>Layer 5: Competitive Position</h3><span class="pill">15% · NOT CONFIGURED</span></div><p>No named competitors are configured for this store.</p></section>`;
-  const number = n => Number.isFinite(n) ? Math.round(n * 10) / 10 : '—';
+  const number = n => Number.isFinite(n) ? Math.round(n * 10) / 10 : 'N/A';
   const complete = L.status === 'complete';
   const note = complete ? 'Three or more competitors have comparable scans. The combined audit score includes Layer 5 at 15%.'
     : L.status === 'provisional' ? `Only ${L.comparedCount} comparable competitor${L.comparedCount === 1 ? '' : 's'}. Add or rescan competitors to reach at least three. This provisional score does not contribute to the overall score.`
@@ -583,7 +596,7 @@ function renderLayer5(L){
     <details><summary>How these numbers are made</summary><p>Relative position: each scored check in Layers 1, 2 and 4 earns 1 per competitor beaten, 0.5 per tie and 0 per loss. Average across comparable competitors, multiply by 100, then apply the within-layer weights and normalized layer weights 20:25:15. This is not a percentile across all stores.</p><p>Contribution: ${number(L.score)} × 0.15 = ${number(L.contribution)} points when complete. Overall audit: 0.20 × Layer 1 + 0.25 × Layer 2 + 0.25 × Layer 3 + 0.15 × Layer 4 + 0.15 × relative position = ${number(L.combinedScore)}. Calculation uses the stored layer scores before rounding the displayed total; multiplying the rounded readiness headline by 0.85 can differ.</p></details><div class="benchmark-stats"><div><b>${number(L.score)}<small>/100</small></b><span>Relative position${complete ? '' : ' · provisional/unavailable'}</span></div><div><b>${L.comparedCount}/${L.namedCount}</b><span>Comparable competitors</span></div><div><b>${number(L.contribution)}<small>/15</small></b><span>Contribution to combined score</span></div><div><b>${number(L.combinedScore)}<small>/100</small></b><span>Combined audit score</span></div></div>
     <p class="benchmark-status">${esc(note)}</p>
     <p class="muted">Readiness score (Layers 1–4): ${number(L.readinessScore)}/100. Scanned ${esc(L.scannedAt ? new Date(L.scannedAt).toLocaleString() : 'date unavailable')}. All tied checks produce a relative score of 50.</p>
-    <div class="benchmark-scroll"><table><caption>Named competitor scan coverage</caption><thead><tr><th>Competitor</th><th>Status</th><th>Sampled products</th><th>Scanned</th></tr></thead><tbody>${L.competitors.map(c => `<tr><td>${esc(c.domain)}</td><td>${esc(c.reason || c.status)}</td><td>${c.sampled}</td><td>${esc(c.scannedAt ? new Date(c.scannedAt).toLocaleString() : '—')}</td></tr>`).join('')}</tbody></table></div>
+    <div class="benchmark-scroll"><table><caption>Named competitor scan coverage</caption><thead><tr><th>Competitor</th><th>Status</th><th>Sampled products</th><th>Scanned</th></tr></thead><tbody>${L.competitors.map(c => `<tr><td>${esc(c.domain)}</td><td>${esc(c.reason || c.status)}</td><td>${c.sampled}</td><td>${esc(c.scannedAt ? new Date(c.scannedAt).toLocaleString() : 'Not recorded')}</td></tr>`).join('')}</tbody></table></div>
     ${L.rows.length ? `<h4>Same checks, side by side</h4><p class="muted">Values are checklist scores out of 100, not all percentages of products. Median excludes unavailable scans.</p><div class="benchmark-scroll"><table><thead><tr><th>Check</th><th>Your store</th>${L.competitors.map(c => `<th>${esc(c.domain)}</th>`).join('')}<th>Competitor median</th><th>Gap</th></tr></thead><tbody>${L.rows.map(row => `<tr><th>${esc(row.label)}<small>${esc(row.layer.replace('layer','Layer '))} · ${esc(row.basis)}</small></th><td>${number(row.client)}</td>${L.competitors.map(c => `<td>${number(row.competitors.find(v => v.domain === c.domain)?.value)}</td>`).join('')}<td>${number(row.median)}</td><td class="${row.delta < 0 ? 'behind' : 'ahead'}">${row.delta > 0 ? '+' : ''}${number(row.delta)} · ${row.delta < 0 ? 'Behind' : row.delta > 0 ? 'Ahead' : 'At parity'}</td></tr>`).join('')}</tbody></table></div>
     <h4>What to fix first</h4>${L.gaps.length ? L.gaps.map(g => `<details class="benchmark-gap"><summary>${esc(g.label)}: ${Math.abs(g.delta)} points behind median</summary><p>${esc(g.evidence?.headline || 'Review the corresponding layer evidence below.')}</p>${g.evidence?.items?.length ? `<ul>${g.evidence.items.slice(0,3).map(e => `<li>${/^https?:\/\//i.test(e.url || '') ? `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title || e.url)}</a>` : esc(e.title || '')}: ${esc(e.note || '')}</li>`).join('')}</ul>` : ''}<p>${esc(g.fix?.headline || 'Inspect the corresponding layer recommendations.')}</p>${g.fix?.where ? `<p>${esc(g.fix.where)}</p>` : ''}${g.fix?.steps?.length ? `<ol>${g.fix.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}</details>`).join('') : '<p>No measured checks below the competitor median. Review absolute readiness gaps as well.</p>'}` : ''}
     <details><summary>Checkout detection: informational</summary><p>No purchase was attempted. These are public declarations and detected app signals.</p><ul>${L.checkout.map(c => `<li><b>${esc(c.domain)}</b>: ${esc(c.evidence)}. Apps: ${esc(c.detectedApps.join(', ') || 'none detected. Checkout type unconfirmed')}.</li>`).join('')}</ul></details>
@@ -602,7 +615,7 @@ function renderDetailedReport(r){
     const msg = first.startsWith('BLOCKED_')
       ? `The store returned ${first.replace('BLOCKED_','')} to our crawler. We couldn’t access it with this scan. Other crawlers may receive different responses.`
       : (reasons[first] || r.errors.join(', '));
-    return `<div class="verdict"><div class="scoreblock bad"><div class="n">—</div><div class="g">Scan unavailable</div></div>
+    return `<div class="verdict"><div class="scoreblock bad"><div class="n">N/A</div><div class="g">Scan unavailable</div></div>
       <div><h2>${esc(r.domain)}</h2><p class="meta">${esc(msg)}</p></div></div>
       <section class="scan-help"><span class="journey-kicker">LET’S TAKE A CLOSER LOOK</span><h2>We couldn’t complete your scan.</h2><p>This isn’t a readiness score. Contact our team to discuss a manual review and the next steps for your store.</p><a class="scan-contact" href="/contact.html?store=${encodeURIComponent(r.domain || '')}&amp;reason=${encodeURIComponent(first)}">Contact us →</a><a class="scan-retry" href="/">Try another store</a><p class="scan-help-note">If access to your public catalogue changes, you can run a new scan. Automatic monitoring is not enabled.</p></section>`;
   }
@@ -630,7 +643,7 @@ function renderDetailedReport(r){
 
   const specBlocks = r.specDetail ? Object.values(r.specDetail).map(g => `
     <div class="specgroup">
-      <h4>${esc(g.name)} <span>— ${g.specWeight}% of the total in the spec</span></h4>
+      <h4>${esc(g.name)} <span>${g.specWeight}% of the total in the spec</span></h4>
       ${g.checks.map(c => `
         <div class="speccheck ${Number.isFinite(c.value) && c.value < 100 && c.basis !== 'baseline' && (c.evidence?.items?.length ? c.evidence.items.some(it => it.pass === false) : true) ? 'needs-attention' : ''} ${c.scored ? '' : 'off'}">
           <div>
@@ -643,7 +656,7 @@ function renderDetailedReport(r){
             ${c.why ? `<div class="whyline">${reportText(checkWhy(c))}</div>` : ''}
             ${!c.key && reportFix(c) ? `<div class="technical-fix"><b>Recommended fix: ${reportText(reportFix(c).headline)}</b><ol class="fix-steps">${reportFix(c).steps.map(step => `<li>${reportText(step)}</li>`).join('')}</ol><p>Where: ${reportText(reportFix(c).where)}</p></div>` : ''}
           </div>
-          <div class="val">${Number.isFinite(c.value) ? c.value : '—'}</div>
+          <div class="val">${Number.isFinite(c.value) ? c.value : 'N/A'}</div>
         </div>`).join('')}
     </div>`).join('') : '';
 
@@ -678,7 +691,7 @@ function renderDetailedReport(r){
   <section>
     <div class="sechead"><h3>Category Readiness Scores</h3><span class="section-caption">SCORED FROM YOUR STOREFRONT</span></div>
     ${layers}
-    ${r.layer5Report ? `<div class="layer ${gradeClass(r.layer5Report.score)}"><div class="lname">Competitive Position<small>${esc(r.layer5Report.status)} · named competitor analysis</small><span class="bar"><i style="width:${Number.isFinite(r.layer5Report.score) ? r.layer5Report.score : 0}%"></i></span></div><div class="lnum">${Number.isFinite(r.layer5Report.score) ? r.layer5Report.score : '—'}</div></div>` : ''}
+    ${r.layer5Report ? `<div class="layer ${gradeClass(r.layer5Report.score)}"><div class="lname">Competitive Position<small>${esc(r.layer5Report.status)} · named competitor analysis</small><span class="bar"><i style="width:${Number.isFinite(r.layer5Report.score) ? r.layer5Report.score : 0}%"></i></span></div><div class="lnum">${Number.isFinite(r.layer5Report.score) ? r.layer5Report.score : 'N/A'}</div></div>` : ''}
     <p class="skipped">Readiness uses Layers 1–4 with their weights rescaled to 100%.</p>
   </section>
 

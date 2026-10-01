@@ -40,7 +40,7 @@ export function createPayments(store, {env=process.env, fetchImpl=fetch, send=se
       if(code!==undefined && code!==null && String(code).trim()!=='') {
         const coupon=coupons?.lookup(code,id);
         if(!coupon) throw new Error('That code is not valid or has already been used.');
-        if(coupon.percent>=100) throw new Error('This code unlocks the full report — redeem it instead of paying.');
+        if(coupon.percent>=100) throw new Error('This code unlocks the full report. Redeem it instead of paying.');
         const created=await stripe('/coupons',{percent_off:String(coupon.percent),duration:'once',name:coupon.code,max_redemptions:'1'});
         if(!created.id) throw new Error('Unable to apply that code.');
         discount={'discounts[0][coupon]':created.id};
@@ -49,7 +49,7 @@ export function createPayments(store, {env=process.env, fetchImpl=fetch, send=se
       const session=await stripe('/checkout/sessions',{mode:'payment',client_reference_id:id,customer_email:report.email,
         'payment_method_types[0]':'card','line_items[0][quantity]':'1',
         'line_items[0][price_data][currency]':'usd','line_items[0][price_data][unit_amount]':String(PRICE_CENTS),
-        'line_items[0][price_data][product_data][name]':'Commerce.Anphonic.ai — Full report',
+        'line_items[0][price_data][product_data][name]':'Commerce.Anphonic.ai Full report',
         ...(discount ?? {allow_promotion_codes:'true'}),
         success_url:`${origin}/?checkout={CHECKOUT_SESSION_ID}`,cancel_url:`${origin}/?cancelled=${encodeURIComponent(id)}`});
       if(!session.id || !session.url?.startsWith('https://checkout.stripe.com/')) throw new Error('Unable to open checkout.');

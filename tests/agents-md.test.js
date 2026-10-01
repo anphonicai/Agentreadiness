@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {inspectAgentMd, score} from '../engine.js';
 
 const response = (status, body = '', contentType = 'text/plain') => ({status,body,contentType,ok:status >= 200 && status < 300});
-test('agent.md distinguishes present, absent and unverifiable responses', () => {
+test('agents.md distinguishes present, absent and unverifiable responses', () => {
   assert.equal(inspectAgentMd(response(200,'# Agent instructions')).status,'present');
   for (const status of [404,410]) assert.equal(inspectAgentMd(response(status)).status,'absent');
   assert.equal(inspectAgentMd(response(200,'  ')).status,'absent');
@@ -13,7 +13,7 @@ test('agent.md distinguishes present, absent and unverifiable responses', () => 
   assert.equal(inspectAgentMd(response(200,'{}','application/json')).value,null);
 });
 
-test('agent.md appears in reports without changing any scores or recommendations', () => {
+test('agents.md appears in reports without changing any scores or recommendations', () => {
   const raw = {domain:'https://example.com',brandName:'Example',robots:{blocked:[]},errors:[],products:[{
     pageOk:true,title:'Example',url:'https://example.com/products/a',schema:{},
     htmlBytes:10000,ttfb:100,unitMentions:0,variantCount:1,
