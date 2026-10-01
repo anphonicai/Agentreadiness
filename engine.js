@@ -11,12 +11,13 @@
  * Node 18+. No dependencies.
  */
 
+import {createHash} from 'node:crypto';
 import {publicFetch} from './public-fetch.js';
 
 // ============================================================== SCORING CONFIG
 // Everything tunable lives here. Change a number, rerun, done.
 
-export const VERSION = '2.3-agentnew';   // Comparable scan metadata for Layer 5
+export const VERSION = '2.4-agentnew';   // Comparable scan metadata for Layer 5
 
 export const WEIGHTS = {
   layer1: 0.20,   // Crawler & technical access
@@ -44,6 +45,7 @@ export const LAYER2_SPEC = [
   { key: 'variantSchema', specSub: 20, scored: true,  label: 'Variant data structured' },
   { key: 'orgSchema',     specSub: 15, scored: true,  label: 'Organization/entity schema' },
   { key: 'faqSchema',     specSub: 10, scored: true,  label: 'FAQ/HowTo schema' },
+  { key: 'agentMd', specSub: null, scored: false, label: 'agent.md present' },
   { key: 'llmsTxt',       specSub: 10, scored: false, label: 'llms.txt present' },
   { key: 'reviewSchema',  specSub: 10, scored: true,  label: 'Review/rating schema' },
 ];
@@ -150,10 +152,10 @@ export function scoreCheckoutStack(stack) {
 }
 
 const GRADES = [
-  { min: 80, label: 'Agent-Ready',        note: 'Agents can find, read and recommend this catalogue.' },
-  { min: 60, label: 'Partially Ready',    note: 'Readable, but losing ground on details agents rank on.' },
-  { min: 40, label: 'At Risk',            note: 'Significant gaps. Agents will often skip these products.' },
-  { min: 0,  label: 'Invisible to Agents', note: 'Agents cannot reliably read or recommend this catalogue.' },
+  { min: 80, label: 'Strong checklist coverage', note: 'Most public storefront checks passed. Actual AI recommendations and purchases were not tested.' },
+  { min: 60, label: 'Partial checklist coverage', note: 'Some public storefront checks passed; review the measured gaps.' },
+  { min: 40, label: 'Limited checklist coverage', note: 'Several measured public storefront checks need review.' },
+  { min: 0,  label: 'Low checklist coverage', note: 'Few public storefront checks passed. This does not establish invisibility to AI channels.' },
 ];
 
 // ==================================================================== FETCHING
@@ -462,7 +464,7 @@ async function get(url, ua = AGENTS.Chrome) {
     const ttfb = res.headersAt - t0;
     const body = await res.text();
     return { ok: res.ok, status: res.status, finalUrl: res.url, bytes: body.length, body,
-             ttfb, total: Date.now() - t0, cf: !!res.headers.get('cf-ray') };
+             ttfb, total: Date.now() - t0, contentType: res.headers.get('content-type') || '', cf: !!res.headers.get('cf-ray') };
   } catch (e) {
     return { ok: false, status: 0, finalUrl: url, bytes: 0, body: '', ttfb: 0, total: 0, error: String(e.name || e) };
   } finally { clearTimeout(t); }
@@ -523,19 +525,38 @@ function spreadSample(arr, n) {
   return Array.from({ length: n }, (_, i) => arr[Math.floor(i * step)]);
 }
 
-function extractJsonLd(html) {
+export function extractJsonLd(html) {
   const out = [];
+  const visit = value => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) { value.forEach(visit); return; }
+    if (value['@type']) out.push(value);
+    for (const child of Object.values(value)) if (child && typeof child === 'object') visit(child);
+  };
   const re = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-  let m;
-  while ((m = re.exec(html))) {
-    const p = safeJson(m[1].trim()); if (!p) continue;
-    if (Array.isArray(p)) out.push(...p);
-    else if (p['@graph']) out.push(...[].concat(p['@graph']));
-    else out.push(p);
-  }
+  let match;
+  while ((match = re.exec(html))) visit(safeJson(match[1].trim()));
   return out;
 }
-const isType = (b, t) => b && [].concat(b['@type'] || []).includes(t);
+const isType = (b, t) => b && [].concat(b['@type'] || []).some(type => String(type).replace(/^https?:\/\/schema.org\//, '') === t);
+export function productMarkup(blocks) {
+  const product = blocks.find(b => isType(b, 'ProductGroup')) || blocks.find(b => isType(b, 'Product'));
+  const resolve = node => node?.['@id'] ? {...blocks.find(b => b['@id'] === node['@id']), ...node} : node;
+  const variants = [].concat(product?.hasVariant || []).map(resolve).filter(Boolean);
+  const offersFor = node => [].concat(node?.offers || []).map(resolve).filter(o => o && typeof o === 'object');
+  const offers = [...offersFor(product), ...variants.flatMap(offersFor)];
+  return {product, offers, variants, variantLevelOffers: variants.length > 1
+    ? variants.every(v => offersFor(v).some(o => o.price != null && o.availability != null))
+    : offers.length > 1 && offers.every(o => o.price != null && o.availability != null)};
+}
+export function productPageIssue(response) {
+  if (!response.ok) return `HTTP ${response.status || 'unavailable'}`;
+  if (!response.body?.trim()) return 'Empty product page';
+  const title = (response.body.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '';
+  if (/404|page not found|just a moment|access denied|checking your browser/i.test(title)) return 'Error or challenge page';
+  if (response.finalUrl && !new URL(response.finalUrl).pathname.includes('/products/')) return 'Redirected away from a product URL';
+  return null;
+}
 
 function parseRobots(txt) {
   const groups = []; let cur = null;
@@ -566,6 +587,20 @@ export function observedOfferPrice(p) {
   return p.offerPrice != null && /^[A-Z]{3}$/.test(p.offerCurrency || '')
     ? {price: p.offerPrice, priceCurrency: p.offerCurrency}
     : {price: 'REPLACE_WITH_VERIFIED_PRICE', priceCurrency: 'REPLACE_WITH_VERIFIED_CURRENCY'};
+}
+
+export function inspectAgentMd(response) {
+  const {status, body = '', contentType = ''} = response;
+  if (status === 404 || status === 410) return {status: 'absent', value: 0, detail: `Not found (HTTP ${status}).`};
+  if (!response.ok) return {status: 'unavailable', value: null, detail: status ? `Could not verify (HTTP ${status}).` : 'Could not verify: request failed or timed out.'};
+  if (!body.trim()) return {status: 'absent', value: 0, detail: 'The endpoint returned an empty response.'};
+  if (/text\/html|application\/xhtml/i.test(contentType) || /<!doctype\s+html|<html[\s>]/i.test(body)) {
+    return {status: 'unavailable', value: null, detail: 'The endpoint returned an HTML page, not a verified Markdown file.'};
+  }
+  if (contentType && !/text\/(plain|markdown|x-markdown)|application\/(octet-stream|markdown)/i.test(contentType)) {
+    return {status: 'unavailable', value: null, detail: 'The endpoint returned an unexpected content type.'};
+  }
+  return {status: 'present', value: 100, detail: 'A non-empty text response was found. Presence only; instructions and authorship were not validated.'};
 }
 
 // ==================================================================== COLLECT
@@ -717,10 +752,15 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
   // llms.txt — reported for completeness; Shopify auto-generates it store-wide
   const llms = await get(origin + '/llms.txt');
   raw.llmsTxt = {
-    exists: llms.ok && llms.bytes > 0,
+    exists: inspectAgentMd(llms).status === 'present',
+    status: inspectAgentMd(llms).status,
+    detail: inspectAgentMd(llms).detail,
     shopifyGenerated: /shop\.app\/SKILL\.md|agentic storefronts|agent instructions/i.test(llms.body || ''),
     bytes: llms.bytes,
   };
+
+  onProgress('Checking /agent.md');
+  raw.agentMd = inspectAgentMd(await get(origin + '/agent.md'));
 
   onProgress(`Inspecting ${Math.min(SAMPLE_SIZE, products.length)} products`);
   // Audit what the store actually sells. Falls back to an even spread across the
@@ -733,10 +773,12 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
   raw.products = await mapLimit(sample, CONCURRENCY, async (p) => {
     const url = `${origin}/products/${p.handle}`;
     const r = await get(url);
-    const html = r.ok ? r.body : '';
+    const pageIssue = productPageIssue(r);
+    const html = !pageIssue ? r.body : '';
     const blocks = extractJsonLd(html);
-    const pb = blocks.find((b) => isType(b, 'Product'));
-    const offers = pb ? [].concat(pb.offers || []) : [];
+    const markup = productMarkup(blocks);
+    const pb = markup.product;
+    const offers = markup.offers;
     const desc = stripHtml(p.body_html);
     const options = (p.options || []).filter((o) => o.name !== 'Title');
     const variants = p.variants || [];
@@ -748,7 +790,9 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
       handle: p.handle,
       title: p.title,
       url,
-      pageOk: r.ok,
+      pageOk: !pageIssue,
+      pageIssue,
+      finalUrl: r.finalUrl,
       status: r.status,
       htmlBytes: r.bytes,
       ttfb: r.ttfb,
@@ -795,9 +839,9 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
         product: !!pb,
         price: offers.some((o) => o && (o.price != null || o.lowPrice != null)),
         availability: offers.some((o) => o && o.availability != null),
-        sku: !!(pb && (pb.sku || offers.some((o) => o && o.sku))),
+        sku: !!(pb && (pb.sku || offers.some((o) => o && o.sku) || markup.variants.some(v => v.sku))),
         brand: !!(pb && pb.brand),
-        variantLevelOffers: offers.length > 1 || (pb && Array.isArray(pb.hasVariant)),
+        variantLevelOffers: markup.variantLevelOffers,
         rating: !!agg,
         ratingCount: agg ? Number(agg.reviewCount || agg.ratingCount || 0) : 0,
         faq: blocks.some((b) => isType(b, 'FAQPage') || isType(b, 'HowTo')),
@@ -910,17 +954,28 @@ function reviewFix(p) {
 
 function pctOf(list, fn) { return list.length ? clamp((list.filter(fn).length / list.length) * 100) : 0; }
 
+/**
+ * Report wording that depends on where the store sells. COD is a real purchase
+ * path in India and not in the US, and "pincode" is Indian usage for a postcode.
+ * cleolifestyle.com is a USD storefront whose report read "No COD signal on any
+ * of 15 sampled products"; keep this market-aware rather than inlining it.
+ */
+export function marketTerms(country, currency) {
+  const indian = country ? country === 'IN' : currency === 'INR';
+  return {
+    indian,
+    area: indian ? 'pincode' : 'postcode',
+    payWords: indian ? 'COD or prepaid' : 'payment-method',
+    paySignal: indian ? 'COD' : 'payment-method',
+  };
+}
+
 export function score(raw) {
   const live = (raw.products || []).filter((p) => p.pageOk);
   // Recorded so a thin sample is visible rather than silently scored as failure.
   raw.productPages = {attempted: (raw.products || []).length, readable: live.length};
-  // Report copy follows the store's own market. COD is a real purchase path in
-  // India and not one in the US, and "pincode" is Indian usage for a postcode.
-  const IN_MARKET = (raw.country ? raw.country === 'IN' : reportCurrency(live, raw.currency) === 'INR');
-  const AREA = IN_MARKET ? 'pincode' : 'postcode';
-  const PAY_WORDS = 'COD or prepaid';
-  const PAY_SIGNAL = 'COD';
-  const DELIVERY_EG = 'can you deliver to my address by Friday';
+  const {indian: IN_MARKET, area: AREA, payWords: PAY_WORDS, paySignal: PAY_SIGNAL} =
+    marketTerms(raw.country, reportCurrency(live, raw.currency));
   const money = p => {
     const offer = observedOfferPrice(p);
     return p.offerPrice != null && /^[A-Z]{3}$/.test(p.offerCurrency || '')
@@ -944,7 +999,7 @@ export function score(raw) {
   }
   const l1 = {
     botWall: clamp(100 - (botsBlocked / 3) * 100),
-    robots: raw.robots ? clamp(100 - (raw.robots.blocked.length / AI_BOTS.length) * 100) : 0,
+    robots: raw.robots?.fetched ? clamp(100 - (raw.robots.blocked.length / AI_BOTS.length) * 100) : 0,
     // v2 spec merges "can agents enumerate the catalogue" with "are the pages
     // indexable" into one check. Sitemap is no longer part of it — that moved
     // to measured-but-not-scored, since Shopify generates one for every store.
@@ -1073,7 +1128,7 @@ export function score(raw) {
       ? clamp(live.reduce((a, p) => a + Math.min(100, p.unitMentions * 20 + (p.hasSpecWord ? 30 : 0)), 0) / live.length)
       : 0,
     // Brand name rendered one way everywhere = 100; same name differing only in
-    // case or spacing = 70; the name missing from some pages entirely = 40.
+    // case or spacing = 70; the name missing from some pages, or non-equivalent forms = 40.
     entityConsistency: (() => {
       if (!hasProducts) return 0;
       const forms = new Set();
@@ -1142,12 +1197,12 @@ export function score(raw) {
   const LABELS = {
     botWall: () => {
       const blocked = Object.entries(botVerdicts).filter(([, x]) => x !== 'ok');
-      return `${blocked.map(([b]) => b).join(' and ')} cannot load the site — ${blocked[0] ? blocked[0][1] : 'blocked'}. Agents that can't fetch a page can't recommend what's on it.`;
+      return `${blocked.map(([b]) => b).join(' and ')} cannot load the site — ${blocked[0] ? blocked[0][1] : 'blocked'}. These are requests from this scanner using crawler user-agent strings, not requests from the actual AI providers.`;
     },
     robots: () => `robots.txt explicitly disallows ${raw.robots.blocked.join(', ')}.`,
     endpoints: () => raw.catalogOpen
       ? 'The sitemap is unavailable, so agents have no reliable list of product URLs to crawl.'
-      : `The public product feed is closed (products.json returned nothing), so no agent can enumerate the ${raw.catalogCount || 0} products.`,
+      : `The public product feed is closed (products.json returned nothing), so this scanner could not enumerate products through that endpoint. Other discovery channels were not tested.`,
     indexability: () => `${cnt((p) => p.noindex)} of ${n} sampled products carry a noindex tag, and ${cnt((p) => !p.hasCanonical)} have no canonical URL.`,
     pageWeight: () => {
       const kb = Math.round(median(live.map((p) => p.htmlBytes)) / 1024);
@@ -1157,14 +1212,14 @@ export function score(raw) {
     productSchema: (v) => `${n - Math.round((v / 100) * n)} of ${n} sampled products have incomplete structured data — ${missingSchemaField()}. Agents read price and stock from this, not from the page.`,
     orgSchema: () => raw.org && raw.org.present
       ? `The homepage has brand data but only ${raw.org.sameAs} linked profile${raw.org.sameAs === 1 ? '' : 's'}. Agents use these to confirm ${raw.brandName} is a real business.`
-      : `${raw.brandName} has no Organization markup on the homepage, so agents can't tie the catalogue to a verified brand.`,
+      : `${raw.brandName} has no Organization markup on the homepage, so this check did not find a homepage Organization declaration. This does not establish seller legitimacy or Catalog visibility.`,
     reviewSchema: (v) => v === 25
-      ? `${reviewAppLabel} is displaying reviews, but none are exposed as structured data — so agents can't see the ratings customers can.`
+      ? `${reviewAppLabel} is displaying reviews, but none are exposed as structured data — so this scanner did not find those ratings in the checked structured data.`
       : `${cnt((p) => !p.schema.rating)} of ${n} products have no machine-readable rating. Reviews are one of the five signals Shopify ranks agentic listings on.`,
     variantSchema: () => `${cnt((p) => p.variantCount > 1 && !p.schema.variantLevelOffers)} of ${n} products have multiple variants but expose only one price, so an agent asked for a specific size can't confirm it exists.`,
     faqSchema: (v) => v === 30
-      ? 'There is FAQ content on the site but it carries no schema, so agents can\'t use it to answer pre-purchase questions.'
-      : 'No FAQ or HowTo data anywhere, so agents have nothing to answer pre-purchase questions from.',
+      ? 'FAQ content was detected but no FAQ or HowTo JSON-LD was found on the checked pages. Plain text may still be usable.'
+      : 'No FAQ or HowTo JSON-LD was found on the checked pages. This does not test whether an assistant can answer from prose or other sources.',
     checkoutStack: () => {
       const stack = raw.checkoutStack || [];
       const notes = stack.map((s) => CHECKOUT_NOTES[s]).filter(Boolean);
@@ -1181,29 +1236,29 @@ export function score(raw) {
       // Only say COD where COD is a real purchase path. Elsewhere the finding is
       // the same -- no machine-readable payment method -- without the framing.
       const closing = (raw.country ? raw.country === 'IN' : reportCurrency(live, raw.currency) === 'INR')
-        ? ' COD versus prepaid is the biggest purchase-path question in Indian ecommerce and it is invisible to agents.'
-        : ' An agent cannot tell a shopper how to pay for this product.';
-      return `No product declares acceptedPaymentMethod in its Offer${inText ? `, though ${inText} of ${n} name payment options in page text a shopper can read and an agent cannot` : ''}.${closing}`;
+        ? ' This is a public markup gap, not proof that COD or prepaid checkout is unavailable.'
+        : ' Shopify Catalog and live checkout payment options were not tested.';
+      return `No product declares acceptedPaymentMethod in its Offer${inText ? `, though ${inText} of ${n} name payment options in page text; this check only scores Offer markup` : ''}.${closing}`;
     },
     serviceability: () => {
       const widget = cnt((p) => p.pincodeWidget);
       // "pincode" is Indian usage; say postcode elsewhere.
       const area = (raw.country ? raw.country === 'IN' : reportCurrency(live, raw.currency) === 'INR') ? 'pincode' : 'postcode';
-      return `No product publishes OfferShippingDetails${widget ? `, a ${area} or delivery checker was detected on ${widget} of ${n} pages; its live behavior was not tested` : ''}. An agent asked whether you deliver to a given ${area} has nothing to read.`;
+      return `No product publishes OfferShippingDetails${widget ? `, a ${area} or delivery checker was detected on ${widget} of ${n} pages; its live behavior was not tested` : ''}. This scanner did not verify delivery to a specific address or information supplied through Shopify Catalog.`;
     },
     returnPolicy: (v) => v === 0
-      ? 'No return policy page was found at any standard URL, so an agent asked "can I return this?" has nothing to quote.'
+      ? 'No return policy page was found at the URLs checked. Other policy locations were not verified.'
       : v === 70
         ? 'The return policy is published as structured data but states no return window — the one field an agent needs most.'
-        : `The return policy exists as ${(raw.policyReturn || {}).len} characters of prose with no MerchantReturnPolicy markup, so an agent can't tell how long the window is or who pays for the return.`,
+        : `The return policy exists as ${(raw.policyReturn || {}).len} characters of prose with no MerchantReturnPolicy markup, so the structured-data check is incomplete. The prose may still state usable return terms.`,
     shippingPolicy: (v) => v === 0
-      ? 'No shipping policy page was found at any standard URL, so agents can\'t answer delivery questions before checkout.'
+      ? 'No shipping policy page was found at the URLs checked. This is not a test of delivery availability.'
       : `The shipping policy is only ${(raw.policyShipping || {}).len} characters — not enough for an agent to quote delivery terms.`,
     factualDensity: () => `Sampled descriptions average ${(live.reduce((a, p) => a + p.unitMentions, 0) / n).toFixed(1)} concrete measurements each, and ${cnt((p) => !p.hasSpecWord)} of ${n} never mention material, ingredients or dimensions.`,
     descriptionDepth: () => {
       const empty = cnt((p) => p.descWords === 0);
       const thin = cnt((p) => p.descWords > 0 && p.descWords < 60);
-      return `${empty} of ${n} sampled products have no description at all and ${thin} have fewer than 60 words. Description length is the first signal Shopify names for agentic ranking.`;
+      return `${empty} of ${n} sampled products have no description at all and ${thin} have fewer than 60 words. Word count is an informational heuristic, not a measured ranking factor.`;
     },
     answerFirst: () => {
       const worst = ANSWER_PROBES.map(([label, re]) => [label, cnt((p) => !re.test(p.descFull || ''))])
@@ -1211,13 +1266,13 @@ export function score(raw) {
       return `Sampled descriptions answer ${Math.round(l4.answerFirst / 25)} of the 4 questions an agent asks — ${worst[1]} of ${n} never cover ${worst[0]}.`;
     },
     entityConsistency: (v) => v === 40
-      ? `The brand name isn't rendered consistently across sampled pages, so agents can't reliably tie these products to one seller.`
-      : `The brand name appears in more than one written form across sampled pages, which weakens the link between the catalogue and the brand entity.`,
+      ? `The brand name isn't rendered consistently across sampled pages, according to this deterministic name-matching check.`
+      : `The brand name appears in more than one written form across sampled pages, which this name-matching heuristic penalizes; AI entity recognition was not tested.`,
     productFeed: () => raw.catalogOpen
       ? `${cnt((p) => p.noindex)} of ${n} sampled products carry a noindex tag, and ${cnt((p) => !p.hasCanonical)} have no canonical URL.`
-      : `The public product feed is closed (products.json returned nothing), so no agent can enumerate the ${raw.catalogCount || 0} products.`,
-    uniqueness: () => `${n - new Set(live.map((p) => p.descKey)).size} of ${n} sampled products reuse another product's description, so agents can't tell them apart.`,
-    imageCoverage: () => `${cnt((p) => p.imageCount <= 1)} of ${n} products have one image or none. Agents use image count to decide how confidently they can show a product.`,
+      : `The public product feed is closed (products.json returned nothing), so this scanner could not enumerate products through that endpoint. Other discovery channels were not tested.`,
+    uniqueness: () => `${n - new Set(live.map((p) => p.descKey)).size} of ${n} sampled products reuse another product's description, under the description-prefix comparison used by this check.`,
+    imageCoverage: () => `${cnt((p) => p.imageCount <= 1)} of ${n} products have one image or none. Image count is informational; recommendation behavior was not tested.`,
   };
 
   const allChecks = [];
@@ -1338,6 +1393,7 @@ export function score(raw) {
         pointsEarned: Math.round(o.value * w * 10) / 10,
         pointsLost: Math.round((100 - o.value) * w * 10) / 10,
         costOfTotal: Math.round((100 - o.value) * w * layerShare * 10) / 10,
+        problemCount: o.problemCount ?? null,
         evidence: o.evidence || null,
         fix: o.fix || null,
       };
@@ -1425,7 +1481,7 @@ export function score(raw) {
           steps: [
             raw.org && raw.org.present
               ? `The block exists but lists ${raw.org.sameAs} profile${raw.org.sameAs === 1 ? '' : 's'}. Two or more is what lets an agent confirm ${brand} is a real business.`
-              : `${brand} has no Organization block, so agents can't tie this catalogue to a verified brand.`,
+              : `${brand} has no Organization block, so this check did not find a homepage Organization declaration.`,
             'Use the profiles you actually run — Instagram, LinkedIn, Wikipedia, Amazon brand store.',
           ],
           snippet: orgFix(brand, raw.domain, raw.orgLogo, raw.orgSameAs || []),
@@ -1461,18 +1517,34 @@ export function score(raw) {
           snippet: faqFix(brand),
         } : null,
       }),
+      {
+        ...build('agentMd', {
+          value: raw.agentMd?.value ?? null,
+          basis: 'state',
+          basisNote: 'Informational only: a non-empty text response at /agent.md is present (100); a missing or empty file is absent (0). Blocked, failed or HTML responses are unverified (—). This check has no scoring weight.',
+          result: raw.agentMd?.status === 'present' ? 'Present' : raw.agentMd?.status === 'absent' ? 'Absent' : 'Not verified',
+          why: 'Checks the exact /agent.md path, not /agents.md or another endpoint. File presence does not establish agent support or checkout compatibility. Absence does not require a fix.',
+          evidence: {
+            headline: raw.agentMd?.detail || 'This saved scan did not check /agent.md.',
+            items: [{title: '/agent.md', url: raw.domain + '/agent.md', note: raw.agentMd?.detail || 'Not checked'}],
+            total: 1, more: 0,
+          },
+          fix: null,
+        }),
+        informationalOnly: true,
+      },
       build('llmsTxt', {
-        value: raw.llmsTxt && raw.llmsTxt.exists ? 100 : 0,
+        value: raw.llmsTxt?.exists ? 100 : raw.llmsTxt?.status === 'absent' ? 0 : null,
         basis: 'state',
         basisNote: 'Measured and shown, excluded from the score. Its 10% is redistributed across the other five checks.',
         result: raw.llmsTxt && raw.llmsTxt.exists
-          ? (raw.llmsTxt.shopifyGenerated ? 'Present — auto-generated by Shopify, not written by the brand' : 'Present, custom')
-          : 'Absent',
-        why: 'Dropped from scoring. Shopify auto-generates llms.txt for every store, pointing agents at shop.app. Returned 100 on all 15 stores tested.',
+          ? (raw.llmsTxt.shopifyGenerated ? 'Present — contains Shopify-related instruction references; authorship unverified' : 'Present — authorship unverified')
+          : raw.llmsTxt?.status === 'absent' ? 'Absent' : 'Not verified',
+        why: 'Presence is informational and excluded from scoring. This request does not verify authorship, accuracy or whether an AI system uses the file.',
         evidence: {
           headline: raw.llmsTxt && raw.llmsTxt.exists
             ? `${raw.llmsTxt.bytes} bytes served at /llms.txt`
-            : 'Nothing served at /llms.txt',
+            : raw.llmsTxt?.detail || 'Not verified in this saved scan',
           items: [], total: 0, more: 0,
         },
         fix: null,
@@ -1501,7 +1573,7 @@ export function score(raw) {
             : 'Product template, once you have reviews to publish',
           steps: [
             reviewAppPresent
-              ? `${namedApps[0] || 'The review widget'} renders ratings in JavaScript. Agents fetch the HTML once and never run it, so the ratings your customers see are invisible to them.`
+              ? `${namedApps[0] || 'The review widget'} renders ratings in JavaScript. This scanner reads initial HTML without executing JavaScript; other systems may have additional access.`
               : 'Collect reviews first — this block must reflect real ratings.',
             'Most review apps have this as a single toggle; it does not need theme code.',
             'Never publish a rating you cannot substantiate.',
@@ -1547,6 +1619,7 @@ export function score(raw) {
         pointsEarned: Math.round(o.value * w * 10) / 10,
         pointsLost: Math.round((100 - o.value) * w * 10) / 10,
         costOfTotal: Math.round((100 - o.value) * w * layerShare * 10) / 10,
+        problemCount: o.problemCount ?? null,
         evidence: o.evidence || null,
         fix: o.fix || null,
       };
@@ -1558,9 +1631,9 @@ export function score(raw) {
         basis: 'state',
         basisNote: `Read from /.well-known/ucp. Checkout capability declared at the profile's current version = 100; declared at an older version only = 40; absent or unreachable = 0.`,
         result: (raw.ucp || {}).ok
-          ? `Declares dev.ucp.shopping.checkout at ${((raw.ucp || {}).checkoutVersions || []).join(', ') || 'no version'} · ${(raw.ucp || {}).capabilities.length} capabilities`
-          : `No UCP profile served (${(raw.ucp || {}).status || 'no response'})`,
-        why: 'Replaces the retired checkout-stack penalty. That check graded a store by how many checkout apps sat over native Shopify; fetching /.well-known/ucp on 13 stores spanning native checkout to four stacked apps returned an identical profile every time, so app count has no relationship to declared capability. Shopify serves this from its platform layer, beneath the storefront the apps modify. This confirms the endpoint DECLARES checkout capability — it does not simulate a live agent-initiated purchase, so app-specific friction during an actual transaction is untested.',
+          ? `Profile lists dev.ucp.shopping.checkout at ${((raw.ucp || {}).checkoutVersions || []).join(', ') || 'no version'} · ${(raw.ucp || {}).capabilities.length} capabilities`
+          : `No parseable UCP profile verified (${(raw.ucp || {}).status || 'no response'})`,
+        why: 'Checks a public UCP capability declaration, not a completed transaction. Detected checkout apps do not establish whether an AI purchase succeeds. Shopify Catalog access and live checkout must be verified separately.',
         evidence: {
           headline: (raw.ucp || {}).ok
             ? `UCP ${(raw.ucp || {}).version} with ${(raw.ucp || {}).capabilities.length} capabilities declared`
@@ -1580,7 +1653,7 @@ export function score(raw) {
             (raw.ucp || {}).ok
               ? 'The profile is served but does not declare checkout at its current version.'
               : 'Nothing parseable is served at /.well-known/ucp, which is unusual for a live Shopify store.',
-            'Every one of the 13 stores tested returned a complete profile, so this is worth checking in the admin rather than treating as normal.',
+            'Check current Agentic settings and supported checkout channels in Shopify admin. Do not infer purchase failure from this endpoint alone.',
           ],
           snippet: null,
         } : null,
@@ -1588,7 +1661,7 @@ export function score(raw) {
       build('codPayment', {
         value: l3.codPayment,
         basis: 'state',
-        basisNote: 'Binary, per the v2 spec: acceptedPaymentMethod declared on the Offer = 100, anything else = 0. Payment options rendered as page text earn no credit — they are shown below as context, not as partial marks.',
+        basisNote: 'Binary presence rule: at least one sampled product declares acceptedPaymentMethod on an Offer = 100; none = 0. A score of 100 is not full catalogue coverage. Payment options rendered as page text earn no credit — they are shown below as context, not as partial marks.',
         result: paySchemaPct > 0
           ? `${Math.round((paySchemaPct / 100) * n)} of ${n} products declare acceptedPaymentMethod`
           : codPct > 0
@@ -1611,9 +1684,9 @@ export function score(raw) {
           where: 'Theme editor → product template, in the existing Product JSON-LD Offer',
           steps: [
             IN_MARKET
-              ? 'COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.'
-              : 'How a shopper can pay is a purchase-path question an agent must answer, and right now it is invisible to them.',
-            'This goes inside the Offer you already publish — it is two extra fields, not a new block.',
+              ? 'Payment methods were not found in sampled Offer markup. That does not establish whether COD or prepaid methods work in checkout.'
+              : 'Payment methods were not found in sampled Offer markup. Shopify Catalog and live checkout were not tested.',
+            'If you publish an Offer, add verified fields to it; otherwise review your product markup first.',
             'Confirm accepted methods in your payment settings. Replace every placeholder before publishing; payment availability can vary by market.',
           ],
           snippet: ld({
@@ -1627,7 +1700,7 @@ export function score(raw) {
       build('serviceability', {
         value: l3.serviceability,
         basis: 'state',
-        basisNote: `Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A detected ${AREA} or delivery widget is informational; its live API access and checkout behavior were not tested.`,
+        basisNote: `Binary presence rule: at least one sampled product has shippingDetails in its Offer = 100; none = 0. A score of 100 is not full catalogue coverage. A detected ${AREA} or delivery widget is informational; its live API access and checkout behavior were not tested.`,
         result: shipSchemaPct > 0
           ? `${Math.round((shipSchemaPct / 100) * n)} of ${n} products publish OfferShippingDetails`
           : pincodePct > 0
@@ -1647,7 +1720,7 @@ export function score(raw) {
           where: 'Theme editor → product template, in the existing Product JSON-LD Offer',
           steps: [
             'Confirm your actual delivery destinations and windows in your shipping settings. Replace every placeholder before publishing this template.',
-            `Agents asked "${DELIVERY_EG}" currently have nothing to work from.`,
+            'This exposes public delivery declarations, but does not verify actual delivery eligibility or checkout success.',
             'Publish your real handling and transit times; a wrong promise here is worse than none.',
           ],
           snippet: ld({
@@ -1670,7 +1743,7 @@ export function score(raw) {
         basis: 'state',
         basisNote: returnSchema
           ? `Return markup found on ${returnSchemaWhere}. Full terms with a stated window = 100; typed schema without a window = 70; a bare link to the policy page = 55.`
-          : 'No return markup anywhere. Prose caps at 40 however long the page is — an agent cannot parse a policy page, so length is not machine-readability. Over 1200 characters = 40, over 400 = 30, any text = 20, missing = 0.',
+          : 'No return markup anywhere. Prose caps at 40 however long the page is — this checklist assigns heuristic credit to prose length, not verified AI comprehension. Over 1200 characters = 40, over 400 = 30, any text = 20, missing = 0.',
         result: returnSchema
           ? returnSchema.linkOnly
             ? `Only a link to the policy page — hasMerchantReturnPolicy on ${returnSchemaWhere} carries no window, fees or method`
@@ -1712,7 +1785,7 @@ export function score(raw) {
           steps: [
             returnSchema
               ? returnSchema.linkOnly
-                ? 'hasMerchantReturnPolicy currently holds only a URL. An agent following it lands on a prose page it still cannot parse, so the pointer buys nothing.'
+                ? 'hasMerchantReturnPolicy currently holds only a URL. This links to a prose page rather than declaring structured return terms; prose may still be usable.'
                 : 'The schema is there but states no return window, which is the one field an agent needs most.'
               : `The policy is written${(raw.policyReturn || {}).len ? ` — ${(raw.policyReturn || {}).len} characters at ${raw.policyReturn.path}` : ''}, it just isn't machine-readable.`,
             'An agent asked "can I return this, by when, at what cost" reads these five fields. Prose gives it nothing.',
@@ -1783,6 +1856,7 @@ export function score(raw) {
         pointsEarned: Math.round(o.value * w * 10) / 10,
         pointsLost: Math.round((100 - o.value) * w * 10) / 10,
         costOfTotal: Math.round((100 - o.value) * w * layerShare * 10) / 10,
+        problemCount: o.problemCount ?? null,
         evidence: o.evidence || null,
         fix: o.fix || null,
       };
@@ -1804,7 +1878,7 @@ export function score(raw) {
         }`,
         result: `Descriptions cover ${(l4.answerFirst / 25).toFixed(1)} of the 4 facts on average · ${worstProbe[1]} of ${n} never mention ${worstProbe[0]}`,
         why: llmUsed
-          ? `Built to the v2 spec structure. The spec names Claude Haiku; this runs on ${(raw.llm || {}).model} via the free Gemini tier, one request per scan with all descriptions batched. Verdicts are cached by description hash and graded at temperature 0, so unchanged copy always scores the same.`
+          ? `Built to the v2 spec structure. The spec names Claude Haiku; this runs on ${(raw.llm || {}).model} via the free Gemini tier, one request per scan with all descriptions batched. Verdicts are cached by description hash and graded at temperature 0, but model versions, cache lifetime and sampling can still change the result.`
           : 'Built to the v2 spec structure, computed without the LLM call it specifies. Same four questions, keyword detection, so a scan needs no API key and costs nothing. Set GEMINI_API_KEY to grade these with a model instead.',
         evidence: {
           headline: probeMisses.every(([, c]) => c === 0)
@@ -1820,7 +1894,7 @@ export function score(raw) {
           where: 'Product descriptions — Shopify admin → Products, or your PIM',
           steps: [
             `${worstProbe[1]} of ${n} sampled descriptions never mention ${worstProbe[0]}.`,
-            'Agents answer shopper questions by quoting your copy. A description that opens with brand storytelling gives them nothing to quote.',
+            'Put factual product information early so it is easier to find; this check does not measure AI answer quality.',
             'Put material, size and use case in the first two sentences; keep the storytelling after.',
           ],
           snippet: null,
@@ -1846,7 +1920,7 @@ export function score(raw) {
           where: 'Product descriptions — Shopify admin → Products',
           steps: [
             `Sampled descriptions average ${(live.reduce((a, p) => a + p.unitMentions, 0) / Math.max(1, n)).toFixed(1)} concrete measurements.`,
-            'Vague marketing copy ranks below a competitor that states grams, millilitres or dimensions.',
+            'Concrete measurements make product attributes explicit. This scan does not measure search or AI ranking.',
             'One line of specifications per product moves this more than rewriting the prose.',
           ],
           snippet: null,
@@ -1855,13 +1929,13 @@ export function score(raw) {
       build('entityConsistency', {
         value: l4.entityConsistency,
         basis: 'state',
-        basisNote: `One rendered form of the brand name across all sampled pages = 100; several forms that match once case and spacing are normalised = 70; the name missing from some pages entirely = 40. Matching is anchored on "${raw.brandName}".`,
+        basisNote: `One rendered form of the brand name across all sampled pages = 100; several forms that match once case and spacing are normalised = 70; the name missing from some pages, or non-equivalent forms = 40. Matching is anchored on "${raw.brandName}".`,
         result: noBrand.length
           ? `The brand name is absent from ${noBrand.length} of ${n} sampled product pages`
           : allForms.length <= 1
             ? `One consistent form across all ${n} pages: "${allForms[0] || raw.brandName}"`
             : `${allForms.length} written forms in use: ${allForms.slice(0, 4).map((f) => `"${f}"`).join(', ')}${allForms.length > 4 ? '…' : ''}`,
-        why: 'Most brands render their name in more than one form but identically once case and spacing are normalised. Scores vary across stores, so this check is still under review before its 30% weight is locked.',
+        why: 'Deterministic name matching on sampled pages, not a measure of recognition by an AI system. One form scores 100; equivalent spelling variants score 70; missing names or non-equivalent forms score 40.',
         evidence: {
           headline: noBrand.length
             ? `${noBrand.length} sampled pages carry no recognisable form of the brand name`
@@ -1913,16 +1987,17 @@ export function score(raw) {
       }),
       build('imageCoverage', {
         value: l4.imageCoverage,
+        problemCount: live.filter(p => p.imageCount <= 1).length,
         basis: 'measured',
         basisNote: 'Not in the spec. Graded per product on image count: 7+ = 100, 5-6 = 90, 3-4 = 70, 2 = 45, 1 = 20, none = 0.',
         result: `${live.filter((p) => p.imageCount <= 1).length} of ${n} products have one image or none`,
         why: '',
         evidence: {
-          headline: 'Products with the fewest images',
-          ...cap(live.slice().sort((a, b) => a.imageCount - b.imageCount).filter((p) => p.imageCount <= 2)
+          headline: 'Products with one image or none',
+          ...cap(live.slice().sort((a, b) => a.imageCount - b.imageCount).filter((p) => p.imageCount <= 1)
             .map((p) => ({ title: p.title, url: p.url, note: `${p.imageCount} image${p.imageCount === 1 ? '' : 's'}` }))),
         },
-        fix: l4.imageCoverage < 100 ? {"headline": "Add useful product images", "where": "Shopify admin → Products → Select product → Media", "steps": ["Start with the products listed in the evidence. Add a clear main image, alternate angles, close-up details and a scale or in-use view where relevant. Use genuine product images and match variant images to the right variants.", "Add concise alternative text describing each image. Confirm that images load on the public product page, then rescan. Image count is informational and does not change the weighted score."], "snippet": null} : null,
+        fix: live.some(p => p.imageCount <= 1) ? {"headline": "Add useful product images", "where": "Shopify admin → Products → Select product → Media", "steps": ["Start with the products listed in the evidence. Add a clear main image, alternate angles, close-up details and a scale or in-use view where relevant. Use genuine product images and match variant images to the right variants.", "Add concise alternative text describing each image. Confirm that images load on the public product page, then rescan. Image count is informational and does not change the weighted score."], "snippet": null} : null,
       }),
     ];
 
@@ -1948,14 +2023,14 @@ export function score(raw) {
       specWeight: 20,
       checks: [
         { spec: 'robots.txt allows AI crawlers', specSub: 30, scored: false,
-          result: raw.robots && raw.robots.blocked.length === 0
-            ? `All ${AI_BOTS.length} AI crawlers allowed` : `Blocked: ${(raw.robots || {}).blocked.join(', ')}`,
-          value: l1.robots,
-          why: 'Shopify never disallows AI crawlers by default. Returned 100 on all 15 stores tested.' },
+          result: !raw.robots?.fetched ? 'robots.txt could not be verified' : raw.robots.blocked.length === 0
+            ? `No root-path disallow found for ${AI_BOTS.length} tested AI user agents` : `Root path disallowed: ${raw.robots.blocked.join(', ')}`,
+          value: raw.robots?.fetched ? l1.robots : null,
+          why: 'Informational check of root-path disallow rules for the listed user agents. Other paths, access controls and actual provider traffic are not tested.' },
         { spec: 'JS-independent content render', specSub: 35, scored: false,
           result: `${renderPct}% of title/price/stock visible without JavaScript`,
           value: renderPct,
-          why: 'Shopify renders server-side in Liquid, so this returned 100 on all 15 stores tested.' },
+          why: 'Informational string matching on initial HTML. Matching text can appear in scripts and does not establish what an AI provider rendered.' },
         { spec: 'Page load speed', specSub: 15, scored: true,
           result: hasProducts ? `${Math.round(median(live.map((p) => p.htmlBytes)) / 1024)}KB, ${median(live.map((p) => p.ttfb || 0))}ms to first byte` : 'no pages loaded',
           value: l1.pageWeight,
@@ -1963,15 +2038,15 @@ export function score(raw) {
         { spec: 'Sitemap present & current', specSub: 20, scored: false,
           result: raw.sitemapOk ? `Present, ${raw.sitemapProductCount || 0} product URLs` : 'Missing',
           value: raw.sitemapOk ? 100 : 0,
-          why: 'Shopify auto-generates sitemap.xml for every store. Returned 100 on all 15 stores tested.' },
+          why: 'Reports the sitemap response observed during this scan, not freshness of every URL.' },
         { spec: 'AI crawler access by user-agent', specSub: null, scored: true, added: true,
           result: Object.entries(botVerdicts).map(([b, v]) => `${b}: ${v}`).join(' · '),
           value: l1.botWall,
           why: 'Not in the spec. Fetches the store as each crawler and compares — catches edge blocking that robots.txt cannot show.' },
         { spec: 'Product feed & indexability', specSub: null, scored: true, added: true,
           result: `products.json ${raw.catalogOpen ? 'open' : 'closed'} · ${pctOf(live, (p) => p.noindex)}% noindex · ${staticPct((p) => !p.hasCanonical)}% no canonical`,
-          value: Math.round((l1.endpoints + l1.indexability) / 2),
-          why: 'Not in the spec. Whether agents can enumerate and index the catalogue at all.' },
+          value: l1.productFeed,
+          why: 'Not in the spec. Checks this public feed, noindex directives and canonical links; it does not test Shopify Catalog discovery.' },
       ],
     },
     // One source of truth. The overview row and the deep Layer 2 section are the
@@ -1994,6 +2069,13 @@ export function score(raw) {
       checks: layer4Report.checks,
     },
   };
+
+  const technicalKeys = {'Page load speed':'pageWeight', 'AI crawler access by user-agent':'botWall', 'Product feed & indexability':'productFeed'};
+  specDetail.layer1.checks = specDetail.layer1.checks.map(c => {
+    const key = technicalKeys[c.spec];
+    if (!key) return c;
+    return {...c, key, costOfTotal: Math.round((100 - c.value) * SUB.layer1[key] * WEIGHTS.layer1 / totalWeight * 10) / 10};
+  });
 
   // ------------------------------------------------- "what an agent sees"
   // Fields an agent can read show the real value. Fields it can't show what
@@ -2036,6 +2118,8 @@ export function score(raw) {
     scannedAt: raw.scannedAt,
     catalogCount: raw.catalogCount,
     sampled: live.length,
+    scanStatus: live.length === (raw.products || []).length && raw.homeStatus === 200 ? 'complete' : 'partial',
+    sampleManifest: (raw.products || []).map(p => ({url: p.url, finalUrl: p.finalUrl || p.url, readable: !!p.pageOk, status: p.status ?? null, issue: p.pageIssue || null, descriptionHash: createHash('sha256').update(p.descFull || p.descSnippet || '').digest('hex')})),
     samplingBasis: raw.samplingBasis || 'catalogue-spread',
     samplingRanked: raw.samplingRanked || 0,
     sampleAttempted: (raw.products || []).length,
