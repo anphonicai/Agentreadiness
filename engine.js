@@ -586,6 +586,26 @@ export function observedOfferPrice(p) {
     : {price: 'REPLACE_WITH_VERIFIED_PRICE', priceCurrency: 'REPLACE_WITH_VERIFIED_CURRENCY'};
 }
 
+/**
+ * Ratings a review app renders into the page but does not publish as
+ * AggregateRating. jhamasweets.com serves data-average-rating='4.50' and
+ * data-number-of-reviews='4' from Judge.me while its Product schema carries no
+ * rating at all, so the audit reported "no rating found" to a merchant who
+ * plainly has reviews. The score is unchanged, because an agent still cannot
+ * read them; only the evidence becomes accurate.
+ */
+export function observedRating(html) {
+  const text = String(html || '');
+  const numbers = pattern => [...text.matchAll(pattern)].map(m => Number(m[1])).filter(Number.isFinite);
+  const counts = numbers(/data-(?:number-of-reviews|reviews-count|review-count|number-of-ratings)=['"](\d+)['"]/gi);
+  const scores = numbers(/data-(?:average-rating|average-score|aggregate-rating)=['"]([\d.]+)['"]/gi);
+  // Review apps also render an empty template badge, so take the live one.
+  const count = counts.length ? Math.max(...counts) : 0;
+  const value = scores.filter(v => v > 0 && v <= 5).sort((a, b) => b - a)[0] ?? null;
+  if (!count && value === null) return null;
+  return {count, value};
+}
+
 export function inspectAgentMd(response) {
   const {status, body = '', contentType = ''} = response;
   if (status === 404 || status === 410) return {status: 'absent', value: 0, detail: `Not found (HTTP ${status}).`};
@@ -780,6 +800,7 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
     const options = (p.options || []).filter((o) => o.name !== 'Title');
     const variants = p.variants || [];
     const agg = pb && pb.aggregateRating ? pb.aggregateRating : null;
+    const rendered = agg ? null : observedRating(html);
     const canonical = (html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i) || [])[1] || '';
     const robotsMeta = (html.match(/<meta[^>]+name=["']robots["'][^>]+content=["']([^"']+)["']/i) || [])[1] || '';
 
@@ -841,6 +862,7 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
         variantLevelOffers: markup.variantLevelOffers,
         rating: !!agg,
         ratingCount: agg ? Number(agg.reviewCount || agg.ratingCount || 0) : 0,
+        renderedRating: rendered,
         faq: blocks.some((b) => isType(b, 'FAQPage') || isType(b, 'HowTo')),
       },
     };
@@ -1212,7 +1234,13 @@ export function score(raw) {
       : `${raw.brandName} has no Organization markup on the homepage, so this check did not find a homepage Organization declaration. This does not establish seller legitimacy or Catalog visibility.`,
     reviewSchema: (v) => v === 25
       ? `${reviewAppLabel} is displaying reviews, but none are exposed as structured data, so this scanner did not find those ratings in the checked structured data.`
-      : `${cnt((p) => !p.schema.rating)} of ${n} products have no machine-readable rating. Reviews are one of the five signals Shopify ranks agentic listings on.`,
+      : (() => {
+        const withReviews = live.filter((p) => !p.schema.rating && p.schema.renderedRating?.count);
+        const missing = cnt((p) => !p.schema.rating);
+        return withReviews.length
+          ? `${missing} of ${n} products have no machine-readable rating, though ${withReviews.length} show review counts on the page that only load as widget markup. Reviews are one of the five signals Shopify ranks agentic listings on.`
+          : `${missing} of ${n} products have no machine-readable rating. Reviews are one of the five signals Shopify ranks agentic listings on.`;
+      })(),
     variantSchema: () => `${cnt((p) => p.variantCount > 1 && !p.schema.variantLevelOffers)} of ${n} products have multiple variants but expose only one price, so an agent asked for a specific size can't confirm it exists.`,
     faqSchema: (v) => v === 30
       ? 'FAQ content was detected but no FAQ or HowTo JSON-LD was found on the checked pages. Plain text may still be usable.'
@@ -1356,7 +1384,12 @@ export function score(raw) {
       .filter((p) => p.variantCount > 1 && !p.schema.variantLevelOffers)
       .map((p) => ({ title: p.title, url: p.url,
         note: `${p.variantCount} variants (${p.optionNames.join(' × ') || 'unnamed options'}) · one offer published` }));
-    const reviewFails = live.filter((p) => !p.schema.rating).map((p) => ({ title: p.title, url: p.url, note: 'no AggregateRating' }));
+    const reviewFails = live.filter((p) => !p.schema.rating).map((p) => ({
+      title: p.title, url: p.url,
+      note: p.schema.renderedRating?.count
+        ? `${p.schema.renderedRating.count} reviews on the page${p.schema.renderedRating.value ? `, rated ${p.schema.renderedRating.value}` : ''}, but no AggregateRating`
+        : 'no AggregateRating',
+    }));
     // these two lists are things the store got RIGHT, flagged so the screen
     // doesn't colour them like failures
     const faqPdps = live.filter((p) => p.schema.faq)
@@ -2090,8 +2123,15 @@ export function score(raw) {
         action: 'Add availability to the offer' },
       { label: 'SKU', value: worst.schema.sku ? 'Present' : null, visible: worst.schema.sku,
         action: 'Publish the SKU field' },
-      { label: 'Rating', value: worst.schema.ratingCount ? `${worst.schema.ratingCount} reviews` : null,
+      { label: 'Rating',
+        value: worst.schema.ratingCount ? `${worst.schema.ratingCount} reviews`
+          : worst.schema.renderedRating?.count
+            ? `${worst.schema.renderedRating.count} reviews on the page${worst.schema.renderedRating.value ? `, rated ${worst.schema.renderedRating.value}` : ''}, not in schema`
+            : null,
         visible: worst.schema.rating,
+        // Already shown to every visitor by the review widget, so it is not
+        // paid detail and may appear in the free report.
+        public: !worst.schema.rating && Boolean(worst.schema.renderedRating?.count),
         action: reviewAppPresent
           ? `Expose ratings from ${namedApps[0] || 'your review app'} as structured data`
           : 'Collect reviews and expose them as structured data' },

@@ -133,7 +133,11 @@ export function reportPreview(r) {
       fields: (r.agentView.fields || []).filter(field => allowedFields.has(field.label)).slice(0,6).map(field => ({
         label: field.label,
         visible: field.visible === true,
-        value: field.visible === true && ['string','number','boolean'].includes(typeof field.value) ? String(field.value) : null,
+        // Values of unreadable fields stay out of the free report, which is the
+        // paid content guard. A field the engine marks public is the exception:
+        // a rating the storefront already shows every visitor is not paid detail.
+        value: (field.visible === true || field.public === true) && ['string','number','boolean'].includes(typeof field.value)
+          ? String(field.value) : null,
       })),
     } : null,
     agentAsk: agentAsk(r),

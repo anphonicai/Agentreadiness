@@ -253,3 +253,21 @@ test('competitors can be reselected after the report exists, within a capped num
     assert.fail('the revision cap was never reached');
   } finally { store.close(); rmSync(dir, {recursive:true, force:true}); }
 });
+
+test('a rating the storefront already shows is reported, while hidden values stay paid-only', () => {
+  // jhamasweets.com renders 4 reviews at 4.50 through Judge.me while its Product
+  // schema carries no rating, and the audit told the merchant "not found".
+  const shown = freeReport({...fixture, agentView: {title: 'Kachori', fields: [
+    {label: 'Rating', visible: false, public: true, value: '4 reviews on the page, rated 4.5, not in schema'},
+  ]}});
+  assert.deepEqual(shown.preview.product.fields, [
+    {label: 'Rating', visible: false, value: '4 reviews on the page, rated 4.5, not in schema'},
+  ]);
+
+  // Without that flag an unreadable field keeps its value out of the free report.
+  const hidden = freeReport({...fixture, agentView: {title: 'Kachori', fields: [
+    {label: 'Rating', visible: false, value: 'paid-only detail'},
+  ]}});
+  assert.equal(hidden.preview.product.fields[0].value, null);
+  assert.ok(!JSON.stringify(hidden.preview).includes('paid-only detail'));
+});
