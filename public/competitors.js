@@ -5,11 +5,16 @@ function saveScanOwner(id, token) {
   scanOwners.set(id, token);
   try {sessionStorage.setItem('scan-owner:'+id,token);} catch {}
 }
+// report-delivery.js declares reportLinkToken and loads after this file, so a
+// direct read can hit the temporal dead zone if a scan restores early.
+function reportLink() {
+  try { return typeof reportLinkToken === 'string' ? reportLinkToken : null; } catch { return null; }
+}
 function scanOwner(id) {
   try {return scanOwners.get(id) || sessionStorage.getItem('scan-owner:'+id);} catch {return scanOwners.get(id);}
 }
 async function competitorRequest(path, competitors) {
-  const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scanId:currentScanId,ownerToken:scanOwner(currentScanId),competitors}),signal:AbortSignal.timeout(20000)});
+  const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scanId:currentScanId,ownerToken:scanOwner(currentScanId),reportToken:reportLink()||undefined,competitors}),signal:AbortSignal.timeout(20000)});
   const data=await response.json();
   if(!response.ok) throw new Error(data.error || 'Unable to save competitors. Please try again.');
   return data;
@@ -36,11 +41,14 @@ async function restoreCompetitorSelection() {
   const form=document.getElementById('competitor-form');
   if(!form) return;
   competitorBusy=false;
-  if(!scanOwner(currentScanId)) {
+  // A private report link authorises changes just as an owner token does, so a
+  // client reading a report prepared for them can still pick competitors.
+  if(!scanOwner(currentScanId) && !reportLink()) {
     form.querySelectorAll('input,button').forEach(el=>{el.disabled=true;});
-    document.getElementById('competitor-status').textContent='To choose competitors, start a new scan in this browser before checkout.';
+    document.getElementById('competitor-status').textContent='Open this report from its private link to choose competitors, or start a new scan in this browser.';
     return;
   }
+  form.querySelectorAll('input,button').forEach(el=>{el.disabled=false;});
   const id=currentScanId;
   try {
     const data=await competitorRequest('/api/competitors/status');

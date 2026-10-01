@@ -413,11 +413,11 @@ function renderSpeed(s){
     <div class="speedrow">
       <div class="stat ${band(s.medianTtfb, 800, 2000)}">
         <b>${s.medianTtfb}<i>ms</i></b><em>To first byte</em>
-        <span>median · ${s.minTtfb}–${s.maxTtfb}ms across ${s.sampleSize}</span>
+        <span>median · ${s.minTtfb}-${s.maxTtfb}ms across ${s.sampleSize}</span>
       </div>
       <div class="stat ${band(s.medianKb, 600, 1000)}">
         <b>${s.medianKb}<i>KB</i></b><em>HTML payload</em>
-        <span>median · ${s.minKb}–${s.maxKb}KB, before images</span>
+        <span>median · ${s.minKb}-${s.maxKb}KB, before images</span>
       </div>
       <div class="stat ${band(s.medianTotal, 1500, 3000)}">
         <b>${s.medianTotal}<i>ms</i></b><em>Full response</em>
@@ -530,7 +530,7 @@ function renderLayer2(L){
     const weightLine = c.scored
       ? `spec ${c.specSub}% · scored at ${c.effectiveSub}% of this layer · `
         + (c.pointsLost > 0
-            ? `losing ${c.pointsLost} of the layer's 100, ${c.costOfTotal} off the Layers 1–4 readiness score`
+            ? `losing ${c.pointsLost} of the layer's 100, ${c.costOfTotal} off the Layers 1-4 readiness score`
             : 'full marks, costing nothing')
       : `${c.specSub == null ? 'Additional check' : `Spec ${c.specSub}%`} · measured, not scored`;
 
@@ -595,12 +595,12 @@ function renderLayer5(L){
     <p>How your storefront compares with your named competitors on the same checklist.</p>
     <details><summary>How these numbers are made</summary><p>Relative position: each scored check in Layers 1, 2 and 4 earns 1 per competitor beaten, 0.5 per tie and 0 per loss. Average across comparable competitors, multiply by 100, then apply the within-layer weights and normalized layer weights 20:25:15. This is not a percentile across all stores.</p><p>Contribution: ${number(L.score)} × 0.15 = ${number(L.contribution)} points when complete. Overall audit: 0.20 × Layer 1 + 0.25 × Layer 2 + 0.25 × Layer 3 + 0.15 × Layer 4 + 0.15 × relative position = ${number(L.combinedScore)}. Calculation uses the stored layer scores before rounding the displayed total; multiplying the rounded readiness headline by 0.85 can differ.</p></details><div class="benchmark-stats"><div><b>${number(L.score)}<small>/100</small></b><span>Relative position${complete ? '' : ' · provisional/unavailable'}</span></div><div><b>${L.comparedCount}/${L.namedCount}</b><span>Comparable competitors</span></div><div><b>${number(L.contribution)}<small>/15</small></b><span>Contribution to combined score</span></div><div><b>${number(L.combinedScore)}<small>/100</small></b><span>Combined audit score</span></div></div>
     <p class="benchmark-status">${esc(note)}</p>
-    <p class="muted">Readiness score (Layers 1–4): ${number(L.readinessScore)}/100. Scanned ${esc(L.scannedAt ? new Date(L.scannedAt).toLocaleString() : 'date unavailable')}. All tied checks produce a relative score of 50.</p>
+    <p class="muted">Readiness score (Layers 1-4): ${number(L.readinessScore)}/100. Scanned ${esc(L.scannedAt ? new Date(L.scannedAt).toLocaleString() : 'date unavailable')}. All tied checks produce a relative score of 50.</p>
     <div class="benchmark-scroll"><table><caption>Named competitor scan coverage</caption><thead><tr><th>Competitor</th><th>Status</th><th>Sampled products</th><th>Scanned</th></tr></thead><tbody>${L.competitors.map(c => `<tr><td>${esc(c.domain)}</td><td>${esc(c.reason || c.status)}</td><td>${c.sampled}</td><td>${esc(c.scannedAt ? new Date(c.scannedAt).toLocaleString() : 'Not recorded')}</td></tr>`).join('')}</tbody></table></div>
     ${L.rows.length ? `<h4>Same checks, side by side</h4><p class="muted">Values are checklist scores out of 100, not all percentages of products. Median excludes unavailable scans.</p><div class="benchmark-scroll"><table><thead><tr><th>Check</th><th>Your store</th>${L.competitors.map(c => `<th>${esc(c.domain)}</th>`).join('')}<th>Competitor median</th><th>Gap</th></tr></thead><tbody>${L.rows.map(row => `<tr><th>${esc(row.label)}<small>${esc(row.layer.replace('layer','Layer '))} · ${esc(row.basis)}</small></th><td>${number(row.client)}</td>${L.competitors.map(c => `<td>${number(row.competitors.find(v => v.domain === c.domain)?.value)}</td>`).join('')}<td>${number(row.median)}</td><td class="${row.delta < 0 ? 'behind' : 'ahead'}">${row.delta > 0 ? '+' : ''}${number(row.delta)} · ${row.delta < 0 ? 'Behind' : row.delta > 0 ? 'Ahead' : 'At parity'}</td></tr>`).join('')}</tbody></table></div>
     <h4>What to fix first</h4>${L.gaps.length ? L.gaps.map(g => `<details class="benchmark-gap"><summary>${esc(g.label)}: ${Math.abs(g.delta)} points behind median</summary><p>${esc(g.evidence?.headline || 'Review the corresponding layer evidence below.')}</p>${g.evidence?.items?.length ? `<ul>${g.evidence.items.slice(0,3).map(e => `<li>${/^https?:\/\//i.test(e.url || '') ? `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title || e.url)}</a>` : esc(e.title || '')}: ${esc(e.note || '')}</li>`).join('')}</ul>` : ''}<p>${esc(g.fix?.headline || 'Inspect the corresponding layer recommendations.')}</p>${g.fix?.where ? `<p>${esc(g.fix.where)}</p>` : ''}${g.fix?.steps?.length ? `<ol>${g.fix.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}</details>`).join('') : '<p>No measured checks below the competitor median. Review absolute readiness gaps as well.</p>'}` : ''}
     <details><summary>Checkout detection: informational</summary><p>No purchase was attempted. These are public declarations and detected app signals.</p><ul>${L.checkout.map(c => `<li><b>${esc(c.domain)}</b>: ${esc(c.evidence)}. Apps: ${esc(c.detectedApps.join(', ') || 'none detected. Checkout type unconfirmed')}.</li>`).join('')}</ul></details>
-    <details><summary>How this is scored</summary><p>${esc(L.methodology)}</p><p>Single check: Score vs. 3–5 named competitors · 100% of Layer 5.</p><ul>${L.limitations.map(t => `<li>${esc(t)}</li>`).join('')}</ul><p class="muted">${esc(L.methodVersion)} · engine ${esc(L.engineVersion)}</p></details>
+    <details><summary>How this is scored</summary><p>${esc(L.methodology)}</p><p>Single check: Score vs. 3-5 named competitors · 100% of Layer 5.</p><ul>${L.limitations.map(t => `<li>${esc(t)}</li>`).join('')}</ul><p class="muted">${esc(L.methodVersion)} · engine ${esc(L.engineVersion)}</p></details>
   </section>`;
 }
 
@@ -680,7 +680,7 @@ function renderDetailedReport(r){
     </div>
     <div>
       <span class="eyebrow">${esc(r.brandName || r.domain)}</span><h2>${headline.complete ? 'Overall audit' : esc(r.grade)}</h2>
-      <p class="meta">${headline.complete ? `Includes competitive position at 15%. Storefront readiness (Layers 1–4): ${r.finalScore}/100.` : `Layers 1–4 only. Overall audit score unavailable until the competitor comparison is complete. ${esc(r.gradeNote)}`}</p>
+      <p class="meta">${headline.complete ? `Includes competitive position at 15%. Storefront readiness (Layers 1-4): ${r.finalScore}/100.` : `Layers 1-4 only. Overall audit score unavailable until the competitor comparison is complete. ${esc(r.gradeNote)}`}</p>
       <p class="meta"><code>${esc(r.domain)}</code> · ${r.catalogCount} products, ${r.sampled} sampled · checkout: ${r.checkoutStack.length ? esc(r.checkoutStack.join(' + ')) : 'No checkout app detected; checkout type unconfirmed'}</p>
     </div>
   </div>
@@ -692,7 +692,7 @@ function renderDetailedReport(r){
     <div class="sechead"><h3>Category Readiness Scores</h3><span class="section-caption">SCORED FROM YOUR STOREFRONT</span></div>
     ${layers}
     ${r.layer5Report ? `<div class="layer ${gradeClass(r.layer5Report.score)}"><div class="lname">Competitive Position<small>${esc(r.layer5Report.status)} · named competitor analysis</small><span class="bar"><i style="width:${Number.isFinite(r.layer5Report.score) ? r.layer5Report.score : 0}%"></i></span></div><div class="lnum">${Number.isFinite(r.layer5Report.score) ? r.layer5Report.score : 'N/A'}</div></div>` : ''}
-    <p class="skipped">Readiness uses Layers 1–4 with their weights rescaled to 100%.</p>
+    <p class="skipped">Readiness uses Layers 1-4 with their weights rescaled to 100%.</p>
   </section>
 
   <section>

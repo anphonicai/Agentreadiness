@@ -100,7 +100,8 @@ const server = createServer(async (req, res) => {
       let raw='';
       for await (const chunk of req) {raw+=chunk;if(Buffer.byteLength(raw)>16384)return json(res,413,{error:'Request too large.'});}
       const body=JSON.parse(raw);
-      if(!reportStore.owns(body.scanId,body.ownerToken)) return json(res,403,{error:'Return to the browser where you started this scan, or start a new scan.'});
+      const authorised = reportStore.owns(body.scanId,body.ownerToken) || reportStore.ownsViaLink(body.scanId,body.reportToken);
+      if(!authorised) return json(res,403,{error:'Open this report from its private link, or return to the browser where you started the scan.'});
       const saved=reportStore.get(body.scanId);
       if(!saved || !Number.isFinite(saved.result.finalScore)) return json(res,409,{error:'Complete a successful scan first.'});
       if(url.pathname==='/api/competitors') {

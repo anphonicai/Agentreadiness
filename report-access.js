@@ -180,6 +180,15 @@ export function openReportStore(filename) {
     owns(id, token) {
       return typeof token === 'string' && /^[a-f0-9]{64}$/.test(token) && Boolean(db.prepare('SELECT 1 FROM scan_owners WHERE report_id=? AND token_hash=?').get(id,hash(token)));
     },
+    // A live private report link is proof of authorised access to that report,
+    // so it also authorises changing its competitor set. Reports created for a
+    // client never have an owner token in that client's browser, which left
+    // competitor selection permanently disabled for them.
+    ownsViaLink(id, token, {now=Date.now()} = {}) {
+      if (typeof token !== 'string' || !/^[a-f0-9]{64}$/.test(token)) return false;
+      const link = db.prepare('SELECT report_id, mode FROM report_links WHERE token_hash=? AND revoked=0 AND expires_at>?').get(hash(token), now);
+      return Boolean(link && link.mode === 'paid' && link.report_id === id);
+    },
     competitors(id) {
       const row=db.prepare('SELECT * FROM competitor_requests WHERE report_id=?').get(id);
       return row ? {...row, domains:JSON.parse(row.domains)} : null;

@@ -190,3 +190,31 @@ test('the sampled product links back only to the scanned store', () => {
   // The title still renders when no usable link exists.
   assert.equal(scan(null).title, 'A product');
 });
+
+test('a live private report link authorises competitor changes for that report only', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'owns-link-'));
+  const store = openReportStore(join(dir, 'reports.sqlite'));
+  try {
+    store.save('scan-a', {domain:'https://a.test', finalScore:70}, {email:'a@example.com'});
+    store.save('scan-b', {domain:'https://b.test', finalScore:60}, {email:'b@example.com'});
+    const paid = store.issue('scan-a', {paymentReference:'pay_1'});
+    const preview = store.issue('scan-a', {preview:true});
+
+    // The report's own paid link authorises it. Reports prepared for a client
+    // have no owner token in that client's browser.
+    assert.equal(store.ownsViaLink('scan-a', paid), true);
+    assert.equal(store.owns('scan-a', paid), false);
+
+    // It must not reach another report, and a preview link is not enough.
+    assert.equal(store.ownsViaLink('scan-b', paid), false);
+    assert.equal(store.ownsViaLink('scan-a', preview), false);
+
+    // Nothing malformed, expired or revoked gets through.
+    for (const bad of ['', 'nope', null, undefined, 'z'.repeat(64)]) {
+      assert.equal(store.ownsViaLink('scan-a', bad), false, `expected ${String(bad)} to be refused`);
+    }
+    assert.equal(store.ownsViaLink('scan-a', paid, {now: Date.now() + 31 * 24 * 60 * 60 * 1000}), false);
+    store.revoke(paid);
+    assert.equal(store.ownsViaLink('scan-a', paid), false);
+  } finally { store.close(); rmSync(dir, {recursive:true, force:true}); }
+});
