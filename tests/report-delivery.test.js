@@ -218,3 +218,38 @@ test('a live private report link authorises competitor changes for that report o
     assert.equal(store.ownsViaLink('scan-a', paid), false);
   } finally { store.close(); rmSync(dir, {recursive:true, force:true}); }
 });
+
+test('competitors can be reselected after the report exists, within a capped number of changes', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'competitor-reselect-'));
+  const store = openReportStore(join(dir, 'reports.sqlite'));
+  try {
+    store.save('scan', {domain:'https://a.test', finalScore:70}, {email:'a@example.com'});
+    store.queueCompetitors('scan', ['one.test', 'two.test']);
+    store.completeCompetitors('scan', {status:'complete', score:50});
+
+    // A delivered report used to lock the comparison forever.
+    store.issue('scan', {paymentReference:'pay_1'});
+    store.queueCompetitors('scan', ['three.test', 'four.test']);
+    assert.deepEqual(store.competitors('scan').domains, ['three.test', 'four.test']);
+    assert.equal(store.competitors('scan').status, 'queued');
+
+    // Resubmitting the same set while queued is a no-op, not an error.
+    store.queueCompetitors('scan', ['three.test', 'four.test']);
+    assert.equal(store.competitors('scan').status, 'queued');
+
+    // A different set cannot jump a comparison that is mid-flight.
+    assert.throws(() => store.queueCompetitors('scan', ['five.test']), /already running/);
+
+    // Each completed change counts towards the cap.
+    for (let i = 0; i < 10; i += 1) {
+      store.competitorStatus('scan', 'ready');
+      try { store.queueCompetitors('scan', [`rival${i}.test`]); }
+      catch (error) {
+        assert.match(error.message, /already been changed 5 times/);
+        assert.ok(i >= 3, `cap hit too early, at change ${i}`);
+        return;
+      }
+    }
+    assert.fail('the revision cap was never reached');
+  } finally { store.close(); rmSync(dir, {recursive:true, force:true}); }
+});

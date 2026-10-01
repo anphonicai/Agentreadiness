@@ -3,6 +3,10 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { randomBytes, createHash } from 'node:crypto';
 
+// How many times one report's competitor set may be rebuilt. Each rebuild
+// crawls the named storefronts, so this bounds load on third-party sites.
+export const COMPETITOR_REVISION_LIMIT = 5;
+
 const hash = value => createHash('sha256').update(value).digest('hex');
 
 // What an agent cannot answer today, phrased as the shopper question it fails.
@@ -171,6 +175,8 @@ export function openReportStore(filename) {
       expires_at INTEGER NOT NULL, revoked INTEGER NOT NULL DEFAULT 0,
       payment_reference TEXT, delivery_status TEXT NOT NULL DEFAULT 'created', provider_id TEXT
     );`);
+  // Added after the table shipped; harmless when the column already exists.
+  try { db.exec('ALTER TABLE competitor_requests ADD COLUMN revisions INTEGER NOT NULL DEFAULT 0'); } catch {}
   return {
     createOwner(id) {
       const token = randomBytes(32).toString('hex');
@@ -193,13 +199,22 @@ export function openReportStore(filename) {
       const row=db.prepare('SELECT * FROM competitor_requests WHERE report_id=?').get(id);
       return row ? {...row, domains:JSON.parse(row.domains)} : null;
     },
+    // A comparison can be reselected after the report exists: a merchant who
+    // named the wrong rival should not have to rescan their whole store. Each
+    // change recrawls the chosen storefronts, so the count is capped.
     queueCompetitors(id, domains) {
-      if (db.prepare('SELECT 1 FROM checkout_locks WHERE report_id=?').get(id)) throw new Error('Competitors must be selected before starting checkout.');
-      if (db.prepare('SELECT 1 FROM checkout_sessions WHERE report_id=?').get(id) || db.prepare('SELECT 1 FROM report_links WHERE report_id=?').get(id)) throw new Error('Competitors must be selected before checkout or report access.');
-      const existing=this.competitors(id);
-      if (existing && JSON.stringify(existing.domains)!==JSON.stringify(domains)) throw new Error('Competitors are already saved for this report. Start a new scan to select different stores.');
-      if (existing && existing.status!=='failed') return;
-      db.prepare("INSERT INTO competitor_requests VALUES (?,?,'queued',?) ON CONFLICT(report_id) DO UPDATE SET status='queued'").run(id,JSON.stringify(domains),new Date().toISOString());
+      const existing = this.competitors(id);
+      const unchanged = existing && JSON.stringify(existing.domains) === JSON.stringify(domains);
+      if (unchanged && existing.status !== 'failed') return;
+      if (existing && ['queued', 'running'].includes(existing.status)) {
+        throw new Error('A comparison is already running for this report. Wait for it to finish before choosing different stores.');
+      }
+      const revisions = existing ? Number(existing.revisions || 0) : 0;
+      if (existing && revisions >= COMPETITOR_REVISION_LIMIT) {
+        throw new Error(`Competitors have already been changed ${COMPETITOR_REVISION_LIMIT} times for this report. Start a new scan to choose a different set.`);
+      }
+      db.prepare("INSERT INTO competitor_requests (report_id,domains,status,created_at,revisions) VALUES (?,?,'queued',?,0) ON CONFLICT(report_id) DO UPDATE SET status='queued', domains=excluded.domains, revisions=competitor_requests.revisions+1")
+        .run(id, JSON.stringify(domains), new Date().toISOString());
     },
     pendingCompetitors() { return db.prepare("SELECT report_id FROM competitor_requests WHERE status IN ('queued','running') ORDER BY created_at").all(); },
     competitorStatus(id, status) { db.prepare('UPDATE competitor_requests SET status=? WHERE report_id=?').run(status,id); },

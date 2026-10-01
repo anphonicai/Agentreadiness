@@ -35,17 +35,30 @@ test('selection ownership and pending jobs persist; completed comparison stays p
     assert.equal(freeReport(store.get('scan').result).layer5Report,undefined);
     const paid=store.issue('scan',{paymentReference:'test'});
     assert.ok(store.resolve(paid).result.layer5Report);
-    assert.throws(()=>store.queueCompetitors('scan',['https://c.example','https://d.example']),/before checkout/);
+    // Reselection after payment is allowed: a merchant who named the wrong
+    // rival should not have to rescan their whole store to correct it.
+    store.queueCompetitors('scan',['https://c.example','https://d.example']);
+    assert.deepEqual(store.competitors('scan').domains,['https://c.example','https://d.example']);
+    assert.equal(store.competitors('scan').status,'queued');
+    // The already-delivered report still resolves while the rerun is pending.
+    assert.ok(store.resolve(paid).result);
   } finally {store.close();rmSync(dir,{recursive:true,force:true});}
 });
 
-test('checkout locks competitor selection before the external Stripe request',()=>{
+test('checkout refuses to proceed while a comparison is still running',()=>{
   const dir=mkdtempSync(join(tmpdir(),'competitor-lock-'));
   const store=openReportStore(join(dir,'reports.sqlite'));
   try {
     store.save('scan',fixture,{email:'test@example.com'});
+    // Selecting competitors no longer freezes at checkout, but paying while a
+    // comparison is mid-flight would buy a report that is still changing.
+    store.queueCompetitors('scan',['https://a.example','https://b.example']);
+    assert.throws(()=>store.lockCompetitors('scan'),/not ready yet/);
+    store.competitorStatus('scan','ready');
     store.lockCompetitors('scan');
-    assert.throws(()=>store.queueCompetitors('scan',['https://a.example','https://b.example']),/before starting checkout/);
+    // A locked report can still be recompared afterwards.
+    store.queueCompetitors('scan',['https://c.example']);
+    assert.deepEqual(store.competitors('scan').domains,['https://c.example']);
   } finally {store.close();rmSync(dir,{recursive:true,force:true});}
 });
 
@@ -82,10 +95,12 @@ test('failed comparison can retry the same selection but existing paid reports c
     assert.throws(()=>store.issue('scan',{paymentReference:'paid'}),/not ready/);
     store.queueCompetitors('scan',domains);
     assert.equal(store.competitors('scan').status,'queued');
-    assert.throws(()=>store.queueCompetitors('scan',['https://c.example','https://d.example']),/already saved/);
+    // A different set cannot displace one that is still queued.
+    assert.throws(()=>store.queueCompetitors('scan',['https://c.example','https://d.example']),/already running/);
     store.save('previously-paid',fixture,{email:'test@example.com'});
     const token=store.issue('previously-paid',{paymentReference:'existing-payment'});
-    assert.throws(()=>store.queueCompetitors('previously-paid',domains),/before checkout/);
+    store.queueCompetitors('previously-paid',domains);
+    assert.deepEqual(store.competitors('previously-paid').domains,domains);
     assert.equal(store.resolve(token).result.finalScore,fixture.finalScore);
   } finally {store.close();rmSync(dir,{recursive:true,force:true});}
 });

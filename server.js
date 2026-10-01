@@ -106,7 +106,11 @@ const server = createServer(async (req, res) => {
       if(!saved || !Number.isFinite(saved.result.finalScore)) return json(res,409,{error:'Complete a successful scan first.'});
       if(url.pathname==='/api/competitors') {
         const domains=validateCompetitors(body.competitors,saved.result.domain);
-        if(Date.now()-Date.parse(saved.result.scannedAt)>23*60*60*1000) return json(res,409,{error:'Run a fresh store scan before selecting competitors so the comparison uses recent data.'});
+        // A comparison reads the client scan already on file against freshly
+        // crawled rivals, so the client scan should not be stale. 23 hours blocked
+        // every report prepared in advance for a client; 30 days still keeps the
+        // two sides of the comparison close enough to be fair.
+        if(Date.now()-Date.parse(saved.result.scannedAt)>30*24*60*60*1000) return json(res,409,{error:'This store scan is more than 30 days old. Run a fresh scan so the comparison uses current data.'});
         reportStore.queueCompetitors(body.scanId,domains);
         void runCompetitors();
       }
