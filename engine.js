@@ -594,16 +594,43 @@ export function observedOfferPrice(p) {
  * plainly has reviews. The score is unchanged, because an agent still cannot
  * read them; only the evidence becomes accurate.
  */
-export function observedRating(html) {
+export function observedRating(html, {appPresent = false} = {}) {
   const text = String(html || '');
-  const numbers = pattern => [...text.matchAll(pattern)].map(m => Number(m[1])).filter(Number.isFinite);
-  const counts = numbers(/data-(?:number-of-reviews|reviews-count|review-count|number-of-ratings)=['"](\d+)['"]/gi);
-  const scores = numbers(/data-(?:average-rating|average-score|aggregate-rating)=['"]([\d.]+)['"]/gi);
-  // Review apps also render an empty template badge, so take the live one.
+  const pick = (pattern, limit) => [...text.matchAll(pattern)]
+    .map(m => Number(m[1])).filter(v => Number.isFinite(v) && v >= 0 && (!limit || v <= limit));
+
+  // Aggregate attributes only. A bare data-rating is a single star in a widget's
+  // own markup, and treating it as an aggregate reported "rated 5" on products
+  // with zero reviews.
+  const counts = pick(/data-(?:number-of-reviews|reviews?-count|number-of-ratings|review-total|total-reviews)=['"](\d+)['"]/gi);
+  const scores = pick(/data-(?:average-rating|average-score|aggregate-rating|rating-value|avg-rating|average)=['"]([\d.]+)['"]/gi, 5);
+
+  // Microdata, which several apps emit instead of JSON-LD.
+  const micro = /itemprop=['"]ratingValue['"][^>]*content=['"]([\d.]+)['"]/gi;
+  const microCount = /itemprop=['"](?:reviewCount|ratingCount)['"][^>]*content=['"](\d+)['"]/gi;
+  scores.push(...pick(micro, 5));
+  counts.push(...pick(microCount));
+
+  // Text a widget renders server side, e.g. "Based on 34 reviews". The number
+  // and the word must sit together on one line: \s+ spans newlines, and a
+  // stray "8" ending one element joined a "Reviews" heading in the next.
+  const fromText = [
+    ...text.matchAll(/\bbased on[ \u00a0]{1,3}(\d{1,6})[ \u00a0]{1,3}reviews?\b/gi),
+    ...text.matchAll(/(\d{1,6})[ \u00a0]{1,2}reviews?\b/gi),
+  ].map(m => Number(m[1])).filter(Number.isFinite);
+  counts.push(...fromText);
+
   const count = counts.length ? Math.max(...counts) : 0;
-  const value = scores.filter(v => v > 0 && v <= 5).sort((a, b) => b - a)[0] ?? null;
-  if (!count && value === null) return null;
-  return {count, value};
+  const value = scores.filter(v => v > 0).sort((a, b) => b - a)[0] ?? null;
+  if (count > 0 || value !== null) return {status: 'found', count, value};
+  // A widget that reports zero was read successfully: this product has no
+  // reviews yet, which is a different fact from one we could not read.
+  if (counts.length) return {status: 'none', count: 0, value: null};
+  // A widget is on the page but nothing countable came out of it. Saying "no
+  // rating found" here would be a claim the audit cannot support: the reviews
+  // may exist and load only in a browser.
+  if (appPresent) return {status: 'untraceable', count: 0, value: null};
+  return null;
 }
 
 export function inspectAgentMd(response) {
@@ -800,7 +827,8 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
     const options = (p.options || []).filter((o) => o.name !== 'Title');
     const variants = p.variants || [];
     const agg = pb && pb.aggregateRating ? pb.aggregateRating : null;
-    const rendered = agg ? null : observedRating(html);
+    const reviewUi = REVIEW_APPS.some((a) => a.re.test(html)) || REVIEW_UI_RE.test(html);
+    const rendered = agg ? null : observedRating(html, {appPresent: reviewUi});
     const canonical = (html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i) || [])[1] || '';
     const robotsMeta = (html.match(/<meta[^>]+name=["']robots["'][^>]+content=["']([^"']+)["']/i) || [])[1] || '';
 
@@ -1235,11 +1263,13 @@ export function score(raw) {
     reviewSchema: (v) => v === 25
       ? `${reviewAppLabel} is displaying reviews, but none are exposed as structured data, so this scanner did not find those ratings in the checked structured data.`
       : (() => {
-        const withReviews = live.filter((p) => !p.schema.rating && p.schema.renderedRating?.count);
         const missing = cnt((p) => !p.schema.rating);
-        return withReviews.length
-          ? `${missing} of ${n} products have no machine-readable rating, though ${withReviews.length} show review counts on the page that only load as widget markup. Reviews are one of the five signals Shopify ranks agentic listings on.`
-          : `${missing} of ${n} products have no machine-readable rating. Reviews are one of the five signals Shopify ranks agentic listings on.`;
+        const shown = live.filter((p) => !p.schema.rating && p.schema.renderedRating?.status === 'found');
+        const untraceable = live.filter((p) => !p.schema.rating && p.schema.renderedRating?.status === 'untraceable');
+        const tail = ' Reviews are one of the five signals Shopify ranks agentic listings on.';
+        if (shown.length) return `${missing} of ${n} products have no machine-readable rating, though ${shown.length} show review counts on the page that only load as widget markup.${tail}`;
+        if (untraceable.length) return `${missing} of ${n} products have no machine-readable rating. A review widget runs on ${untraceable.length} of them, but this audit could not read a rating from the page, so any reviews there may load only in a browser.${tail}`;
+        return `${missing} of ${n} products have no machine-readable rating.${tail}`;
       })(),
     variantSchema: () => `${cnt((p) => p.variantCount > 1 && !p.schema.variantLevelOffers)} of ${n} products have multiple variants but expose only one price, so an agent asked for a specific size can't confirm it exists.`,
     faqSchema: (v) => v === 30
@@ -1384,12 +1414,14 @@ export function score(raw) {
       .filter((p) => p.variantCount > 1 && !p.schema.variantLevelOffers)
       .map((p) => ({ title: p.title, url: p.url,
         note: `${p.variantCount} variants (${p.optionNames.join(' × ') || 'unnamed options'}) · one offer published` }));
-    const reviewFails = live.filter((p) => !p.schema.rating).map((p) => ({
-      title: p.title, url: p.url,
-      note: p.schema.renderedRating?.count
-        ? `${p.schema.renderedRating.count} reviews on the page${p.schema.renderedRating.value ? `, rated ${p.schema.renderedRating.value}` : ''}, but no AggregateRating`
-        : 'no AggregateRating',
-    }));
+    const renderedNote = (r) => {
+      if (r?.status === 'found') return `${r.count ? `${r.count} reviews` : 'A rating'} on the page${r.value ? `, rated ${r.value}` : ''}, but no AggregateRating`;
+      if (r?.status === 'none') return 'No reviews on this product yet, and no AggregateRating';
+      if (r?.status === 'untraceable') return 'A review widget is present, but this audit could not read a rating from the page, and there is no AggregateRating';
+      return 'no AggregateRating';
+    };
+    const reviewFails = live.filter((p) => !p.schema.rating)
+      .map((p) => ({title: p.title, url: p.url, note: renderedNote(p.schema.renderedRating)}));
     // these two lists are things the store got RIGHT, flagged so the screen
     // doesn't colour them like failures
     const faqPdps = live.filter((p) => p.schema.faq)
@@ -2125,13 +2157,16 @@ export function score(raw) {
         action: 'Publish the SKU field' },
       { label: 'Rating',
         value: worst.schema.ratingCount ? `${worst.schema.ratingCount} reviews`
-          : worst.schema.renderedRating?.count
+          : worst.schema.renderedRating?.status === 'found'
             ? `${worst.schema.renderedRating.count} reviews on the page${worst.schema.renderedRating.value ? `, rated ${worst.schema.renderedRating.value}` : ''}, not in schema`
-            : null,
+            : worst.schema.renderedRating?.status === 'none'
+              ? 'No reviews on this product yet'
+              : worst.schema.renderedRating?.status === 'untraceable'
+                ? 'A review widget is present, but no rating could be read from the page'
+                : null,
         visible: worst.schema.rating,
-        // Already shown to every visitor by the review widget, so it is not
-        // paid detail and may appear in the free report.
-        public: !worst.schema.rating && Boolean(worst.schema.renderedRating?.count),
+        // What the storefront already shows every visitor is not paid detail.
+        public: !worst.schema.rating && Boolean(worst.schema.renderedRating),
         action: reviewAppPresent
           ? `Expose ratings from ${namedApps[0] || 'your review app'} as structured data`
           : 'Collect reviews and expose them as structured data' },

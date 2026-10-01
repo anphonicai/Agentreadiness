@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-import {unscannable} from '../engine.js';
+import {unscannable, observedRating} from '../engine.js';
 
 test('a store whose product pages all fail is never scored', () => {
   // shop.truvani.com served a full products.json while every /products/<handle>
@@ -45,4 +45,26 @@ test('review apps are detected by their asset, not their name in prose', () => {
   assert.deepEqual(detect('We compared Yotpo and Junip before choosing.'), []);
   assert.deepEqual(detect('"growave_enabled":false'), []);
   assert.deepEqual(detect('Read our Trustpilot reviews policy page'), []);
+});
+
+test('a rating is reported only when the page really states one', () => {
+  const found = h => observedRating(h, {appPresent: true});
+
+  // Real aggregates, however the app renders them.
+  assert.deepEqual(found("data-average-rating='4.50' data-number-of-reviews='4'"), {status:'found', count:4, value:4.5});
+  assert.deepEqual(found('<span itemprop="ratingValue" content="4.8"></span><span itemprop="reviewCount" content="12"></span>'), {status:'found', count:12, value:4.8});
+  assert.equal(found('Based on 34 reviews').count, 34);
+
+  // superyou.in carried a stray "8" ending one element and a "Reviews" heading
+  // in the next; \s+ spanned the newline and invented eight reviews.
+  assert.equal(found('<span>8</span>\n        <h3>Reviews</h3>').status, 'untraceable');
+
+  // A bare data-rating is one star in a widget's markup, not an aggregate.
+  assert.equal(found("data-rating='5' data-rating='4' data-rating='3'").status, 'untraceable');
+
+  // A widget reporting zero was read successfully; that is not the same as
+  // failing to read it, and neither is the same as there being no widget.
+  assert.equal(found("data-number-of-reviews='0' data-average-rating='0.00'").status, 'none');
+  assert.equal(found('<div class="jdgm-widget"></div>').status, 'untraceable');
+  assert.equal(observedRating('<p>a page with no review app</p>'), null);
 });
