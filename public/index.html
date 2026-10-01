@@ -711,7 +711,7 @@ function renderDetailedReport(r){
     <div>
       <span class="eyebrow">${esc(r.brandName || r.domain)}</span><h2>${headline.complete ? 'Overall audit' : esc(r.grade)}</h2>
       <p class="meta">${headline.complete ? `Includes competitive position at 15%. Storefront readiness (Layers 1-4): ${r.finalScore}/100.` : `Layers 1-4 only. Overall audit score unavailable until the competitor comparison is complete. ${esc(r.gradeNote)}`}</p>
-      <p class="meta"><code>${esc(r.domain)}</code> · ${r.catalogCount} products, ${r.sampled} sampled · checkout: ${r.checkoutStack.length ? esc(r.checkoutStack.join(' + ')) : 'No checkout app detected; checkout type unconfirmed'}</p>
+      <p class="meta"><code>${esc(r.domain)}</code> · ${r.catalogCount} products, ${r.sampled} sampled · checkout: ${r.checkoutStack.length ? esc(r.checkoutStack.join(' + ')) : r.nativeCheckoutSignals?.length ? 'Shopify native checkout signals detected (transaction not tested)' : 'No checkout app detected; checkout type unconfirmed'}</p>
     </div>
   </div>
 

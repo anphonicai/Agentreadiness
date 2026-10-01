@@ -148,6 +148,7 @@ export function freeReport(r) {
   const result = {};
   for (const key of ['version','scanStatus','samplingBasis','sampleAttempted','domain','brandName','scannedAt','finalScore','grade','gradeNote','catalogCount','sampled']) result[key] = r[key];
   result.checkoutStack = (r.checkoutStack || []).filter(v => typeof v === 'string');
+  result.nativeCheckoutSignals = (r.nativeCheckoutSignals || []).filter(v => typeof v === 'string');
   result.errors = (r.errors || []).filter(v => typeof v === 'string');
   result.layers = Object.fromEntries(['layer1','layer2','layer3','layer4'].filter(key => r.layers?.[key]).map(key => {
     const {name, score, weight} = r.layers[key];

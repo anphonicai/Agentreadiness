@@ -191,6 +191,31 @@ const CHECKOUT_STACKS = [
 const DISABLED_FLAG = /["']?[\w.$-]*(gokwik|shopflo|simpl|snapmint|fastrr|pickrr|shiprocket|magic-?checkout)[\w.$-]*["']?\s*[:=]\s*(false|0|"false"|'false'|null)/gi;
 const withoutDisabledFlags = html => String(html || '').replace(DISABLED_FLAG, '');
 
+// Platform scripts alone can exist on stores with an overridden checkout.
+// Report native signals separately from detected third-party integrations.
+export function nativeCheckoutSignals(html, isShopify, pageUrl = 'https://store.invalid/') {
+  if (!isShopify) return [];
+  const source = String(html || '').replace(/<!--[\s\S]*?-->/g, '');
+  const signals = [];
+  if (/Shopify\.PaymentButton\s*=/.test(source)) signals.push('Shopify payment-button runtime');
+  // Ignore selectors and template strings in scripts when looking for elements.
+  const markup = source.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
+  if (/<shopify-accelerated-checkout(?:-cart)?[\s>]/i.test(markup)) signals.push('Shopify accelerated checkout element');
+  for (const form of markup.matchAll(/<form\b[^>]*>/gi)) {
+    const action = form[0].match(/\saction\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+    if (!action) continue;
+    try {
+      const url = new URL(action[1] ?? action[2] ?? action[3], pageUrl);
+      // Locale prefixes vary by language, script and region; no country list.
+      if (url.origin === new URL(pageUrl).origin && /^\/(?:[a-z]{2,3}(?:-[a-z0-9]{2,8})*\/)?cart\/?$/i.test(url.pathname)) {
+        signals.push('Shopify cart form');
+        break;
+      }
+    } catch { /* Malformed actions are not evidence. */ }
+  }
+  return signals;
+}
+
 // Anchored like the checkout stacks: a brand name in prose, a blog link or a
 // disabled config flag is not an installed app, and the detected name is quoted
 // back to the merchant in their recommendations.
@@ -664,6 +689,7 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
 
   const checkoutHtml = withoutDisabledFlags(home.body);
   raw.checkoutStack = CHECKOUT_STACKS.filter((c) => c.re.test(checkoutHtml)).map((c) => c.key);
+  raw.nativeCheckoutSignals = nativeCheckoutSignals(home.body, raw.isShopify, origin);
   // Some themes and embedded apps leak the shop's plan into the homepage HTML.
   // Present is proof absent proves nothing, so this is never scored.
   raw.planName = (home.body.match(/"planName"\s*:\s*"([^"]+)"/i) || [])[1] || null;
@@ -819,6 +845,8 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
     const r = await get(url);
     const pageIssue = productPageIssue(r);
     const html = !pageIssue ? r.body : '';
+    raw.nativeCheckoutSignals = [...new Set([...raw.nativeCheckoutSignals, ...nativeCheckoutSignals(html, raw.isShopify, url)])];
+    raw.checkoutStack = [...new Set([...raw.checkoutStack, ...CHECKOUT_STACKS.filter(c => c.re.test(withoutDisabledFlags(html))).map(c => c.key)])];
     const blocks = extractJsonLd(html);
     const markup = productMarkup(blocks);
     const pb = markup.product;
@@ -2197,6 +2225,7 @@ export function score(raw) {
     sampleAttempted: (raw.products || []).length,
     homeStatus: raw.homeStatus,
     checkoutStack: raw.checkoutStack || [],
+    nativeCheckoutSignals: raw.nativeCheckoutSignals || [],
     productPages: raw.productPages || null,
     country: raw.country || null,
     currency: reportCurrency(live, raw.currency),
@@ -2272,6 +2301,6 @@ if (isMain) {
     }
     console.log('\n  Top gaps:');
     r.gaps.forEach((g, i) => console.log(`   ${i + 1}. ${g.message}`));
-    console.log(`\n  Checkout: ${r.checkoutStack.length ? r.checkoutStack.join(' + ') : 'No checkout app detected; checkout type unconfirmed'}`);
+    console.log(`\n  Checkout: ${r.checkoutStack.length ? r.checkoutStack.join(' + ') : r.nativeCheckoutSignals?.length ? 'Shopify native checkout signals detected (transaction not tested)' : 'No checkout app detected; checkout type unconfirmed'}`);
   }
 }

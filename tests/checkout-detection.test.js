@@ -48,3 +48,36 @@ test('a store can legitimately run more than one stack', () => {
   const both = detect('<script src="https://cdn.shopflo.com/a.js"></script><img src="https://snapmint.com/p.gif">');
   assert.deepEqual(both.sort(), ['Shopflo', 'Snapmint']);
 });
+
+// Native detection is market-independent and must not infer it from an empty app list.
+test('native Shopify evidence detects UAE storefront runtime and cart markup', async () => {
+  const {nativeCheckoutSignals} = await import('../engine.js');
+  const html = `Shopify.country="AE"; Shopify.PaymentButton=Shopify.PaymentButton||{};<form action="/cart" method="post">`;
+  assert.deepEqual(nativeCheckoutSignals(html, true), ['Shopify payment-button runtime', 'Shopify cart form']);
+  assert.deepEqual(nativeCheckoutSignals(html, false), []);
+  assert.deepEqual(nativeCheckoutSignals('Shopify.shop="example.myshopify.com";', true), []);
+  assert.deepEqual(nativeCheckoutSignals('<style>.shopify-payment-button {color:red}</style>', true), []);
+  assert.deepEqual(nativeCheckoutSignals('<shopify-accelerated-checkout-cart >', true), ['Shopify accelerated checkout element']);
+  assert.deepEqual(nativeCheckoutSignals('<form action="/en-ae/cart">', true), ['Shopify cart form']);
+  assert.deepEqual(nativeCheckoutSignals('<form action="/cartoon">', true), []);
+});
+
+test('native signals do not replace detected third-party apps', async () => {
+  const {nativeCheckoutSignals} = await import('../engine.js');
+  const html = 'Shopify.PaymentButton={};<script src="https://cdn.shopflo.com/checkout.js"></script>';
+  assert.deepEqual(detect(html), ['Shopflo']);
+  assert.deepEqual(nativeCheckoutSignals(html, true), ['Shopify payment-button runtime']);
+});
+
+test('native cart evidence supports international locales and same-origin absolute URLs', async () => {
+  const {nativeCheckoutSignals} = await import('../engine.js');
+  for (const path of ['/cart', '/ar/cart', '/en-ae/cart', '/en-IN/cart/', '/fr-ca/cart?checkout=1', '/zh-Hant-TW/cart', '/fil/cart']) {
+    for (const action of [path, 'https://example.com' + path]) {
+      assert.deepEqual(nativeCheckoutSignals(`<form action="${action}">`, true, 'https://example.com/products/item'), ['Shopify cart form'], action);
+    }
+  }
+  for (const html of ['<form action="https://other.com/cart">', '<!-- <form action="/cart"> -->', `<script>const template='<form action="/cart">';</script>`, '<form data-action="/cart">']) {
+    assert.deepEqual(nativeCheckoutSignals(html, true, 'https://example.com'), []);
+  }
+  assert.deepEqual(nativeCheckoutSignals('<form action=/cart>', true), ['Shopify cart form']);
+});
