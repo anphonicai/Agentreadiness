@@ -26,7 +26,7 @@ import { reportEmail } from './report-email.js';
 import { openLeadStore, handleLeadRequest, handleEnquiryRequest, validateLead } from './leads.js';
 import { normalizeStoreUrl, handleStoreRequest } from './store-url.js';
 import { VERSION, scanStore } from './engine.js';
-import {validateCompetitors, createCompetitorWorker, queueConfiguredCompetitors} from './competitor-selection.js';
+import {validateCompetitors, createCompetitorWorker, suggestedCompetitors} from './competitor-selection.js';
 import { COMPETITORS } from './competitive.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -76,7 +76,6 @@ function startScan(url, contact) {
   scanStore(url, (step) => { job.step = step; }, {contentMethod:'heuristic'})
     .then((result) => {
       reportStore.save(id, result, contact);
-      if (Number.isFinite(result.finalScore) && queueConfiguredCompetitors(reportStore,id,result.domain || url)) void runCompetitors();
       job.result = result;
       job.status = 'done';
       job.step = 'Complete';
@@ -116,7 +115,7 @@ const server = createServer(async (req, res) => {
       }
       const request=reportStore.competitors(body.scanId);
       const benchmark=request?.status==='ready' ? reportStore.get(body.scanId).result.layer5Report : null;
-      return json(res,200,{status:request?.status || 'none',competitors:request?.domains || [],comparisonStatus:benchmark?.status,comparedCount:benchmark?.comparedCount,runsUsed:Number(request?.revisions || 0),runsAllowed:COMPETITOR_REVISION_LIMIT});
+      return json(res,200,{status:request?.status || 'none',competitors:request?.domains || [],suggested:suggestedCompetitors(saved.result.domain),comparisonStatus:benchmark?.status,comparedCount:benchmark?.comparedCount,runsUsed:Number(request?.revisions || 0),runsAllowed:COMPETITOR_REVISION_LIMIT});
     } catch(error) {return json(res,400,{error:error instanceof SyntaxError?'Invalid JSON.':error.message});}
   }
 

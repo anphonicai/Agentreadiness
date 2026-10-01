@@ -4,7 +4,7 @@ import {mkdtempSync,rmSync,readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {openReportStore,freeReport} from '../report-access.js';
-import {validateCompetitors,createCompetitorWorker,queueConfiguredCompetitors} from '../competitor-selection.js';
+import {validateCompetitors,createCompetitorWorker,suggestedCompetitors} from '../competitor-selection.js';
 const fixture=JSON.parse(readFileSync(new URL('../reports/layer5/superyou.in.json',import.meta.url)));
 
 test('competitor input rejects duplicate, self, nonpublic and out-of-range selections',()=>{
@@ -106,28 +106,33 @@ test('failed comparison can retry the same selection but existing paid reports c
 });
 
 
-test('configured brand lists are queued automatically and new brands keep manual selection',()=>{
+test('configured brand lists are offered as suggestions and never scanned on their own',()=>{
   const dir=mkdtempSync(join(tmpdir(),'competitor-defaults-'));
   const store=openReportStore(join(dir,'reports.sqlite'));
   const configured=JSON.parse(readFileSync(new URL('../competitors.json',import.meta.url)));
   try {
     for(const [domain,peers] of Object.entries(configured)) {
       store.save(domain,{...fixture,domain:'https://'+domain});
-      assert.equal(queueConfiguredCompetitors(store,domain,'https://www.'+domain),true);
-      assert.deepEqual(store.competitors(domain).domains,peers.map(p=>'https://'+p));
-      assert.equal(queueConfiguredCompetitors(store,domain,domain),false);
+      // The names are offered for the form to prefill, however the client
+      // domain is written.
+      assert.deepEqual(suggestedCompetitors('https://www.'+domain),peers.map(p=>'https://'+p));
+      assert.deepEqual(suggestedCompetitors(domain),peers.map(p=>'https://'+p));
+      // Nothing is queued: a scan must not crawl other people's storefronts
+      // until the merchant presses Compare.
+      assert.equal(store.competitors(domain),null);
     }
+    // A brand with no configured list simply has no suggestions.
+    assert.deepEqual(suggestedCompetitors('new-client.example'),[]);
     store.save('new',fixture);
-    assert.equal(queueConfiguredCompetitors(store,'new','new-client.example'),false);
     assert.equal(store.competitors('new'),null);
+
+    // Pressing Compare is what queues a run, and the merchant's own choices win.
     store.queueCompetitors('new',validateCompetitors(['first.example','second.example'],'new-client.example'));
     assert.deepEqual(store.competitors('new').domains,['https://first.example','https://second.example']);
-    store.save('custom',fixture);
-    store.queueCompetitors('custom',['https://first.example','https://second.example']);
-    assert.equal(queueConfiguredCompetitors(store,'custom','superyou.in'),false);
-    assert.deepEqual(store.competitors('custom').domains,['https://first.example','https://second.example']);
+    assert.equal(store.competitors('new').status,'queued');
   } finally {store.close();rmSync(dir,{recursive:true,force:true});}
 });
+
 
 test('the comparison form stays editable and only a running comparison locks it', () => {
   const source = readFileSync(new URL('../public/competitors.js', import.meta.url), 'utf8');

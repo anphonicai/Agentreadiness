@@ -11,11 +11,14 @@ export function validateCompetitors(values, client) {
   return urls;
 }
 
-export function queueConfiguredCompetitors(store, id, client) {
+// The configured rivals are a starting point for the merchant, not a decision
+// taken for them. They are offered as prefilled, editable fields; nothing is
+// scanned until Compare is pressed, because each run crawls other people's
+// storefronts and the merchant may not want these stores at all.
+export function suggestedCompetitors(client) {
   const defaults=COMPETITORS[domainKey(client)];
-  if(!defaults || store.competitors(id)) return false;
-  store.queueCompetitors(id,validateCompetitors(defaults,client));
-  return true;
+  if(!defaults) return [];
+  try { return validateCompetitors(defaults,client); } catch { return []; }
 }
 
 export function createCompetitorWorker(store, {scan=scanStore}={}) {

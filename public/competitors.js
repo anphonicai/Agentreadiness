@@ -72,8 +72,15 @@ async function restoreCompetitorSelection() {
   try {
     const data=await competitorRequest('/api/competitors/status');
     if(id!==currentScanId || form!==document.getElementById('competitor-form'))return;
-    while(form.querySelectorAll('input').length<data.competitors.length) addCompetitorField();
-    if(data.competitors.length) form.querySelectorAll('input').forEach((input,i)=>{input.value=data.competitors[i] || '';});
+    // A saved selection is what was actually compared. With none yet, the
+    // configured rivals are offered as a starting point the merchant can edit;
+    // nothing is scanned until they press Compare.
+    const prefill=data.competitors.length ? data.competitors : (data.suggested || []);
+    while(form.querySelectorAll('input').length<prefill.length) addCompetitorField();
+    if(prefill.length) form.querySelectorAll('input').forEach((input,i)=>{
+      // Never overwrite something the merchant has already typed.
+      if(!input.value.trim() || data.competitors.length) input.value=prefill[i] || '';
+    });
     showCompetitorStatus(data);
   } catch(error) {
     if(id!==currentScanId || form!==document.getElementById('competitor-form'))return;
