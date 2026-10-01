@@ -83,7 +83,7 @@ export const layer2Weight = (key) => {
  */
 export const LAYER3_SPEC = [
   { key: 'ucpProfile',         specSub: 35, scored: true,  label: 'UCP checkout capability declared' },
-  { key: 'codPayment',         specSub: 20, scored: true,  label: 'COD/prepaid logic exposed cleanly' },
+  { key: 'codPayment',         specSub: 20, scored: true,  label: 'Accepted payment methods exposed cleanly' },
   { key: 'serviceability',     specSub: 15, scored: true,  label: 'Shipping/serviceability data structured' },
   { key: 'returnPolicy',       specSub: 15, scored: true,  hidden: true, label: 'Return/exchange policy machine-readable' },
   { key: 'agenticEligibility', specSub: 15, scored: false, hidden: true, label: 'Agentic Storefronts eligibility' },
@@ -900,6 +900,21 @@ export function score(raw) {
   const live = (raw.products || []).filter((p) => p.pageOk);
   // Recorded so a thin sample is visible rather than silently scored as failure.
   raw.productPages = {attempted: (raw.products || []).length, readable: live.length};
+  // Report copy follows the store's own market. COD is a real purchase path in
+  // India and not one in the US, and "pincode" is Indian usage for a postcode.
+  const IN_MARKET = raw.country === 'IN' || raw.currency === 'INR';
+  const AREA = IN_MARKET ? 'pincode' : 'postcode';
+  const PAY_WORDS = IN_MARKET ? 'COD or prepaid' : 'a payment method';
+  const PAY_SIGNAL = IN_MARKET ? 'COD' : 'payment-method';
+  const DELIVERY_EG = IN_MARKET ? 'can you deliver to Pune by Friday' : 'can you deliver to Austin by Friday';
+  const SYMBOLS = {INR: '\u20b9', USD: '$', GBP: '\u00a3', EUR: '\u20ac', CAD: 'CA$', AUD: 'A$', SGD: 'S$', AED: 'AED '};
+  // Never print a price in a currency the store does not sell in.
+  const money = (v) => `${SYMBOLS[raw.currency] || (raw.currency ? raw.currency + ' ' : '')}${v}`;
+  // Payment methods worth declaring differ by market; suggesting UPI to a US
+  // merchant is advice they cannot act on.
+  const PAY_METHODS = IN_MARKET
+    ? ['Cash on Delivery', 'UPI', 'Credit Card']
+    : ['Credit Card', 'Debit Card', 'PayPal'];
   const hasProducts = live.length > 0;
 
   // ---------------------------------------------------------------- Layer 1
@@ -1566,23 +1581,25 @@ export function score(raw) {
         result: paySchemaPct > 0
           ? `${Math.round((paySchemaPct / 100) * n)} of ${n} products declare acceptedPaymentMethod`
           : codPct > 0
-            ? `No acceptedPaymentMethod anywhere — COD appears only as page text on ${cnt((p) => p.codInText)} of ${n} products`
-            : 'No acceptedPaymentMethod, and no COD or prepaid signal in page text either',
+            ? `No acceptedPaymentMethod anywhere — ${PAY_SIGNAL} appears only as page text on ${cnt((p) => p.codInText)} of ${n} products`
+            : `No acceptedPaymentMethod, and no ${PAY_WORDS} signal in page text either`,
         why: 'Not in the previous build. The spec asks for payment options structured rather than buried in JS widgets, so this separates a parseable field from prose a human reads.',
         evidence: {
           headline: codPct > 0
-            ? `COD named in the page text of ${cnt((p) => p.codInText)} of ${n} products; acceptedPaymentMethod on 0`
-            : `No COD signal on any of ${n} sampled products`,
+            ? `${PAY_SIGNAL} named in the page text of ${cnt((p) => p.codInText)} of ${n} products; acceptedPaymentMethod on 0`
+            : `No ${PAY_SIGNAL} signal on any of ${n} sampled products`,
           ...cap(live.filter((p) => p.codInText || p.prepaidInText).map((p) => ({
             title: p.title, url: p.url,
-            note: [p.codInText && 'COD in text', p.prepaidInText && 'prepaid in text'].filter(Boolean).join(' · '),
+            note: [p.codInText && `${PAY_SIGNAL} in text`, p.prepaidInText && 'prepaid in text'].filter(Boolean).join(' · '),
           }))),
         },
         fix: l3.codPayment < 100 && payExample ? {
           headline: `Declare payment methods on the Offer for ${payExample.title}`,
           where: 'Theme editor → product template, in the existing Product JSON-LD Offer',
           steps: [
-            'COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.',
+            IN_MARKET
+              ? 'COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.'
+              : 'How a shopper can pay is a purchase-path question an agent must answer, and right now it is invisible to them.',
             'This goes inside the Offer you already publish — it is two extra fields, not a new block.',
             'List only the methods you genuinely accept.',
           ],
@@ -1590,28 +1607,24 @@ export function score(raw) {
             '@context': 'https://schema.org', '@type': 'Offer',
             url: payExample.url, price: payExample.price, priceCurrency: currency,
             availability: availUrl(payExample.available),
-            acceptedPaymentMethod: [
-              { '@type': 'PaymentMethod', name: 'Cash on Delivery' },
-              { '@type': 'PaymentMethod', name: 'UPI' },
-              { '@type': 'PaymentMethod', name: 'Credit Card' },
-            ],
+            acceptedPaymentMethod: PAY_METHODS.map((name) => ({ '@type': 'PaymentMethod', name })),
           }),
         } : null,
       }),
       build('serviceability', {
         value: l3.serviceability,
         basis: 'state',
-        basisNote: 'Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A pincode widget is a JavaScript call to a private API an agent cannot make, so it is reported below as context rather than scored.',
+        basisNote: `Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A ${AREA} widget is a JavaScript call to a private API an agent cannot make, so it is reported below as context rather than scored.`,
         result: shipSchemaPct > 0
           ? `${Math.round((shipSchemaPct / 100) * n)} of ${n} products publish OfferShippingDetails`
           : pincodePct > 0
             ? `No OfferShippingDetails — a JS-only pincode checker runs on ${cnt((p) => p.pincodeWidget)} of ${n} pages`
-            : 'No OfferShippingDetails and no pincode checker found',
-        why: 'Not in the previous build. The old shipping check measured the policy page\'s text length, which is a different question from pincode-level serviceability. That measurement is kept below as an extra, unscored.',
+            : `No OfferShippingDetails and no ${AREA} checker found`,
+        why: `Not in the previous build. The old shipping check measured the policy page's text length, which is a different question from ${AREA}-level serviceability. That measurement is kept below as an extra, unscored.`,
         evidence: {
           headline: pincodePct > 0
             ? `Pincode or delivery-estimate widget found on ${cnt((p) => p.pincodeWidget)} of ${n} product pages`
-            : 'No pincode or delivery-estimate widget found on any sampled product page',
+            : `No ${AREA} or delivery-estimate widget found on any sampled product page`,
           ...cap(live.filter((p) => p.pincodeWidget).map((p) => ({
             title: p.title, url: p.url, note: 'pincode checker, JS-only',
           }))),
@@ -1620,8 +1633,8 @@ export function score(raw) {
           headline: `Publish delivery windows as shippingDetails for ${shipExample.title}`,
           where: 'Theme editor → product template, in the existing Product JSON-LD Offer',
           steps: [
-            'The pincode widget already knows your delivery windows — this exposes the same answer in a field an agent can read.',
-            'Agents asked "can you deliver to Pune by Friday" currently have nothing to work from.',
+            `The ${AREA} widget already knows your delivery windows — this exposes the same answer in a field an agent can read.`,
+            `Agents asked "${DELIVERY_EG}" currently have nothing to work from.`,
             'Publish your real handling and transit times; a wrong promise here is worse than none.',
           ],
           snippet: ld({
@@ -1979,7 +1992,7 @@ export function score(raw) {
     catalogNote: `Weakest of ${n} sampled products`,
     fields: [
       { label: 'Name', value: worst.title, visible: true },
-      { label: 'Price', value: worst.price ? `\u20b9${worst.price}` : null, visible: worst.schema.price,
+      { label: 'Price', value: worst.price ? money(worst.price) : null, visible: worst.schema.price,
         action: 'Expose price in the product schema' },
       { label: 'In stock', value: worst.available ? 'Yes' : 'No', visible: worst.schema.availability,
         action: 'Add availability to the offer' },
