@@ -128,3 +128,26 @@ test('configured brand lists are queued automatically and new brands keep manual
     assert.deepEqual(store.competitors('custom').domains,['https://first.example','https://second.example']);
   } finally {store.close();rmSync(dir,{recursive:true,force:true});}
 });
+
+test('the comparison form stays editable and only a running comparison locks it', () => {
+  const source = readFileSync(new URL('../public/competitors.js', import.meta.url), 'utf8');
+
+  // Inputs were disabled the moment a selection existed, so a merchant could
+  // never correct a rival even though the store allows reruns.
+  assert.doesNotMatch(source, /input\.disabled\s*=\s*selected/,
+    'inputs must not be disabled merely because a selection was saved');
+  assert.match(source, /input\.disabled\s*=\s*busy\s*\|\|\s*spent/,
+    'inputs lock only while running, or once reruns are spent');
+
+  // The submitted set was read from a cached copy, so edits were discarded.
+  assert.doesNotMatch(source, /form\.dataset\.selected && JSON\.parse/,
+    'the submitted set must come from the fields, not a cached copy');
+  assert.match(source, /const competitors=\[\.\.\.form\.querySelectorAll\('input'\)\]/,
+    'the fields are the source of truth on submit');
+
+  // Comparing is an explicit action, and checkout waits only while it runs.
+  assert.match(source, /'Compare →'/);
+  assert.match(source, /'Compare again →'/);
+  assert.match(source, /\[data-view="full"\]'\)\.forEach\(button=>\{button\.disabled=busy;\}\)/,
+    'checkout unlocks as soon as the comparison finishes');
+});

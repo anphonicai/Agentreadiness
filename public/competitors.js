@@ -22,17 +22,36 @@ async function competitorRequest(path, competitors) {
 function showCompetitorStatus(data) {
   const form=document.getElementById('competitor-form');
   if(!form) return;
-  const selected=data.status!=='none';
   const busy=['queued','running'].includes(data.status);
-  competitorBusy=busy || data.status==='failed';
-  form.querySelectorAll('input').forEach((input,index)=>{input.disabled=selected;input.closest('label').hidden=selected && index>=data.competitors.length;});
-  document.getElementById('competitor-add').hidden=selected || form.querySelectorAll('input').length>=5;
+  // Only a comparison that is actually running locks the form. A saved or
+  // finished one stays editable so the merchant can correct a rival and run it
+  // again, which the backend allows.
+  competitorBusy=busy;
+  const runsUsed=Number(data.runsUsed||0), runsAllowed=Number(data.runsAllowed||0);
+  const spent=runsAllowed>0 && runsUsed>=runsAllowed;
+  const inputs=[...form.querySelectorAll('input')];
+  inputs.forEach(input=>{input.disabled=busy||spent;input.closest('label').hidden=false;});
+  document.getElementById('competitor-add').hidden=busy||spent||inputs.length>=5;
   const save=document.getElementById('competitor-save');
-  save.disabled=busy || data.status==='ready';
-  save.textContent=data.status==='ready'?'Comparison ready':data.status==='failed'?'Retry comparison →':busy?'Preparing your comparison…':'Save competitors →';
-  document.getElementById('competitor-status').textContent=busy?'Your competitors are saved. We’re scanning their stores. This can take several minutes. Checkout will be available when the comparison is prepared.':data.status==='ready'?(data.comparisonStatus==='unavailable'?'These stores could not produce a usable comparison. Your full audit can still be purchased, but a competitor benchmark is unavailable for this selection.':`Comparison prepared for ${data.comparedCount} usable competitors${data.comparisonStatus==='provisional'?' (provisional)':''}. Purchase the full report to see the results.`):data.status==='failed'?'We couldn’t prepare the comparison. Retry before continuing to checkout.':'';
+  save.disabled=busy||spent;
+  save.textContent=busy?'Preparing your comparison…'
+    :spent?'No reruns left'
+    :data.status==='ready'?'Compare again →'
+    :data.status==='failed'?'Retry comparison →'
+    :'Compare →';
+  const left=runsAllowed>0 && !spent ? ` You can rerun the comparison ${runsAllowed-runsUsed} more time${runsAllowed-runsUsed===1?'':'s'}.` : '';
+  document.getElementById('competitor-status').textContent=
+    busy?'We’re scanning these stores. This can take several minutes. Checkout opens once the comparison is prepared.'
+    :spent?'You have used every rerun for this report. Start a new scan to compare a different set of stores.'
+    :data.status==='ready'
+      ?(data.comparisonStatus==='unavailable'
+        ?'These stores could not produce a usable comparison. Your full audit can still be purchased, but a competitor benchmark is unavailable for this selection.'+left
+        :`Comparison prepared for ${data.comparedCount} usable competitors${data.comparisonStatus==='provisional'?' (provisional)':''}. Purchase the full report to see the results.`+left)
+    :data.status==='failed'?'We couldn’t prepare the comparison. Edit the stores and run it again before continuing to checkout.'+left
+    :'';
   form.dataset.selected=JSON.stringify(data.competitors);
-  document.querySelectorAll('#paid-preview [data-view="full"]').forEach(button=>{button.disabled=competitorBusy;});
+  // Checkout waits only while a comparison is mid-flight.
+  document.querySelectorAll('#paid-preview [data-view="full"]').forEach(button=>{button.disabled=busy;});
   clearTimeout(competitorTimer);
   if(busy) competitorTimer=setTimeout(restoreCompetitorSelection,5000);
 }
@@ -86,10 +105,11 @@ document.getElementById('report').addEventListener('submit',async event=>{
   const form=event.target;
   const button=document.getElementById('competitor-save');
   if(button.disabled)return;
-  const competitors=form.dataset.selected && JSON.parse(form.dataset.selected).length ? JSON.parse(form.dataset.selected) : [...form.querySelectorAll('input')].map(input=>input.value.trim()).filter(Boolean);
+  // Read the fields as they stand, so an edit is what gets compared.
+  const competitors=[...form.querySelectorAll('input')].map(input=>input.value.trim()).filter(Boolean);
   const id=currentScanId;
   button.disabled=true;competitorBusy=true;
-  document.getElementById('competitor-status').textContent='Saving your competitors…';
+  document.getElementById('competitor-status').textContent='Starting your comparison…';
   try {const data=await competitorRequest('/api/competitors',competitors);if(id===currentScanId && form===document.getElementById('competitor-form'))showCompetitorStatus(data);}
   catch(error) {if(id!==currentScanId || form!==document.getElementById('competitor-form'))return;button.disabled=false;competitorBusy=false;document.getElementById('competitor-status').textContent=error.message;}
 });

@@ -132,7 +132,9 @@ test('competitor entry belongs to free reports and never exposes benchmark resul
   runInNewContext(readFileSync(new URL('../public/report.js',import.meta.url),'utf8'),context);
   const free=context.renderReport(freeReport(fixture));
   assert.match(free,/id="competitor-form"/);
-  assert.match(free,/Results unlock after payment/);
+  // Assert the guarantee, not the wording: entry is offered and results are not.
+  assert.match(free,/checkout opens once it finishes/i);
+  assert.match(free,/id="competitor-form"/);
   assert.ok(!free.includes('class="benchmark-stats"'));
   assert.ok(!context.renderReport(fixture,{full:true}).includes('id="competitor-form"'));
 });

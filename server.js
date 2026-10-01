@@ -19,7 +19,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { freeReport, reportPreview, openReportStore } from './report-access.js';
+import { freeReport, reportPreview, openReportStore, COMPETITOR_REVISION_LIMIT } from './report-access.js';
 import {createPayments, verifyStripeEvent} from './stripe-payment.js';
 import {createCoupons} from './coupons.js';
 import { reportEmail } from './report-email.js';
@@ -116,7 +116,7 @@ const server = createServer(async (req, res) => {
       }
       const request=reportStore.competitors(body.scanId);
       const benchmark=request?.status==='ready' ? reportStore.get(body.scanId).result.layer5Report : null;
-      return json(res,200,{status:request?.status || 'none',competitors:request?.domains || [],comparisonStatus:benchmark?.status,comparedCount:benchmark?.comparedCount});
+      return json(res,200,{status:request?.status || 'none',competitors:request?.domains || [],comparisonStatus:benchmark?.status,comparedCount:benchmark?.comparedCount,runsUsed:Number(request?.revisions || 0),runsAllowed:COMPETITOR_REVISION_LIMIT});
     } catch(error) {return json(res,400,{error:error instanceof SyntaxError?'Invalid JSON.':error.message});}
   }
 
