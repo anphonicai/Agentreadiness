@@ -25,6 +25,7 @@ const labels = Object.fromEntries([
 
 function invalidReason(r, client) {
   if (!r?.layers || !numericScore(r.finalScore)) return r?.errors?.join(', ') || 'Scan unavailable';
+  if (r.scanStatus === 'partial') return 'Partial scan: public storefront measurements incomplete';
   if (r.errors?.length) return r.errors.join(', ');
   if (r.homeStatus !== 200) return 'Homepage was not successfully measured';
   if (!r.sampled || r.sampled !== r.sampleAttempted) return 'Incomplete product-page sample';

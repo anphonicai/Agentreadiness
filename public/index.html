@@ -445,7 +445,33 @@ function reportText(value) {
   const names = {acceptedPaymentMethod:'Accepted Payment Method', OfferShippingDetails:'Offer Shipping Details', MerchantReturnPolicy:'Merchant Return Policy', hasMerchantReturnPolicy:'Has Merchant Return Policy', merchantReturnLink:'Merchant Return Link', AggregateRating:'Aggregate Rating', FAQPage:'FAQ Page', HowTo:'How To', sameAs:'Same As'};
   return esc(String(value ?? '').replace(/;(?=\s|$)/g, '.').replace(/\s+[—]\s+/g, ': ').replace(/\b(acceptedPaymentMethod|OfferShippingDetails|MerchantReturnPolicy|hasMerchantReturnPolicy|merchantReturnLink|AggregateRating|FAQPage|HowTo|sameAs)\b/g, word => names[word]).replace(/FAQ\/How To schema/g, 'FAQ / How To Schema'));
 }
+function reportProblemCount(c) {
+  if (Number.isFinite(c.problemCount)) return c.problemCount;
+  // Compatibility for saved image reports that predate explicit counts.
+  if (c.key === 'imageCoverage') {
+    const match = String(c.result || '').match(/^(\d+) of \d+ products have one image or none/);
+    if (match) return Number(match[1]);
+  }
+  return null;
+}
+function reportNeedsAttention(c) {
+  if (c.informationalOnly || c.basis === 'baseline' || !Number.isFinite(c.value) || c.value >= 100) return false;
+  const count = reportProblemCount(c);
+  if (count !== null) return count > 0;
+  if (c.evidence?.items?.length && c.evidence.items.every(it => typeof it.pass === 'boolean')) return c.evidence.items.some(it => !it.pass);
+  return true;
+}
+function auditHeadline(r) {
+  const complete = r.layer5Report?.status === 'complete' && Number.isFinite(r.layer5Report.combinedScore);
+  return {score: complete ? r.layer5Report.combinedScore : r.finalScore,
+    label: complete ? 'Overall audit score' : 'Storefront readiness', complete};
+}
+function checkWhy(c) {
+  return c.key === 'entityConsistency'
+    ? 'Deterministic name matching on sampled pages: one form scores 100, equivalent spelling variants 70, missing or non-equivalent forms 40. This does not measure AI brand recognition.' : c.why;
+}
 function reportFix(c) {
+  if (c.informationalOnly || reportProblemCount(c) === 0) return null;
   if (c.fix) return c.fix;
   if (!Number.isFinite(c.value) || c.value >= 100) return null;
   const guidance = {
@@ -481,13 +507,7 @@ function renderLayer2(L){
     const b = BASIS[c.basis] || ['', ''];
     const ev = c.evidence;
     const fix = reportFix(c);
-    // A score under 100 is not by itself a problem: partial-credit checks can
-    // sit at 98 with zero failing products. Badge on evidence that actually
-    // failed, and fall back to the score only when the check exposes none.
-    const failing = ev && ev.items && ev.items.length
-      ? ev.items.some(it => it.pass === false)
-      : Number.isFinite(c.value) && c.value < 100;
-    const needsAttention = Number.isFinite(c.value) && c.value < 100 && c.basis !== 'baseline' && failing;
+    const needsAttention = reportNeedsAttention(c);
     const evList = ev && ev.items && ev.items.length
       ? `<ul class="ev">${ev.items.map(it => `
           <li class="${it.pass === true ? 'pass' : it.pass === false || needsAttention ? 'missing' : ''}"><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a><span>${reportText(it.note)}</span></li>`).join('')}</ul>`
@@ -497,7 +517,7 @@ function renderLayer2(L){
     const weightLine = c.scored
       ? `spec ${c.specSub}% · scored at ${c.effectiveSub}% of this layer · `
         + (c.pointsLost > 0
-            ? `losing ${c.pointsLost} of the layer's 100, ${c.costOfTotal} off the final score`
+            ? `losing ${c.pointsLost} of the layer's 100, ${c.costOfTotal} off the Layers 1–4 readiness score`
             : 'full marks, costing nothing')
       : `${c.specSub == null ? 'Additional check' : `Spec ${c.specSub}%`} · measured, not scored`;
 
@@ -519,7 +539,7 @@ ${esc(fix.snippet)}
           <span class="l2r">${needsAttention ? '<span class="finding-status">Needs attention</span> ' : ''}${reportText(c.result)}</span>
           <span class="l2w">${esc(weightLine)}</span>
         </span>
-        <span class="l2v">${c.value}</span>
+        <span class="l2v">${Number.isFinite(c.value) ? c.value : '—'}</span>
       </summary>
       <div class="l2body">
         <div class="l2h">How this number is made</div>
@@ -529,8 +549,8 @@ ${esc(fix.snippet)}
         <p class="l2p">${reportText(ev ? ev.headline : '')}</p>
         ${evList}
 
-        ${c.why ? `<div class="l2h">Against the spec</div>
-        <p class="l2p">${reportText(c.why)}</p>` : ''}
+        ${checkWhy(c) ? `<div class="l2h">Against the spec</div>
+        <p class="l2p">${reportText(checkWhy(c))}</p>` : ''}
 
         <div class="l2h">The fix for this store</div>
         ${fixBlock}
@@ -560,7 +580,7 @@ function renderLayer5(L){
   return `<section class="benchmark-note layer5" id="layer5">
     <div class="sechead"><h3>Layer 5: Competitive Position</h3><span class="pill">15% · ${esc(L.status.toUpperCase())}</span></div>
     <p>How your storefront compares with your named competitors on the same checklist.</p>
-    <div class="benchmark-stats"><div><b>${number(L.score)}<small>/100</small></b><span>Relative position${complete ? '' : ' · provisional/unavailable'}</span></div><div><b>${L.comparedCount}/${L.namedCount}</b><span>Comparable competitors</span></div><div><b>${number(L.contribution)}<small>/15</small></b><span>Contribution to combined score</span></div><div><b>${number(L.combinedScore)}<small>/100</small></b><span>Combined audit score</span></div></div>
+    <details><summary>How these numbers are made</summary><p>Relative position: each scored check in Layers 1, 2 and 4 earns 1 per competitor beaten, 0.5 per tie and 0 per loss. Average across comparable competitors, multiply by 100, then apply the within-layer weights and normalized layer weights 20:25:15. This is not a percentile across all stores.</p><p>Contribution: ${number(L.score)} × 0.15 = ${number(L.contribution)} points when complete. Overall audit: 0.20 × Layer 1 + 0.25 × Layer 2 + 0.25 × Layer 3 + 0.15 × Layer 4 + 0.15 × relative position = ${number(L.combinedScore)}. Calculation uses the stored layer scores before rounding the displayed total; multiplying the rounded readiness headline by 0.85 can differ.</p></details><div class="benchmark-stats"><div><b>${number(L.score)}<small>/100</small></b><span>Relative position${complete ? '' : ' · provisional/unavailable'}</span></div><div><b>${L.comparedCount}/${L.namedCount}</b><span>Comparable competitors</span></div><div><b>${number(L.contribution)}<small>/15</small></b><span>Contribution to combined score</span></div><div><b>${number(L.combinedScore)}<small>/100</small></b><span>Combined audit score</span></div></div>
     <p class="benchmark-status">${esc(note)}</p>
     <p class="muted">Readiness score (Layers 1–4): ${number(L.readinessScore)}/100. Scanned ${esc(L.scannedAt ? new Date(L.scannedAt).toLocaleString() : 'date unavailable')}. All tied checks produce a relative score of 50.</p>
     <div class="benchmark-scroll"><table><caption>Named competitor scan coverage</caption><thead><tr><th>Competitor</th><th>Status</th><th>Sampled products</th><th>Scanned</th></tr></thead><tbody>${L.competitors.map(c => `<tr><td>${esc(c.domain)}</td><td>${esc(c.reason || c.status)}</td><td>${c.sampled}</td><td>${esc(c.scannedAt ? new Date(c.scannedAt).toLocaleString() : '—')}</td></tr>`).join('')}</tbody></table></div>
@@ -587,6 +607,7 @@ function renderDetailedReport(r){
       <section class="scan-help"><span class="journey-kicker">LET’S TAKE A CLOSER LOOK</span><h2>We couldn’t complete your scan.</h2><p>This isn’t a readiness score. Contact our team to discuss a manual review and the next steps for your store.</p><a class="scan-contact" href="/contact.html?store=${encodeURIComponent(r.domain || '')}&amp;reason=${encodeURIComponent(first)}">Contact us →</a><a class="scan-retry" href="/">Try another store</a><p class="scan-help-note">If access to your public catalogue changes, you can run a new scan. Automatic monitoring is not enabled.</p></section>`;
   }
 
+  const headline = auditHeadline(r);
   const av = r.agentView;
   const fieldRows = av ? av.fields.map(f => `
     <div class="fieldrow">
@@ -619,10 +640,10 @@ function renderDetailedReport(r){
               : c.added ? '<span class="tag added">added</span>'
               : /Redefined|Widened|Three states|Measured as/.test(c.why) ? '<span class="tag changed">changed</span>' : ''}</div>
             <div class="res">${reportText(c.result)}</div>
-            ${c.why ? `<div class="whyline">${reportText(c.why)}</div>` : ''}
+            ${c.why ? `<div class="whyline">${reportText(checkWhy(c))}</div>` : ''}
             ${!c.key && reportFix(c) ? `<div class="technical-fix"><b>Recommended fix: ${reportText(reportFix(c).headline)}</b><ol class="fix-steps">${reportFix(c).steps.map(step => `<li>${reportText(step)}</li>`).join('')}</ol><p>Where: ${reportText(reportFix(c).where)}</p></div>` : ''}
           </div>
-          <div class="val">${c.value}</div>
+          <div class="val">${Number.isFinite(c.value) ? c.value : '—'}</div>
         </div>`).join('')}
     </div>`).join('') : '';
 
@@ -638,19 +659,22 @@ function renderDetailedReport(r){
     `<tr class="${v!=='ok'?'warn':''}"><td>${esc(b)}</td><td>${esc(v)}</td><td class="num"></td></tr>`).join('');
 
   return `
-  <div class="document-brand"><img src="/assets/flow/logo.png" width="120" height="32" alt="Anphonic"><span>AI COMMERCE INTELLIGENCE</span></div><div class="report-heading"><div><h2>Agent Readiness Report</h2><p>Store audit: ${esc(r.domain)} · ${esc(r.scannedAt ? new Date(r.scannedAt).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '')}</p></div><span class="pill">SCAN COMPLETE</span></div>
+  <div class="document-brand"><img src="/assets/flow/logo.png" width="120" height="32" alt="Anphonic"><span>AI COMMERCE INTELLIGENCE</span></div><div class="report-heading"><div><h2>Agent Readiness Report</h2><p>Store audit: ${esc(r.domain)} · ${esc(r.scannedAt ? new Date(r.scannedAt).toLocaleDateString(undefined, {year:'numeric',month:'short',day:'numeric'}) : '')}</p></div><span class="pill">${r.scanStatus === 'partial' ? 'PARTIAL SCAN' : r.scanStatus === 'complete' ? 'SCAN COMPLETE' : 'SAVED SCAN'}</span></div>
   <div class="verdict">
-    <div class="scoreblock ${gradeClass(r.finalScore)}">
-      <div class="n">${r.finalScore}</div>
-      <div class="g">Score out of 100</div>
+    <div class="scoreblock ${gradeClass(headline.score)}">
+      <div class="n">${headline.score}</div>
+      <div class="g">${headline.label} / 100</div>
     </div>
     <div>
-      <span class="eyebrow">${esc(r.brandName || r.domain)}</span><h2>${esc(r.grade)}</h2>
-      <p class="meta">Readiness score · Layers 1–4. ${esc(r.gradeNote)}</p>
+      <span class="eyebrow">${esc(r.brandName || r.domain)}</span><h2>${headline.complete ? 'Overall audit' : esc(r.grade)}</h2>
+      <p class="meta">${headline.complete ? `Includes competitive position at 15%. Storefront readiness (Layers 1–4): ${r.finalScore}/100.` : `Layers 1–4 only. Overall audit score unavailable until the competitor comparison is complete. ${esc(r.gradeNote)}`}</p>
       <p class="meta"><code>${esc(r.domain)}</code> · ${r.catalogCount} products, ${r.sampled} sampled · checkout: ${r.checkoutStack.length ? esc(r.checkoutStack.join(' + ')) : 'No checkout app detected; checkout type unconfirmed'}</p>
     </div>
   </div>
 
+  <p class="muted">This audit measures public storefront responses and checklist heuristics. It does not test Shopify Catalog access, live agent checkout, recommendation rankings or sales conversion.</p>
+  ${r.version !== '2.4-agentnew' ? '<p class="benchmark-status">Historical scan: generated before the latest parser and evidence fixes. Rescan before using these scores or comparisons for decisions.</p>' : ''}
+  <details><summary>Sample and comparison limits</summary><p>${r.sampled} readable product pages from ${r.sampleAttempted ?? 'an unrecorded number of'} attempted pages. Selection: ${esc(r.samplingBasis || 'not recorded')}. Method: ${esc(r.llm?.used ? r.llm.model : 'keyword heuristics')}. A score change is not proof of improvement unless the engine, method and sampled products match.</p>${r.sampleManifest?.length ? `<ul>${r.sampleManifest.map(p => `<li>${esc(p.url)}: ${p.readable ? 'readable' : esc(p.issue || 'unavailable')} · description fingerprint ${esc((p.descriptionHash || '').slice(0,12))}</li>`).join('')}</ul>` : '<p>The original product manifest was not saved; historical sample differences cannot be verified from this report.</p>'}</details>
   <section>
     <div class="sechead"><h3>Category Readiness Scores</h3><span class="section-caption">SCORED FROM YOUR STOREFRONT</span></div>
     ${layers}

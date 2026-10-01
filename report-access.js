@@ -28,7 +28,7 @@ const AGENT_ASKS = {
   serviceability: {
     missing: 'OfferShippingDetails',
     variants: [
-      {ask: t => `Can you deliver the ${t} to 560001?`, reply: "I can't confirm delivery to that pincode. The store doesn't publish shipping details I can read."},
+      {ask: t => `Can you deliver the ${t} to my address?`, reply: "I can't confirm delivery to that pincode. The store doesn't publish shipping details I can read."},
       {ask: t => `How long would the ${t} take to reach me?`, reply: "There's no delivery estimate published for this product, so I can't say."},
       {ask: t => `Do they ship the ${t} to my city?`, reply: "This product doesn't expose serviceability data, so I can't check that for you."},
     ],
@@ -99,7 +99,7 @@ function agentAsk(r) {
   const unreadable = (r.agentView.fields || [])
     .filter(field => field.visible !== true && shown.has(field.label))
     .map(field => field.label).slice(0, 3);
-  return {question: variant.ask(title), answer: variant.reply, missing: template.missing, unreadable};
+  return {question: variant.ask(title), answer: 'The public-storefront audit does not establish how an AI channel would answer. Verify the measured findings, Shopify Catalog settings and live checkout.', missing: template.missing, unreadable};
 }
 // The summary block behind the free report's evidence sections. Paid views
 // render the same summary above the detail, so both paths build it here.
@@ -138,7 +138,7 @@ export function reportPreview(r) {
 export function freeReport(r) {
   if (!r) return null;
   const result = {};
-  for (const key of ['domain','brandName','scannedAt','finalScore','grade','gradeNote','catalogCount','sampled']) result[key] = r[key];
+  for (const key of ['version','scanStatus','samplingBasis','sampleAttempted','domain','brandName','scannedAt','finalScore','grade','gradeNote','catalogCount','sampled']) result[key] = r[key];
   result.checkoutStack = (r.checkoutStack || []).filter(v => typeof v === 'string');
   result.errors = (r.errors || []).filter(v => typeof v === 'string');
   result.layers = Object.fromEntries(['layer1','layer2','layer3','layer4'].filter(key => r.layers?.[key]).map(key => {
