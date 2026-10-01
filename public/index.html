@@ -396,7 +396,7 @@ const BASIS = {
 };
 const SHORT = { productSchema:'Product', variantSchema:'Variants', orgSchema:'Organization',
                 faqSchema:'FAQ', reviewSchema:'Reviews', llmsTxt:'llms.txt',
-                checkoutStack:'Checkout', ucpProfile:'UCP checkout', codPayment:'COD/prepaid',
+                checkoutStack:'Checkout', ucpProfile:'UCP checkout', codPayment:'Payment methods',
                 serviceability:'Delivery', returnPolicy:'Returns', agenticEligibility:'Plan tier',
                 answerFirst:'Answer-first', factualDensity:'Factual density',
                 entityConsistency:'Entity naming', descriptionDepth:'Length',
@@ -546,7 +546,7 @@ ${esc(fix.snippet)}
     <div class="wbar">${bar}</div>
     <div class="wlegend">Segment width is each check's real share of this layer. The underline is what it scored.
       This layer is ${L.specWeight}% of the spec and ${L.effectiveWeight}% of the score computed here.
-      Values shown in fixes are this store's own, in ${esc(L.currency)}.</div>
+      Detected offer currency: ${esc(L.currency || 'Unknown or multiple currencies')}. Fix templates may contain placeholders; verify prices, currencies and checkout settings before publishing.</div>
     ${cards}`;
 }
 
@@ -647,7 +647,7 @@ function renderDetailedReport(r){
     <div>
       <span class="eyebrow">${esc(r.brandName || r.domain)}</span><h2>${esc(r.grade)}</h2>
       <p class="meta">Readiness score · Layers 1–4. ${esc(r.gradeNote)}</p>
-      <p class="meta"><code>${esc(r.domain)}</code> · ${r.catalogCount} products, ${r.sampled} sampled · checkout: ${r.checkoutStack.length ? esc(r.checkoutStack.join(' + ')) : 'native Shopify'}</p>
+      <p class="meta"><code>${esc(r.domain)}</code> · ${r.catalogCount} products, ${r.sampled} sampled · checkout: ${r.checkoutStack.length ? esc(r.checkoutStack.join(' + ')) : 'No checkout app detected; checkout type unconfirmed'}</p>
     </div>
   </div>
 

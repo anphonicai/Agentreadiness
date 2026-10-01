@@ -89,7 +89,7 @@ function agentAsk(r) {
   const title = typeof r.agentView?.title === 'string' ? r.agentView.title.trim() : '';
   if (!title) return null;
   const template = AGENT_ASKS[(r.gaps || [])[0]?.check] || AGENT_ASKS.productSchema;
-  const indian = r.country === 'IN' || r.currency === 'INR';
+  const indian = (r.country ? r.country === 'IN' : r.currency === 'INR');
   const variants = (!indian && template.variantsIntl) || template.variants;
   const variant = variants[variantIndex(r.domain || title, variants.length)];
   if (!variant) return null;

@@ -16,7 +16,7 @@ import {publicFetch} from './public-fetch.js';
 // ============================================================== SCORING CONFIG
 // Everything tunable lives here. Change a number, rerun, done.
 
-export const VERSION = '2.2-agentnew';   // Comparable scan metadata for Layer 5
+export const VERSION = '2.3-agentnew';   // Comparable scan metadata for Layer 5
 
 export const WEIGHTS = {
   layer1: 0.20,   // Crawler & technical access
@@ -549,6 +549,25 @@ function parseRobots(txt) {
   return groups;
 }
 
+// Currency must come from explicit store data, never geography or a default.
+export function storefrontMarket(html) {
+  return {
+    currency: (html.match(/Shopify\.currency\s*=\s*\{[^}]*["']?active["']?\s*:\s*["']([A-Z]{3})["']/i) || [])[1]?.toUpperCase() || null,
+    country: (html.match(/Shopify\.country\s*=\s*["']([A-Z]{2})["']/i) || [])[1]?.toUpperCase() || null,
+  };
+}
+export function reportCurrency(products, fallback) {
+  const currencies = [...new Set(products.map(p => p.offerCurrency).filter(c => /^[A-Z]{3}$/.test(c || '')))];
+  return currencies.length > 1 ? null : currencies[0] || (/^[A-Z]{3}$/.test(fallback || '') ? fallback : null);
+}
+// Pair the price with its own Offer currency. Catalogue prices can belong to a
+// different market; never relabel them with a currency from another page.
+export function observedOfferPrice(p) {
+  return p.offerPrice != null && /^[A-Z]{3}$/.test(p.offerCurrency || '')
+    ? {price: p.offerPrice, priceCurrency: p.offerCurrency}
+    : {price: 'REPLACE_WITH_VERIFIED_PRICE', priceCurrency: 'REPLACE_WITH_VERIFIED_CURRENCY'};
+}
+
 // ==================================================================== COLLECT
 
 export async function collect(domainInput, onProgress = () => {}, options = {}) {
@@ -580,12 +599,7 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
   raw.orgLogo = org && (typeof org.logo === 'string' ? org.logo : org.logo && org.logo.url) || '';
   // currency for the fix snippets — the product pages are the reliable source,
   // this is only the fallback when none of them carry an offer
-  raw.currency = (home.body.match(/Shopify\.currency\s*=\s*\{[^}]*"active"\s*:\s*"([A-Z]{3})"/) || [])[1] || null;
-  // Where the store actually sells. COD framing is meaningful in India and
-  // misleading in the US, so the copy below branches on this rather than
-  // assuming every storefront is Indian.
-  raw.country = (home.body.match(/Shopify\.country\s*=\s*"([A-Z]{2})"/) || [])[1]
-    || (home.body.match(/"countryCode"\s*:\s*"([A-Z]{2})"/) || [])[1] || null;
+  Object.assign(raw, storefrontMarket(home.body));
   // How the brand name is rendered, for Layer 4's entity-consistency check.
   // Tokenised so "SuperYou", "Super You" and "Super-You" all match, and we can
   // tell which literal form each page actually used.
@@ -761,7 +775,8 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
       variantSample: variants.slice(0, 3).map((v) => ({
         title: v.title, price: v.price, sku: v.sku || null, available: !!v.available,
       })),
-      offerCurrency: offers.map((o) => o && o.priceCurrency).find(Boolean) || null,
+      offerPrice: offers.find(o => o && o.price != null && /^[A-Z]{3}$/.test(o.priceCurrency || ''))?.price ?? null,
+      offerCurrency: offers.find(o => o && o.price != null && /^[A-Z]{3}$/.test(o.priceCurrency || ''))?.priceCurrency || null,
       available: variants.some((v) => v.available),
       imageCount: (p.images || []).length,
       descWords: words(desc),
@@ -809,7 +824,7 @@ export async function collect(domainInput, onProgress = () => {}, options = {}) 
 const ld = (obj) => JSON.stringify(obj, null, 2);
 const availUrl = (yes) => `https://schema.org/${yes ? 'InStock' : 'OutOfStock'}`;
 
-function productFix(p, brand, currency) {
+function productFix(p, brand) {
   return ld({
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -820,14 +835,13 @@ function productFix(p, brand, currency) {
     offers: {
       '@type': 'Offer',
       url: p.url,
-      price: p.price,
-      priceCurrency: currency,
+      ...observedOfferPrice(p),
       availability: availUrl(p.available),
     },
   });
 }
 
-function variantFix(p, brand, currency) {
+function variantFix(p, brand) {
   const opts = p.optionNames.length ? p.optionNames : ['Size'];
   return ld({
     '@context': 'https://schema.org',
@@ -843,8 +857,8 @@ function variantFix(p, brand, currency) {
       sku: v.sku || 'YOUR_SKU_HERE',
       offers: {
         '@type': 'Offer',
-        price: v.price,
-        priceCurrency: currency,
+        price: 'REPLACE_WITH_VERIFIED_VARIANT_PRICE',
+        priceCurrency: 'REPLACE_WITH_VERIFIED_VARIANT_CURRENCY',
         availability: availUrl(v.available),
       },
     })),
@@ -877,7 +891,7 @@ function faqFix(brand) {
   });
 }
 
-function reviewFix(p, currency) {
+function reviewFix(p) {
   return ld({
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -888,7 +902,7 @@ function reviewFix(p, currency) {
       reviewCount: 'YOUR_REVIEW_COUNT',
       bestRating: 5,
     },
-    offers: { '@type': 'Offer', price: p.price, priceCurrency: currency, availability: availUrl(p.available) },
+    offers: { '@type': 'Offer', ...observedOfferPrice(p), availability: availUrl(p.available) },
   });
 }
 
@@ -902,19 +916,16 @@ export function score(raw) {
   raw.productPages = {attempted: (raw.products || []).length, readable: live.length};
   // Report copy follows the store's own market. COD is a real purchase path in
   // India and not one in the US, and "pincode" is Indian usage for a postcode.
-  const IN_MARKET = raw.country === 'IN' || raw.currency === 'INR';
+  const IN_MARKET = (raw.country ? raw.country === 'IN' : reportCurrency(live, raw.currency) === 'INR');
   const AREA = IN_MARKET ? 'pincode' : 'postcode';
-  const PAY_WORDS = IN_MARKET ? 'COD or prepaid' : 'a payment method';
-  const PAY_SIGNAL = IN_MARKET ? 'COD' : 'payment-method';
-  const DELIVERY_EG = IN_MARKET ? 'can you deliver to Pune by Friday' : 'can you deliver to Austin by Friday';
-  const SYMBOLS = {INR: '\u20b9', USD: '$', GBP: '\u00a3', EUR: '\u20ac', CAD: 'CA$', AUD: 'A$', SGD: 'S$', AED: 'AED '};
-  // Never print a price in a currency the store does not sell in.
-  const money = (v) => `${SYMBOLS[raw.currency] || (raw.currency ? raw.currency + ' ' : '')}${v}`;
-  // Payment methods worth declaring differ by market; suggesting UPI to a US
-  // merchant is advice they cannot act on.
-  const PAY_METHODS = IN_MARKET
-    ? ['Cash on Delivery', 'UPI', 'Credit Card']
-    : ['Credit Card', 'Debit Card', 'PayPal'];
+  const PAY_WORDS = 'COD or prepaid';
+  const PAY_SIGNAL = 'COD';
+  const DELIVERY_EG = 'can you deliver to my address by Friday';
+  const money = p => {
+    const offer = observedOfferPrice(p);
+    return p.offerPrice != null && /^[A-Z]{3}$/.test(p.offerCurrency || '')
+      ? `${offer.priceCurrency} ${offer.price}` : null;
+  };
   const hasProducts = live.length > 0;
 
   // ---------------------------------------------------------------- Layer 1
@@ -1169,7 +1180,7 @@ export function score(raw) {
       const inText = cnt((p) => p.codInText || p.prepaidInText);
       // Only say COD where COD is a real purchase path. Elsewhere the finding is
       // the same -- no machine-readable payment method -- without the framing.
-      const closing = raw.country === 'IN' || raw.currency === 'INR'
+      const closing = (raw.country ? raw.country === 'IN' : reportCurrency(live, raw.currency) === 'INR')
         ? ' COD versus prepaid is the biggest purchase-path question in Indian ecommerce and it is invisible to agents.'
         : ' An agent cannot tell a shopper how to pay for this product.';
       return `No product declares acceptedPaymentMethod in its Offer${inText ? `, though ${inText} of ${n} name payment options in page text a shopper can read and an agent cannot` : ''}.${closing}`;
@@ -1177,8 +1188,8 @@ export function score(raw) {
     serviceability: () => {
       const widget = cnt((p) => p.pincodeWidget);
       // "pincode" is Indian usage; say postcode elsewhere.
-      const area = raw.country === 'IN' || raw.currency === 'INR' ? 'pincode' : 'postcode';
-      return `No product publishes OfferShippingDetails${widget ? `, and the ${area} checker on ${widget} of ${n} pages calls a private API from JavaScript` : ''}. An agent asked whether you deliver to a given ${area} has nothing to read.`;
+      const area = (raw.country ? raw.country === 'IN' : reportCurrency(live, raw.currency) === 'INR') ? 'pincode' : 'postcode';
+      return `No product publishes OfferShippingDetails${widget ? `, a ${area} or delivery checker was detected on ${widget} of ${n} pages; its live behavior was not tested` : ''}. An agent asked whether you deliver to a given ${area} has nothing to read.`;
     },
     returnPolicy: (v) => v === 0
       ? 'No return policy page was found at any standard URL, so an agent asked "can I return this?" has nothing to quote.'
@@ -1280,7 +1291,7 @@ export function score(raw) {
   // choice, not defaults papering over a failed measurement, and the screen
   // labels them as such so nobody reads 50 as a measurement.
   const layer2Report = (() => {
-    const currency = live.map((p) => p.offerCurrency).find(Boolean) || raw.currency || 'INR';
+    const currency = reportCurrency(live, raw.currency);
     const brand = raw.brandName;
     const cap = (list) => ({ items: list.slice(0, 8), total: list.length, more: Math.max(0, list.length - 8) });
 
@@ -1359,7 +1370,7 @@ export function score(raw) {
             'Agents read price and stock from this block, not from the rendered page.',
             'Fix it in the template once and it applies to the whole catalogue.',
           ],
-          snippet: productFix(pFix, brand, currency),
+          snippet: productFix(pFix, brand),
         } : null,
       }),
       build('variantSchema', {
@@ -1389,7 +1400,7 @@ export function score(raw) {
             'An agent asked for a specific size cannot confirm that size exists, so it recommends a competitor that can.',
             'ProductGroup + hasVariant is the pattern Google and the agent crawlers both read.',
           ],
-          snippet: variantFix(vFix, brand, currency),
+          snippet: variantFix(vFix, brand),
         } : null,
       }),
       build('orgSchema', {
@@ -1495,7 +1506,7 @@ export function score(raw) {
             'Most review apps have this as a single toggle; it does not need theme code.',
             'Never publish a rating you cannot substantiate.',
           ],
-          snippet: reviewFix(rFix, currency),
+          snippet: reviewFix(rFix),
         } : null,
       }),
     ];
@@ -1519,7 +1530,7 @@ export function score(raw) {
   const layer3Report = (() => {
     const cap = (list) => ({ items: list.slice(0, 8), total: list.length, more: Math.max(0, list.length - 8) });
     const stack = raw.checkoutStack || [];
-    const currency = live.map((p) => p.offerCurrency).find(Boolean) || raw.currency || 'INR';
+    const currency = reportCurrency(live, raw.currency);
     const payExample = live.find((p) => p.codInText) || live[0] || null;
     const shipExample = live.find((p) => p.pincodeWidget) || live[0] || null;
     const layerShare = WEIGHTS.layer3 / totalWeight;
@@ -1585,7 +1596,9 @@ export function score(raw) {
             : `No acceptedPaymentMethod, and no ${PAY_WORDS} signal in page text either`,
         why: 'Not in the previous build. The spec asks for payment options structured rather than buried in JS widgets, so this separates a parseable field from prose a human reads.',
         evidence: {
-          headline: codPct > 0
+          headline: paySchemaPct > 0
+            ? `${cnt(p => p.paymentSchema)} of ${n} products declare acceptedPaymentMethod`
+            : codPct > 0
             ? `${PAY_SIGNAL} named in the page text of ${cnt((p) => p.codInText)} of ${n} products; acceptedPaymentMethod on 0`
             : `No ${PAY_SIGNAL} signal on any of ${n} sampled products`,
           ...cap(live.filter((p) => p.codInText || p.prepaidInText).map((p) => ({
@@ -1601,39 +1614,39 @@ export function score(raw) {
               ? 'COD versus prepaid is the single biggest purchase-path question in Indian ecommerce, and right now it is invisible to agents.'
               : 'How a shopper can pay is a purchase-path question an agent must answer, and right now it is invisible to them.',
             'This goes inside the Offer you already publish — it is two extra fields, not a new block.',
-            'List only the methods you genuinely accept.',
+            'Confirm accepted methods in your payment settings. Replace every placeholder before publishing; payment availability can vary by market.',
           ],
           snippet: ld({
             '@context': 'https://schema.org', '@type': 'Offer',
-            url: payExample.url, price: payExample.price, priceCurrency: currency,
+            url: payExample.url, ...observedOfferPrice(payExample),
             availability: availUrl(payExample.available),
-            acceptedPaymentMethod: PAY_METHODS.map((name) => ({ '@type': 'PaymentMethod', name })),
+            acceptedPaymentMethod: [{ '@type': 'PaymentMethod', name: 'REPLACE_WITH_VERIFIED_ACCEPTED_METHOD' }],
           }),
         } : null,
       }),
       build('serviceability', {
         value: l3.serviceability,
         basis: 'state',
-        basisNote: `Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A ${AREA} widget is a JavaScript call to a private API an agent cannot make, so it is reported below as context rather than scored.`,
+        basisNote: `Binary, per the v2 spec: OfferShippingDetails in the product JSON-LD = 100, anything else = 0. A detected ${AREA} or delivery widget is informational; its live API access and checkout behavior were not tested.`,
         result: shipSchemaPct > 0
           ? `${Math.round((shipSchemaPct / 100) * n)} of ${n} products publish OfferShippingDetails`
           : pincodePct > 0
-            ? `No OfferShippingDetails — a JS-only pincode checker runs on ${cnt((p) => p.pincodeWidget)} of ${n} pages`
+            ? `No OfferShippingDetails — a ${AREA} or delivery checker appears on ${cnt((p) => p.pincodeWidget)} of ${n} pages`
             : `No OfferShippingDetails and no ${AREA} checker found`,
         why: `Not in the previous build. The old shipping check measured the policy page's text length, which is a different question from ${AREA}-level serviceability. That measurement is kept below as an extra, unscored.`,
         evidence: {
           headline: pincodePct > 0
-            ? `Pincode or delivery-estimate widget found on ${cnt((p) => p.pincodeWidget)} of ${n} product pages`
+            ? `${AREA} or delivery-estimate widget found on ${cnt((p) => p.pincodeWidget)} of ${n} product pages`
             : `No ${AREA} or delivery-estimate widget found on any sampled product page`,
           ...cap(live.filter((p) => p.pincodeWidget).map((p) => ({
-            title: p.title, url: p.url, note: 'pincode checker, JS-only',
+            title: p.title, url: p.url, note: `${AREA} or delivery checker detected; live behavior not tested`,
           }))),
         },
         fix: l3.serviceability < 100 && shipExample ? {
           headline: `Publish delivery windows as shippingDetails for ${shipExample.title}`,
           where: 'Theme editor → product template, in the existing Product JSON-LD Offer',
           steps: [
-            `The ${AREA} widget already knows your delivery windows — this exposes the same answer in a field an agent can read.`,
+            'Confirm your actual delivery destinations and windows in your shipping settings. Replace every placeholder before publishing this template.',
             `Agents asked "${DELIVERY_EG}" currently have nothing to work from.`,
             'Publish your real handling and transit times; a wrong promise here is worse than none.',
           ],
@@ -1642,11 +1655,11 @@ export function score(raw) {
             url: shipExample.url,
             shippingDetails: {
               '@type': 'OfferShippingDetails',
-              shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'IN' },
+              shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'REPLACE_WITH_VERIFIED_DESTINATION_COUNTRY' },
               deliveryTime: {
                 '@type': 'ShippingDeliveryTime',
-                handlingTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 2, unitCode: 'DAY' },
-                transitTime: { '@type': 'QuantitativeValue', minValue: 2, maxValue: 6, unitCode: 'DAY' },
+                handlingTime: { '@type': 'QuantitativeValue', minValue: 'VERIFIED_MIN_HANDLING_DAYS', maxValue: 'VERIFIED_MAX_HANDLING_DAYS', unitCode: 'DAY' },
+                transitTime: { '@type': 'QuantitativeValue', minValue: 'VERIFIED_MIN_TRANSIT_DAYS', maxValue: 'VERIFIED_MAX_TRANSIT_DAYS', unitCode: 'DAY' },
               },
             },
           }),
@@ -1923,7 +1936,7 @@ export function score(raw) {
       specWeight: Math.round(WEIGHTS.layer4 * 100),
       effectiveWeight: Math.round(layerShare * 100),
       sampleSize: n,
-      currency: live.map((p) => p.offerCurrency).find(Boolean) || raw.currency || 'INR',
+      currency: reportCurrency(live, raw.currency),
       note: `${llmUsed ? `Answer-first is graded by ${(raw.llm || {}).model}; factual density and entity naming stay deterministic, because counting and string matching do not need a model.` : `The spec computes the first two checks with an LLM call; they are measured here by keyword detection instead, so a scan needs no API key and costs nothing.`} Description length, uniqueness and image coverage are not in the spec — they are measured and shown, never scored.`,
       checks: shown,
     };
@@ -1992,7 +2005,7 @@ export function score(raw) {
     catalogNote: `Weakest of ${n} sampled products`,
     fields: [
       { label: 'Name', value: worst.title, visible: true },
-      { label: 'Price', value: worst.price ? money(worst.price) : null, visible: worst.schema.price,
+      { label: 'Price', value: money(worst), visible: worst.schema.price && money(worst) !== null,
         action: 'Expose price in the product schema' },
       { label: 'In stock', value: worst.available ? 'Yes' : 'No', visible: worst.schema.availability,
         action: 'Add availability to the offer' },
@@ -2030,7 +2043,7 @@ export function score(raw) {
     checkoutStack: raw.checkoutStack || [],
     productPages: raw.productPages || null,
     country: raw.country || null,
-    currency: raw.currency || null,
+    currency: reportCurrency(live, raw.currency),
     botVerdicts,
     behindCloudflare: !!raw.behindCloudflare,
     errors: raw.errors,
@@ -2100,6 +2113,6 @@ if (isMain) {
     }
     console.log('\n  Top gaps:');
     r.gaps.forEach((g, i) => console.log(`   ${i + 1}. ${g.message}`));
-    console.log(`\n  Checkout: ${r.checkoutStack.length ? r.checkoutStack.join(' + ') : 'native Shopify'}`);
+    console.log(`\n  Checkout: ${r.checkoutStack.length ? r.checkoutStack.join(' + ') : 'No checkout app detected; checkout type unconfirmed'}`);
   }
 }
