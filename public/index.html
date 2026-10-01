@@ -247,6 +247,7 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
 <link rel="stylesheet" href="/footer.css">
 <link rel="stylesheet" href="/typography.css">
 <link rel="stylesheet" href="/free-report.css">
+<link rel="stylesheet" href="/home.css">
 </head>
 <body data-screen="home">
 <nav class="flow-nav" aria-label="Main navigation">
@@ -258,17 +259,46 @@ details summary{cursor:pointer;color:var(--link);font-size:15px;margin-bottom:ca
   <header class="masthead"><a href="/" aria-label="Anphonic Agent Readiness home"><img src="/assets/anphonic-logo.png" alt="Anphonic" width="213" height="50"></a><span class="edition">AI COMMERCE INTELLIGENCE</span></header>
 
   <div id="intro" class="lede">
-    <div class="eyebrow">AI COMMERCE INTELLIGENCE</div><h1>See your store through <span class="hero-ending">the eyes of AI.</span></h1>
-    <p class="hero-promise">See what matters. Not everything that could be wrong.</p>
-    <p class="hero-description">Enter a Shopify store URL. We read the catalogue exactly as ChatGPT, Copilot, Gemini or Perplexity would, then show you the product data they can't see.</p>
-
-    <form id="form">
-      <input type="text" id="url" placeholder="Store name or URL" autocomplete="url" spellcheck="false" aria-label="Store name or website URL" aria-describedby="err" maxlength="2048" required>
-      <button id="go" type="submit">Analyse store →</button>
-    </form>
-    <p class="form-note">Free scan · Public storefront data only</p><div id="err" class="err hidden" role="alert"></div>
-    <div class="recent hero-scan-count">1,200+ stores scanned this month</div>
-    <div class="flow-signals"><span>● &nbsp; AI readiness score</span><span>● &nbsp; Page-level intelligence</span><span>● &nbsp; Actionable findings</span></div>
+    <div class="home-hero">
+      <div class="home-copy">
+        <div class="eyebrow">AI COMMERCE INTELLIGENCE</div>
+        <h1>Ready for AI agents.<br>Or not. Find out.</h1>
+        <p class="home-description">Can your store answer a shopper’s questions when an AI agent asks? Find out what agents can see — and what’s missing.</p>
+        <form id="form">
+          <input type="text" id="url" placeholder="Enter store name or URL" autocomplete="url" spellcheck="false" aria-label="Store name or website URL" aria-describedby="home-form-note err" maxlength="2048" required>
+          <button id="go" type="submit">Analyse store <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="form-note" id="home-form-note">Public storefront data only · No card required</p>
+        <div id="err" class="err hidden" role="alert"></div>
+        <div class="home-reassurance"><span aria-hidden="true"></span>A clearer view of your store. A practical next step.</div>
+      </div>
+      <figure class="home-preview" aria-labelledby="sample-caption">
+        <div class="agent-illustration" aria-label="Your storefront connects to AI agents for a readiness check">
+          <div class="illustration-node"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M10 23v18h28V23M8 13h32l3 10a6 6 0 0 1-9 4 6 6 0 0 1-10 0 6 6 0 0 1-10 0 6 6 0 0 1-9-4l3-10Z"/><path d="M11 13V7h26v6M19 41V31h10v10M16 14l-2 12m10-12v12m8-12 2 12"/></svg><span>Your store</span></div>
+          <div class="illustration-connection" aria-hidden="true"><i></i><i></i><i></i><span>→</span></div>
+          <div class="illustration-node illustration-agent"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="8" y="14" width="32" height="26" rx="10"/><path d="M24 14V8M4 25v6m40-6v6M18 32c4 3 8 3 12 0"/><circle cx="24" cy="6" r="2"/><circle cx="18" cy="24" r="2"/><circle cx="30" cy="24" r="2"/></svg><span>AI agents</span></div>
+          <span class="illustration-spark" aria-hidden="true">✧</span>
+        </div>
+        <div class="sample-report">
+          <div class="sample-label"><span>Sample report</span><span>AI commerce readiness</span></div>
+          <div class="sample-verdict"><strong>67<small>/100</small></strong><div><b>Partially ready</b><p>Readable, with room to improve the details agents rely on.</p></div></div>
+          <dl class="sample-scores">
+            <div><dt>Crawler access<span class="sample-meter" aria-hidden="true"><i style="width:100%"></i></span></dt><dd>100</dd></div>
+            <div><dt>Structured data<span class="sample-meter" aria-hidden="true"><i style="width:84%"></i></span></dt><dd>84</dd></div>
+            <div><dt>Checkout &amp; UCP<span class="sample-meter" aria-hidden="true"><i style="width:50%"></i></span></dt><dd class="sample-amber">50</dd></div>
+            <div><dt>Content clarity<span class="sample-meter" aria-hidden="true"><i style="width:27%"></i></span></dt><dd class="sample-coral">27</dd></div>
+          </dl>
+          <div class="sample-bottom"><span class="sample-dot" aria-hidden="true"></span>See the gaps. Know what to fix.</div>
+        </div>
+        <figcaption id="sample-caption">A preview of your report — with your own store’s findings.</figcaption>
+      </figure>
+    </div>
+    <div class="home-insights" aria-label="Why AI readiness matters">
+      <article class="home-insight"><div class="insight-illustration" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M5 5h22v16H15l-6 5v-5H5z"/><path d="M16 10v5m0 3v.5"/></svg></div><h2>What you could be missing</h2><ul><li>Can’t confirm Cash on Delivery</li><li>Can’t check delivery to a pincode</li><li>Can’t quote a verified product fact</li></ul></article>
+      <article class="home-insight"><div class="insight-illustration" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="m5 24 8-8 6 4L28 8M20 8h8v8"/><path d="M5 8v20h23"/></svg></div><h2>The opportunity</h2><p>Make your products easier for AI agents to understand, compare, and recommend. Start with the data your store already has.</p></article>
+      <article class="home-insight"><div class="insight-illustration" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="6"/><path d="m13 16 2 2 5-5"/></svg></div><h2>What it means for you</h2><p>An unanswered question can mean a missed sale. Your report shows the gaps — so you know where to focus.</p></article>
+    </div>
+    <div class="home-standards"><h2>Built on the standards agents actually use</h2><ul><li>Universal Commerce Protocol</li><li>Schema.org JSON-LD</li><li>Shopify Agentic Storefronts</li><li>Model Context Protocol</li></ul></div>
   </div>
 
   <div id="analysis-heading" class="hidden"><div class="flow-track" aria-hidden="true"><i></i></div><h1>Analysing <em id="analysis-store"></em></h1><p>Inspecting your public storefront.</p></div>

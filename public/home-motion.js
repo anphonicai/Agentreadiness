@@ -24,7 +24,7 @@
         .from(home.querySelector('p'), {opacity:0, y:18, clearProps:'opacity,transform'}, 0.18)
         .from(home.querySelector('#form'), {opacity:0, y:20, clearProps:'opacity,transform'}, 0.28)
         .from(home.querySelector('.form-note'), {opacity:0, y:8, clearProps:'opacity,transform'}, 0.36)
-        .from(home.querySelectorAll('.flow-signals span'), {opacity:0, y:12, stagger:0.09, clearProps:'opacity,transform'}, 0.45);
+        .from(home.querySelectorAll('.home-insight'), {opacity:0, y:12, stagger:0.09, clearProps:'opacity,transform'}, 0.45);
 
       // Keyboard/pointer interaction should never wait for the entrance to finish.
       const finishEntrance = () => entrance.progress(1);
